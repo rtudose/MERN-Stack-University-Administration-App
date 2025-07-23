@@ -25,6 +25,7 @@ const Users = () => {
       const response = await getAllUsers();
       setUsers(response.data);
     } catch (err) {
+      console.error('Failed to fetch users:', err); // Log the specific error
       setError(t('fetch_users_error'));
     } finally {
       setLoading(false);
@@ -151,7 +152,7 @@ const Users = () => {
             <select id="role" value={formData.role} onChange={handleInputChange} style={styles.input}>
               <option value="student">{t('role_label_student')}</option>
               <option value="admin">{t('role_label_admin')}</option>
-              <option value="external_representative">{t('role_label_external')}</option>
+              <option value="external_representative">{t('role_label_external_representative')}</option>
             </select>
           </div>
           <div style={styles.buttonGroup}>

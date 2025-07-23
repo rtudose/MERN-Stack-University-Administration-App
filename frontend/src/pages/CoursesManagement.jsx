@@ -49,8 +49,22 @@ const CoursesManagement = () => {
   };
 
   const getTranslatedError = (msg) => {
-    if (msg.includes('A course with this code already exists')) return 'course_code_exists_error';
-    if (msg.includes('A course with this name already exists')) return 'course_name_exists_error';
+    // Check for Mongoose 'required' error
+    if (msg.includes('is required')) {
+      return 'course_form_error_required';
+    }
+    // Check for Mongoose 'min' error for credits
+    if (msg.includes('is less than minimum allowed value')) {
+      return 'course_credits_min_error';
+    }
+    // Handle unique field errors
+    if (msg.includes('A course with this code already exists')) {
+      return 'course_code_exists_error';
+    }
+    if (msg.includes('A course with this name already exists')) {
+      return 'course_name_exists_error';
+    }
+    // Fallback for any other error
     return 'generic_error';
   };
 
