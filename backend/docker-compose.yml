@@ -1,0 +1,13 @@
+# docker-compose.yml
+version: '3.8'
+services:
+  mongo:
+    image: mongo:latest
+    container_name: faculty-mongodb
+    ports:
+      - "27017:27017" # Map host port 27017 to container port 27017
+    volumes:
+      - mongo-data:/data/db # Persist data to a named volume
+
+volumes:
+  mongo-data:
