@@ -112,7 +112,8 @@ const resources = {
       "course_code_exists_error": "A course with this code already exists.",
       "course_name_exists_error": "A course with this name already exists.",
       "course_form_error_required": "Please fill out all required fields (Name, Code, Credits, Professor).",
-      "course_credits_min_error": "Credits must be a positive number of at least 1.",
+      "course_credits_min_error": "Credits must be a positive number.",
+      "course_credits_integer_error": "Credits must be a whole number.",
 
       // Add/Edit Room Form
       "add_new_room_title": "Add New Room",
@@ -144,6 +145,9 @@ const resources = {
       "room_not_found": "Room not found",
       "overlap_detected_room_booked": "Overlap detected! Room {{roomName}} is already booked for '{{courseName}}' from {{startTime}} to {{endTime}} on {{dayOfWeek}}.",
       "appointment_time_invalid": "Appointment times must be between {{start}} and {{end}}.",
+
+      // Back Button
+      "back_button": "Back",
     }
   },
   ro: {
@@ -254,7 +258,8 @@ const resources = {
       "course_code_exists_error": "Un curs cu acest cod există deja.",
       "course_name_exists_error": "Un curs cu acest nume există deja.",
       "course_form_error_required": "Vă rugăm completați toate câmpurile obligatorii (Nume, Cod, Credite, Profesor).",
-      "course_credits_min_error": "Numărul de credite trebuie să fie un număr pozitiv de cel puțin 1.",
+      "course_credits_min_error": "Numărul de credite trebuie să fie un număr pozitiv.",
+      "course_credits_integer_error": "Numărul de credite trebuie să fie un număr întreg.",
 
       // Add/Edit Room Form
       "add_new_room_title": "Adaugă Sală Nouă",
@@ -285,7 +290,10 @@ const resources = {
       "course_not_found": "Cursul nu a fost găsit",
       "room_not_found": "Sala nu a fost găsită",
       "overlap_detected_room_booked": "Suprapunere detectată! Sala {{roomName}} este deja rezervată pentru '{{courseName}}' de la {{startTime}} la {{endTime}} în ziua de {{dayOfWeek}}.",
-      "appointment_time_invalid": "Orele programării trebuie să fie între {{start}} și {{end}}."
+      "appointment_time_invalid": "Orele programării trebuie să fie între {{start}} și {{end}}.",
+
+      // Back Button
+      "back_button": "Înapoi",
     }
   }
 };

@@ -1,33 +1,36 @@
-// src/pages/Rooms.jsx (Corrected for backend error translation)
+// src/pages/Rooms.jsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getAllRooms, createRoom, updateRoom, deleteRoom } from '../services/roomService';
+
+import {
+  Container, Box, Typography, TextField, Button, Alert, Paper, Grid, Stack,
+  Table, TableBody, TableCell, TableContainer, TableHead, TableRow, IconButton
+} from '@mui/material';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import BackButton from '../components/BackButton';
 
 function Rooms() {
   const { t } = useTranslation();
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
   const [formMessage, setFormMessage] = useState('');
   const [messageType, setMessageType] = useState('');
 
   const [isEditing, setIsEditing] = useState(false);
   const [currentRoomId, setCurrentRoomId] = useState(null);
-  const [formData, setFormData] = useState({
-    name: '',
-    capacity: '',
-    location: '',
-  });
+  const [formData, setFormData] = useState({ name: '', capacity: '', location: '' });
 
-  // NEW: Function to map backend errors to translation keys
-  const getTranslatedBackendError = (backendMsg) => {
-    switch (backendMsg) {
+  // NEW: Helper function to translate specific backend errors
+  const getTranslatedBackendError = (msg) => {
+    switch (msg) {
       case 'Room with this name already exists':
         return t('room_exists_error');
-      // You can add more specific error mappings here in the future
+      // Add other room-specific error mappings here in the future
       default:
-        return null; // Return null if no specific mapping is found
+        return null;
     }
   };
 
@@ -88,20 +91,17 @@ function Rooms() {
     };
 
     try {
-      let response;
       if (isEditing) {
-        response = await updateRoom(currentRoomId, roomPayload);
-        setFormMessage(t('room_updated_success', { roomName: response.data.name }));
-        setMessageType('success');
+        await updateRoom(currentRoomId, roomPayload);
+        setFormMessage(t('room_updated_success', { roomName: trimmedName }));
       } else {
-        response = await createRoom(roomPayload);
-        setFormMessage(t('room_added_success', { roomName: response.data.name }));
-        setMessageType('success');
+        await createRoom(roomPayload);
+        setFormMessage(t('room_added_success', { roomName: trimmedName }));
       }
+      setMessageType('success');
       resetForm();
       fetchRooms();
     } catch (err) {
-      console.error("Error submitting form:", err);
       // UPDATED: Use the new error mapping function
       let finalErrorMsg;
       if (err.response?.data?.msg) {
@@ -111,7 +111,7 @@ function Rooms() {
       if (!finalErrorMsg) {
         finalErrorMsg = t(isEditing ? 'update_room_generic_error' : 'add_room_generic_error');
       }
-
+      
       setFormMessage(finalErrorMsg);
       setMessageType('error');
     }
@@ -121,12 +121,8 @@ function Rooms() {
     setFormMessage('');
     setIsEditing(true);
     setCurrentRoomId(room._id);
-    setFormData({
-      name: room.name,
-      capacity: room.capacity,
-      location: room.location,
-    });
-    window.scrollTo(0, 0);
+    setFormData({ name: room.name, capacity: room.capacity, location: room.location });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleDeleteClick = async (roomId) => {
@@ -137,100 +133,84 @@ function Rooms() {
         setMessageType('success');
         setRooms(prevRooms => prevRooms.filter(room => room._id !== roomId));
       } catch (err) {
-        console.error("Error deleting room:", err);
         setFormMessage(t('delete_room_generic_error'));
         setMessageType('error');
       }
     }
   };
 
-  if (loading) return <div style={styles.container}>{t('loading_rooms')}</div>;
-  if (error) return <div style={{ ...styles.container, color: 'red' }}>{error}</div>;
+  if (loading) return <div>{t('loading_rooms')}</div>;
+  if (error) return <Alert severity="error">{error}</Alert>;
 
   return (
-    <div style={styles.container}>
-      <h2 style={styles.header}>{t('rooms_management_title')}</h2>
+    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+      <BackButton />
+      <Typography variant="h4" component="h1" gutterBottom sx={{ textAlign: 'center' }}>
+        {t('rooms_management_title')}
+      </Typography>
 
-      <div style={styles.formContainer}>
-        <h3 style={styles.subHeader}>
+      <Paper sx={{ p: { xs: 2, md: 3 }, mb: 4 }}>
+        <Typography variant="h5" component="h2" gutterBottom>
           {isEditing ? t('edit_room_title') : t('add_new_room_title')}
-        </h3>
-        <form onSubmit={handleSubmit} style={styles.form} noValidate>
-          <div style={styles.formGroup}>
-            <label htmlFor="name" style={styles.label}>{t('room_name_label')}:</label>
-            <input type="text" id="name" value={formData.name} onChange={handleInputChange} style={styles.input} required />
-          </div>
-          <div style={styles.formGroup}>
-            <label htmlFor="capacity" style={styles.label}>{t('room_capacity_label')}:</label>
-            <input type="number" id="capacity" value={formData.capacity} onChange={handleInputChange} style={styles.input} min="1" step="1" required />
-          </div>
-          <div style={styles.formGroup}>
-            <label htmlFor="location" style={styles.label}>{t('room_location_label')}:</label>
-            <input type="text" id="location" value={formData.location} onChange={handleInputChange} style={styles.input} required />
-          </div>
-          <div style={styles.buttonGroup}>
-            <button type="submit" style={styles.button}>
+        </Typography>
+        <Box component="form" onSubmit={handleSubmit} noValidate>
+          <Grid container spacing={2}>
+            <Grid item xs={12} sm={4}>
+              <TextField fullWidth required id="name" label={t('room_name_label')} value={formData.name} onChange={handleInputChange} />
+            </Grid>
+            <Grid item xs={12} sm={4}>
+              <TextField fullWidth required id="capacity" label={t('room_capacity_label')} value={formData.capacity} onChange={handleInputChange} type="number" inputProps={{ min: 1, step: 1 }} />
+            </Grid>
+            <Grid item xs={12} sm={4}>
+              <TextField fullWidth required id="location" label={t('room_location_label')} value={formData.location} onChange={handleInputChange} />
+            </Grid>
+          </Grid>
+          <Stack direction="row" spacing={2} sx={{ mt: 3 }}>
+            <Button type="submit" variant="contained">
               {isEditing ? t('update_room_button') : t('add_room_button')}
-            </button>
+            </Button>
             {isEditing && (
-              <button type="button" onClick={() => { resetForm(); setFormMessage(''); }} style={styles.cancelButton}>
+              <Button variant="outlined" onClick={() => { resetForm(); setFormMessage(''); }}>
                 {t('cancel_button')}
-              </button>
+              </Button>
             )}
-          </div>
-        </form>
-        {formMessage && <p style={{...styles.message, color: messageType === 'success' ? 'green' : 'red' }}>{formMessage}</p>}
-      </div>
+          </Stack>
+        </Box>
+        {formMessage && <Alert severity={messageType} sx={{ mt: 2 }}>{formMessage}</Alert>}
+      </Paper>
 
-      <div style={styles.tableContainer}>
-        <h3 style={styles.subHeader}>{t('available_rooms')}</h3>
-        <table style={styles.table}>
-          <thead>
-            <tr>
-              <th style={styles.th}>{t('room_name')}</th>
-              <th style={styles.th}>{t('room_capacity')}</th>
-              <th style={styles.th}>{t('room_location')}</th>
-              <th style={styles.th}>{t('actions_label')}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rooms.map((room) => (
-              <tr key={room._id}>
-                <td style={styles.td}>{room.name}</td>
-                <td style={styles.td}>{room.capacity}</td>
-                <td style={styles.td}>{room.location}</td>
-                <td style={styles.td}>
-                  <button onClick={() => handleEditClick(room)} style={styles.editButton}>{t('edit_button')}</button>
-                  <button onClick={() => handleDeleteClick(room._id)} style={styles.deleteButton}>{t('delete_button')}</button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
+      <Paper sx={{ p: { xs: 2, md: 3 } }}>
+        <Typography variant="h5" component="h2" gutterBottom>
+          {t('available_rooms')}
+        </Typography>
+        <TableContainer>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>{t('room_name_label')}</TableCell>
+                <TableCell align="right">{t('room_capacity_label')}</TableCell>
+                <TableCell>{t('room_location_label')}</TableCell>
+                <TableCell align="center">{t('actions_label')}</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {rooms.map((room) => (
+                <TableRow key={room._id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                  <TableCell component="th" scope="row">{room.name}</TableCell>
+                  <TableCell align="right">{room.capacity}</TableCell>
+                  <TableCell>{room.location}</TableCell>
+                  <TableCell align="center">
+                    <IconButton onClick={() => handleEditClick(room)} color="primary"><EditIcon /></IconButton>
+                    <IconButton onClick={() => handleDeleteClick(room._id)} color="error"><DeleteIcon /></IconButton>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Paper>
+    </Container>
   );
 }
-
-const styles = {
-  container: { padding: '20px', maxWidth: '800px', margin: '40px auto', backgroundColor: '#f9f9f9', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' },
-  header: { textAlign: 'center', color: '#0056b3', marginBottom: '30px' },
-  subHeader: { color: '#333', borderBottom: '1px solid #eee', paddingBottom: '10px', marginBottom: '20px' },
-  tableContainer: { marginTop: '40px', overflowX: 'auto' },
-  table: { width: '100%', borderCollapse: 'collapse', marginTop: '15px' },
-  th: { backgroundColor: '#0056b3', color: 'white', padding: '12px 15px', textAlign: 'left' },
-  td: { padding: '12px 15px', borderBottom: '1px solid #eee', textAlign: 'left' },
-  formContainer: { marginBottom: '40px', padding: '20px', border: '1px solid #eee', borderRadius: '8px', backgroundColor: '#fff' },
-  form: { display: 'flex', flexDirection: 'column', gap: '15px' },
-  formGroup: { display: 'flex', flexDirection: 'column' },
-  label: { marginBottom: '5px', fontWeight: 'bold', color: '#555' },
-  input: { padding: '10px', border: '1px solid #ccc', borderRadius: '4px', fontSize: '16px' },
-  button: { padding: '10px 20px', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '16px', flex: 1 },
-  message: { marginTop: '15px', padding: '10px', borderRadius: '4px', textAlign: 'center' },
-  buttonGroup: { display: 'flex', gap: '10px', marginTop: '10px' },
-  editButton: { backgroundColor: '#007bff', color: 'white', border: 'none', padding: '8px 12px', borderRadius: '4px', cursor: 'pointer', marginRight: '5px' },
-  deleteButton: { backgroundColor: '#dc3545', color: 'white', border: 'none', padding: '8px 12px', borderRadius: '4px', cursor: 'pointer' },
-  cancelButton: { padding: '10px 20px', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '16px', flex: 1 },
-};
 
 export default Rooms;

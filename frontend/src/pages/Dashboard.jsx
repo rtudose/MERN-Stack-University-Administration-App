@@ -4,13 +4,18 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from 'react-i18next';
 
+// Import MUI components and icons
+import { Container, Box, Typography, Button, Stack } from '@mui/material';
+import SchoolIcon from '@mui/icons-material/School';
+import MeetingRoomIcon from '@mui/icons-material/MeetingRoom';
+
 function Dashboard() {
   const { t } = useTranslation();
-  // Get the role-specific helpers from the context
   const { user, isAuthenticated, loading, isStudent, isExternalRepresentative, logout } = useAuth();
   const navigate = useNavigate();
   const [dashboardLoading, setDashboardLoading] = useState(true);
 
+  // This logic is preserved to correctly redirect admins away from this page
   useEffect(() => {
     if (!loading) {
       if (!isAuthenticated) {
@@ -23,7 +28,6 @@ function Dashboard() {
     }
   }, [isAuthenticated, user, loading, navigate]);
 
-  // Placeholder functions for the buttons
   const handleBookRoomClick = () => {
     alert('Room booking page is not yet implemented.');
   };
@@ -32,92 +36,60 @@ function Dashboard() {
     alert('My Courses page is not yet implemented.');
   };
 
-  // While the component is determining where to redirect, show a loading message
   if (loading || dashboardLoading) {
-    return <div style={styles.container}>{t('loading_dashboard')}</div>;
+    return <div style={{ textAlign: 'center', marginTop: '50px' }}>{t('loading_dashboard')}</div>;
   }
 
-  // This JSX will now only be shown for authenticated, non-admin users
   return (
-    <div style={styles.container}>
-      <h2 style={styles.header}>{t('user_dashboard_title')}</h2>
-      <p style={styles.welcomeText}>{t('welcome_user', { username: user.username })}</p>
+    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+      <Box sx={{ textAlign: 'center', my: 5 }}>
+        <Typography variant="h4" component="h1" gutterBottom>
+          {t('user_dashboard_title')}
+        </Typography>
+        <Typography variant="h6" color="text.secondary">
+          {t('welcome_user', { username: user.username })}
+        </Typography>
+      </Box>
 
-      {/* NEW: Conditional logic for buttons based on user role */}
-      <div style={styles.actionsContainer}>
+      <Stack
+        direction="row"
+        spacing={2}
+        justifyContent="center"
+        alignItems="center"
+      >
+        {/* Conditional rendering for the buttons */}
         {isStudent && (
-          <button style={styles.actionButton} onClick={handleViewCoursesClick}>
+          <Button
+            variant="contained"
+            color="success"
+            size="large"
+            startIcon={<SchoolIcon />}
+            onClick={handleViewCoursesClick}
+          >
             {t('view_my_courses_button')}
-          </button>
+          </Button>
         )}
         
         {isExternalRepresentative && (
-          <button style={styles.actionButton} onClick={handleBookRoomClick}>
+          <Button
+            variant="contained"
+            color="success"
+            size="large"
+            startIcon={<MeetingRoomIcon />}
+            onClick={handleBookRoomClick}
+          >
             {t('book_a_room_button')}
-          </button>
+          </Button>
         )}
-      </div>
+      </Stack>
 
-      <button style={styles.logoutButton} onClick={logout}>
-        {t('logout_button')}
-      </button>
-    </div>
+      <Box sx={{ textAlign: 'center', mt: 5 }}>
+        <Button variant="outlined" color="error" onClick={logout}>
+          {t('logout_button')}
+        </Button>
+      </Box>
+    </Container>
   );
 }
-
-// Using the more detailed styles from your original file
-const styles = {
-  container: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: '80vh',
-    padding: '20px',
-    backgroundColor: '#f0f2f5',
-    fontFamily: 'Arial, sans-serif',
-  },
-  header: {
-    fontSize: '2.5em',
-    color: '#333',
-    marginBottom: '20px',
-    textAlign: 'center',
-  },
-  welcomeText: {
-    fontSize: '1.2em',
-    color: '#555',
-    marginBottom: '40px',
-    textAlign: 'center',
-  },
-  actionsContainer: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    gap: '20px',
-    justifyContent: 'center',
-    marginBottom: '40px',
-  },
-  actionButton: {
-    padding: '15px 25px',
-    fontSize: '1.1em',
-    backgroundColor: '#28a745',
-    color: 'white',
-    border: 'none',
-    borderRadius: '8px',
-    cursor: 'pointer',
-    transition: 'background-color 0.3s ease, transform 0.2s ease',
-    boxShadow: '0 4px 8px rgba(40, 167, 69, 0.2)',
-    minWidth: '200px',
-  },
-  logoutButton: {
-    padding: '10px 20px',
-    fontSize: '1em',
-    backgroundColor: '#dc3545',
-    color: 'white',
-    border: 'none',
-    borderRadius: '5px',
-    cursor: 'pointer',
-    transition: 'background-color 0.3s ease',
-  },
-};
 
 export default Dashboard;

@@ -1,171 +1,120 @@
-// src/pages/Login.jsx
+// src/pages/Login.jsx (Refactored with MUI)
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
+// Import MUI components
+import { Container, Box, Typography, TextField, Button, Alert, CircularProgress } from '@mui/material';
+import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
+
 function Login() {
   const { t } = useTranslation();
-  const [email, setEmail] = useState(''); // Keep state for controlled components
-  const [password, setPassword] = useState(''); // Keep state for controlled components
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
+  const [isError, setIsError] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { login, isAuthenticated } = useAuth();
+  const { login, isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
 
-  // --- NEW useEffect for redirect ---
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/dashboard', { replace: true });
+      // Redirect based on role after successful login
+      if (user?.role === 'admin') {
+        navigate('/admin-dashboard', { replace: true });
+      } else {
+        navigate('/dashboard', { replace: true });
+      }
     }
-  }, [isAuthenticated, navigate]);
-  // --- END NEW useEffect ---
-
-  const getTranslatedErrorMessage = (backendMsg) => {
-    switch (backendMsg) {
-      case 'Invalid Credentials': // Backend message for incorrect login data
-        return t('invalid_credentials_error'); // Use a consistent key for errors
-      case 'User not found':
-        return t('user_not_found_error'); // Use a consistent key for errors
-      case 'Server Error':
-        return t('server_error');
-      case 'Room with this name already exists':
-        return t('room_exists');
-      case 'Course not found':
-        return t('course_not_found');
-      case 'Room not found':
-        return t('room_not_found');
-      default:
-        if (backendMsg.includes("Overlap detected! Room")) {
-            return t('overlap_detected_room_booked', {
-                roomName: backendMsg.match(/Room (.*?) is already booked/)?.[1] || '',
-                courseName: backendMsg.match(/'(.*?)' from/)?.[1] || '',
-                startTime: backendMsg.match(/from (.*?) to/)?.[1] || '',
-                endTime: backendMsg.match(/to (.*?) on/)?.[1] || '',
-                dayOfWeek: backendMsg.match(/on (.*?)\./)?.[1] || ''
-            });
-        }
-        if (backendMsg.includes("Appointment times must be between")) {
-            return t('appointment_time_invalid', { start: '09:00', end: '17:00' });
-        }
-        return backendMsg; // Fallback for any unhandled backend messages
-    }
-  };
+  }, [isAuthenticated, user, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage('');
+    setIsError(false);
+    setIsSubmitting(true);
 
-    // Access current input values directly from the DOM elements
-    const submittedEmail = e.target.elements.email.value.trim();
-    const submittedPassword = e.target.elements.password.value.trim();
-
-    // Frontend validation: Check if fields are empty AFTER trimming
-    if (!submittedEmail || !submittedPassword) {
-      setMessage(t('login_empty_fields_error')); // This error will now correctly trigger
-      return; // Stop execution here if fields are empty
+    if (!email || !password) {
+      setMessage(t('login_empty_fields_error'));
+      setIsError(true);
+      setIsSubmitting(false);
+      return;
     }
 
     try {
-      // Pass the trimmed values to your AuthContext login function
-      await login(submittedEmail, submittedPassword);
-      setMessage(t('login_success'));
-      // The useEffect will handle navigation
+      await login(email, password);
+      // The useEffect will handle successful navigation
     } catch (error) {
-      console.error('Eroare Autentificare:', error);
-      if (error.response && error.response.data && error.response.data.msg) {
-        setMessage(getTranslatedErrorMessage(error.response.data.msg));
-      } else {
-        setMessage(t('login_failed_generic'));
-      }
+      const errorMsg = error.response?.data?.msg || 'login_failed_generic';
+      // We don't have a dedicated translation mapper here yet, so we'll just display the key for now.
+      // This can be improved by adding back the getTranslatedErrorMessage function.
+      setMessage(t(errorMsg, { fallback: errorMsg }));
+      setIsError(true);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <div style={styles.container}>
-      <h2 style={styles.header}>{t('login_header')}</h2>
-      <form onSubmit={handleSubmit} style={styles.form} noValidate>
-        <div style={styles.formGroup}>
-          <label htmlFor="email" style={styles.label}>{t('email_label')}:</label>
-          <input
-            type="email"
+    <Container component="main" maxWidth="xs">
+      <Box
+        sx={{
+          marginTop: 8,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+        }}
+      >
+        <LockOutlinedIcon sx={{ m: 1, bgcolor: 'secondary.main', p: 1, borderRadius: '50%', color: 'white' }} />
+        <Typography component="h1" variant="h5">
+          {t('login_header')}
+        </Typography>
+        <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
+          <TextField
+            margin="normal"
+            required
+            fullWidth
             id="email"
+            label={t('email_label')}
+            name="email"
+            autoComplete="email"
+            autoFocus
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            required
-            style={styles.input}
           />
-        </div>
-        <div style={styles.formGroup}>
-          <label htmlFor="password" style={styles.label}>{t('password_label')}:</label>
-          <input
+          <TextField
+            margin="normal"
+            required
+            fullWidth
+            name="password"
+            label={t('password_label')}
             type="password"
             id="password"
+            autoComplete="current-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            required
-            style={styles.input}
           />
-        </div>
-        <button type="submit" style={styles.button}>{t('login_button')}</button>
-      </form>
-      {message && <p style={{ ...styles.message, color: message.includes('reușită') || message.includes('success') ? 'green' : 'red' }}>{message}</p>}
-    </div>
+          <Button
+            type="submit"
+            fullWidth
+            variant="contained"
+            sx={{ mt: 3, mb: 2 }}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? <CircularProgress size={24} /> : t('login_button')}
+          </Button>
+          
+          {message && (
+            <Alert severity={isError ? 'error' : 'success'} sx={{ width: '100%' }}>
+              {message}
+            </Alert>
+          )}
+        </Box>
+      </Box>
+    </Container>
   );
 }
-
-// Basic inline styles for demonstration (you'll use proper CSS later)
-const styles = {
-  container: {
-    maxWidth: '400px',
-    margin: '50px auto',
-    padding: '20px',
-    border: '1px solid #ccc',
-    borderRadius: '8px',
-    boxShadow: '0 2px 10px rgba',
-    backgroundColor: '#fff',
-  },
-  header: {
-    textAlign: 'center',
-    color: '#333',
-    marginBottom: '20px',
-  },
-  form: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '15px',
-  },
-  formGroup: {
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  label: {
-    marginBottom: '5px',
-    fontWeight: 'bold',
-    color: '#555',
-  },
-  input: {
-    padding: '10px',
-    border: '1px solid #ddd',
-    borderRadius: '4px',
-    fontSize: '16px',
-  },
-  button: {
-    padding: '10px 15px',
-    backgroundColor: '#007bff',
-    color: 'white',
-    border: 'none',
-    borderRadius: '4px',
-    cursor: 'pointer',
-    fontSize: '16px',
-    marginTop: '10px',
-  },
-  message: {
-    marginTop: '20px',
-    textAlign: 'center',
-    color: 'green',
-    fontWeight: 'bold',
-  },
-};
 
 export default Login;

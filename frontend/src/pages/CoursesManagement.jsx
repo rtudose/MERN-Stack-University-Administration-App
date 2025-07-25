@@ -1,7 +1,16 @@
-// src/pages/CoursesManagement.jsx
+// src/pages/CoursesManagement.jsx (Refactored with MUI)
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getAllCourses, createCourse, updateCourse, deleteCourse } from '../services/courseService';
+
+// Import MUI components and icons
+import {
+  Container, Box, Typography, TextField, Button, Alert, Paper, Grid, Stack,
+  Table, TableBody, TableCell, TableContainer, TableHead, TableRow, IconButton
+} from '@mui/material';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import BackButton from '../components/BackButton';
 
 const CoursesManagement = () => {
   const { t } = useTranslation();
@@ -13,12 +22,7 @@ const CoursesManagement = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [currentCourseId, setCurrentCourseId] = useState(null);
   const [formData, setFormData] = useState({
-    name: '',
-    code: '',
-    description: '',
-    credits: '',
-    professor: '',
-    department: '',
+    name: '', code: '', description: '', credits: '', professor: '', department: '',
   });
 
   const fetchCourses = useCallback(async () => {
@@ -26,7 +30,9 @@ const CoursesManagement = () => {
       setLoading(true);
       const response = await getAllCourses();
       setCourses(response.data);
+      setError(null);
     } catch (err) {
+      console.error("Failed to fetch courses:", err);
       setError('fetch_courses_error');
     } finally {
       setLoading(false);
@@ -49,22 +55,10 @@ const CoursesManagement = () => {
   };
 
   const getTranslatedError = (msg) => {
-    // Check for Mongoose 'required' error
-    if (msg.includes('is required')) {
-      return 'course_form_error_required';
-    }
-    // Check for Mongoose 'min' error for credits
-    if (msg.includes('is less than minimum allowed value')) {
-      return 'course_credits_min_error';
-    }
-    // Handle unique field errors
-    if (msg.includes('A course with this code already exists')) {
-      return 'course_code_exists_error';
-    }
-    if (msg.includes('A course with this name already exists')) {
-      return 'course_name_exists_error';
-    }
-    // Fallback for any other error
+    if (msg.includes('is required')) return 'course_form_error_required';
+    if (msg.includes('is less than minimum allowed value')) return 'course_credits_min_error';
+    if (msg.includes('A course with this code already exists')) return 'course_code_exists_error';
+    if (msg.includes('A course with this name already exists')) return 'course_name_exists_error';
     return 'generic_error';
   };
 
@@ -72,7 +66,13 @@ const CoursesManagement = () => {
     e.preventDefault();
     setFormMessage({ text: '', type: '' });
 
-    const courseData = { ...formData, credits: Number(formData.credits) };
+    const creditsNumber = Number(formData.credits);
+    if (!Number.isInteger(creditsNumber)) {
+      setFormMessage({ text: 'course_credits_integer_error', type: 'error' });
+      return;
+    }
+
+    const courseData = { ...formData, credits: creditsNumber };
 
     try {
       if (isEditing) {
@@ -102,7 +102,7 @@ const CoursesManagement = () => {
       professor: course.professor,
       department: course.department || '',
     });
-    window.scrollTo(0, 0);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleDeleteClick = async (courseId) => {
@@ -118,73 +118,68 @@ const CoursesManagement = () => {
   };
 
   if (loading) return <div>{t('loading_courses')}</div>;
-  if (error) return <div style={{ color: 'red' }}>{t(error)}</div>;
+  if (error) return <Alert severity="error">{t(error)}</Alert>;
 
   return (
-    <div style={styles.container}>
-      <h2 style={styles.header}>{t('courses_management_title')}</h2>
+    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+       <BackButton />
+      <Typography variant="h4" component="h1" gutterBottom sx={{ textAlign: 'center' }}>
+        {t('courses_management_title')}
+      </Typography>
 
-      <div style={styles.formContainer}>
-        <h3>{isEditing ? t('edit_course_title') : t('add_new_course_title')}</h3>
-        <form onSubmit={handleSubmit} noValidate>
-          <div style={styles.formGrid}>
-            <div style={styles.formGroup}><label htmlFor="name">{t('course_name_label')}</label><input type="text" id="name" value={formData.name} onChange={handleInputChange} style={styles.input} required /></div>
-            <div style={styles.formGroup}><label htmlFor="code">{t('course_code_label')}</label><input type="text" id="code" value={formData.code} onChange={handleInputChange} style={styles.input} required /></div>
-            <div style={styles.formGroup}><label htmlFor="credits">{t('course_credits_label')}</label><input type="number" id="credits" value={formData.credits} onChange={handleInputChange} style={styles.input} required min="1"/></div>
-            <div style={styles.formGroup}><label htmlFor="professor">{t('course_professor_label')}</label><input type="text" id="professor" value={formData.professor} onChange={handleInputChange} style={styles.input} required /></div>
-            <div style={styles.formGroup}><label htmlFor="department">{t('course_department_label')}</label><input type="text" id="department" value={formData.department} onChange={handleInputChange} style={styles.input} /></div>
-            <div style={styles.formGroup}><label htmlFor="description">{t('course_description_label')}</label><textarea id="description" value={formData.description} onChange={handleInputChange} style={styles.textarea} /></div>
-          </div>
-          <div style={styles.buttonGroup}>
-            <button type="submit" style={styles.button}>{isEditing ? t('update_course_button') : t('add_course_button')}</button>
-            {isEditing && (<button type="button" onClick={() => { resetForm(); setFormMessage({ text: '', type: '' }); }} style={styles.cancelButton}>{t('cancel_button')}</button>)}
-          </div>
-        </form>
-        {formMessage.text && <p style={{ color: formMessage.type === 'success' ? 'green' : 'red' }}>{t(formMessage.text)}</p>}
-      </div>
+      <Paper sx={{ p: { xs: 2, md: 3 }, mb: 4 }}>
+        <Typography variant="h5" component="h2" gutterBottom>
+          {isEditing ? t('edit_course_title') : t('add_new_course_title')}
+        </Typography>
+        <Box component="form" onSubmit={handleSubmit} noValidate>
+          <Grid container spacing={2}>
+            <Grid item xs={12} sm={6}><TextField fullWidth required id="name" label={t('course_name_label')} value={formData.name} onChange={handleInputChange} /></Grid>
+            <Grid item xs={12} sm={6}><TextField fullWidth required id="code" label={t('course_code_label')} value={formData.code} onChange={handleInputChange} /></Grid>
+            <Grid item xs={12} sm={6}><TextField fullWidth required id="credits" label={t('course_credits_label')} value={formData.credits} onChange={handleInputChange} type="number" inputProps={{ min: 1, step: 1 }} /></Grid>
+            <Grid item xs={12} sm={6}><TextField fullWidth required id="professor" label={t('course_professor_label')} value={formData.professor} onChange={handleInputChange} /></Grid>
+            <Grid item xs={12}><TextField fullWidth id="department" label={t('course_department_label')} value={formData.department} onChange={handleInputChange} /></Grid>
+            <Grid item xs={12}><TextField fullWidth id="description" label={t('course_description_label')} value={formData.description} onChange={handleInputChange} multiline rows={3} /></Grid>
+          </Grid>
+          <Stack direction="row" spacing={2} sx={{ mt: 3 }}>
+            <Button type="submit" variant="contained">{isEditing ? t('update_course_button') : t('add_course_button')}</Button>
+            {isEditing && (<Button variant="outlined" onClick={() => { resetForm(); setFormMessage({ text: '', type: '' }); }}>{t('cancel_button')}</Button>)}
+          </Stack>
+        </Box>
+        {formMessage.text && <Alert severity={formMessage.type} sx={{ mt: 2 }}>{t(formMessage.text)}</Alert>}
+      </Paper>
 
-      <div style={styles.tableContainer}>
-        <h3>{t('existing_courses_title')}</h3>
-        <table style={styles.table}>
-          <thead>
-            <tr><th>{t('course_code_label')}</th><th>{t('course_name_label')}</th><th>{t('course_credits_label')}</th><th>{t('course_professor_label')}</th><th>{t('actions_label')}</th></tr>
-          </thead>
-          <tbody>
-            {courses.map((course) => (
-              <tr key={course._id}>
-                <td>{course.code}</td><td>{course.name}</td><td>{course.credits}</td><td>{course.professor}</td>
-                <td>
-                  <button onClick={() => handleEditClick(course)} style={styles.editButton}>{t('edit_button')}</button>
-                  <button onClick={() => handleDeleteClick(course._id)} style={styles.deleteButton}>{t('delete_button')}</button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
+      <Paper sx={{ p: { xs: 2, md: 3 } }}>
+        <Typography variant="h5" component="h2" gutterBottom>{t('existing_courses_title')}</Typography>
+        <TableContainer>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>{t('course_code_label')}</TableCell>
+                <TableCell>{t('course_name_label')}</TableCell>
+                <TableCell>{t('course_professor_label')}</TableCell>
+                <TableCell align="right">{t('course_credits_label')}</TableCell>
+                <TableCell align="center">{t('actions_label')}</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {courses.map((course) => (
+                <TableRow key={course._id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                  <TableCell component="th" scope="row">{course.code}</TableCell>
+                  <TableCell>{course.name}</TableCell>
+                  <TableCell>{course.professor}</TableCell>
+                  <TableCell align="right">{course.credits}</TableCell>
+                  <TableCell align="center">
+                    <IconButton onClick={() => handleEditClick(course)} color="primary"><EditIcon /></IconButton>
+                    <IconButton onClick={() => handleDeleteClick(course._id)} color="error"><DeleteIcon /></IconButton>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Paper>
+    </Container>
   );
-};
-
-// Reusing styles for consistency
-const styles = {
-    container: { padding: '20px', maxWidth: '960px', margin: '40px auto', backgroundColor: '#f9f9f9', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' },
-    header: { textAlign: 'center', color: '#0056b3', marginBottom: '30px' },
-    formContainer: { marginBottom: '40px', padding: '20px', border: '1px solid #eee', borderRadius: '8px', backgroundColor: '#fff' },
-    formGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' },
-    textarea: { padding: '10px', border: '1px solid #ccc', borderRadius: '4px', fontFamily: 'inherit', fontSize: '1rem', gridColumn: '1 / -1' },
-    tableContainer: { marginTop: '40px', overflowX: 'auto' },
-    table: { width: '100%', borderCollapse: 'collapse', marginTop: '15px', textAlign: 'left' },
-    th: { backgroundColor: '#0056b3', color: 'white', padding: '12px 15px' }, // Note: these are not applied to header for simplicity
-    td: { padding: '12px 15px', borderBottom: '1px solid #eee' },
-    formGroup: { display: 'flex', flexDirection: 'column', marginBottom: '15px' },
-    label: { marginBottom: '5px', fontWeight: 'bold' },
-    input: { padding: '10px', border: '1px solid #ccc', borderRadius: '4px' },
-    buttonGroup: { display: 'flex', gap: '10px', marginTop: '20px', gridColumn: '1 / -1' },
-    button: { padding: '10px 15px', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' },
-    cancelButton: { padding: '10px 15px', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' },
-    editButton: { backgroundColor: '#007bff', color: 'white', border: 'none', padding: '8px 12px', borderRadius: '4px', cursor: 'pointer', marginRight: '5px' },
-    deleteButton: { backgroundColor: '#dc3545', color: 'white', border: 'none', padding: '8px 12px', borderRadius: '4px', cursor: 'pointer' },
 };
 
 export default CoursesManagement;
