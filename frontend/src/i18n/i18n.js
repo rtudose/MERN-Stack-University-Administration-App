@@ -1,6 +1,7 @@
 // src/i18n/i18n.js
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
+import LanguageDetector from 'i18next-browser-languagedetector';
 
 // Define your translations
 const resources = {
@@ -124,6 +125,56 @@ const resources = {
       "add_room_button": "Add Room",
       "update_room_button": "Update Room",
       
+      // Room Booking Page
+      "book_a_room_title": "Book a Room",
+      "equipment_label": "Equipment",
+      "book_now_button": "Book Now",
+      "book_room_for_title": "Book Room:",
+      "date_label": "Date",
+      "start_time_label": "Start Time",
+      "end_time_label": "End Time",
+      "purpose_label": "Purpose of Reservation",
+      "attendees_label": "Number of Attendees",
+      "submit_booking_button": "Submit Request",
+      "reservation_success": "Your booking request has been submitted and is pending approval.",
+      "reservation_error_required": "Please fill out all required fields.",
+      "reservation_error_time_format": "Please use a valid HH:MM format for time.",
+      "reservation_error_endtime": "End time must be after the start time.",
+      "reservation_error_capacity": "Number of attendees exceeds room capacity.",
+      "attendees_integer_error": "Number of attendees must be a whole number.",
+      "reservation_error_past_time": "You cannot book a room for a time that has already passed today.",
+      "filter_rooms_title": "Filter Rooms",
+      "filter_by_capacity_label": "Minimum Capacity",
+      "filter_by_equipment_label": "Required Equipment",
+      "status_label": "Status",
+      "status_available": "Available",
+      "status_under_maintenance": "Under Maintenance",
+      "status_unavailable": "Unavailable",
+      "available_for_external_label": "Available for External Booking",
+      "equipment_Projector": "Projector",
+      "equipment_Whiteboard": "Whiteboard",
+      "equipment_Conference_Phone": "Conference Phone",
+      "equipment_Video_Conferencing": "Video Conferencing",
+      "equipment_Smartboard": "Smartboard",
+
+      // Reservations Management Page
+      "manage_reservations_button": "Manage Reservations",
+      "reservations_management_title": "Reservations Management",
+      "loading_reservations": "Loading reservations...",
+      "fetch_reservations_error": "Failed to fetch reservations.",
+      "reserved_by_label": "Reserved By",
+      "time_slot_label": "Time",
+      "status_pending": "Pending",
+      "status_approved": "Approved",
+      "status_rejected": "Rejected",
+      "status_cancelled": "Cancelled",
+      "reservation_status_updated": "Reservation status updated successfully.",
+
+      // My Reservations Page
+      "my_reservations_button": "My Reservations",
+      "my_reservations_title": "My Reservations",
+      "no_reservations_found": "You have not made any reservations yet.",
+
       // Form Messages & Errors
       "add_room_empty_fields_error": "Please fill in all fields.",
       "capacity_invalid_error": "Capacity must be a positive whole number.", // More generic
@@ -148,6 +199,10 @@ const resources = {
 
       // Back Button
       "back_button": "Back",
+
+      // Boolean variables
+      "boolean_yes": "Yes",
+      "boolean_no": "No",
     }
   },
   ro: {
@@ -270,6 +325,56 @@ const resources = {
       "add_room_button": "Adaugă Sală",
       "update_room_button": "Actualizează Sala",
 
+      // Room Booking Page
+      "book_a_room_title": "Rezervă o Sală",
+      "equipment_label": "Echipament",
+      "book_now_button": "Rezervă Acum",
+      "book_room_for_title": "Rezervă Sala:",
+      "date_label": "Data",
+      "start_time_label": "Ora de Început",
+      "end_time_label": "Ora de Sfârșit",
+      "purpose_label": "Scopul Rezervării",
+      "attendees_label": "Număr de Participanți",
+      "submit_booking_button": "Trimite Cererea",
+      "reservation_success": "Cererea dumneavoastră de rezervare a fost trimisă și așteaptă aprobare.",
+      "reservation_error_required": "Vă rugăm să completați toate câmpurile obligatorii.",
+      "reservation_error_time_format": "Vă rugăm să folosiți un format valid HH:MM pentru oră.",
+      "reservation_error_endtime": "Ora de sfârșit trebuie să fie după ora de început.",
+      "reservation_error_capacity": "Numărul de participanți depășește capacitatea sălii.",
+      "attendees_integer_error": "Numărul de participanți trebuie să fie un număr întreg.",
+      "reservation_error_past_time": "Nu puteți rezerva o sală la o oră care a trecut deja astăzi.",
+      "filter_rooms_title": "Filtrează Sălile",
+      "filter_by_capacity_label": "Capacitate Minimă",
+      "filter_by_equipment_label": "Echipament Necesar",
+      "status_label": "Stare",
+      "status_available": "Disponibilă",
+      "status_under_maintenance": "În Mentenanță",
+      "status_unavailable": "Indisponibilă",
+      "available_for_external_label": "Disponibilă pentru Rezervări Externe",
+      "equipment_Projector": "Proiector",
+      "equipment_Whiteboard": "Tablă albă",
+      "equipment_Conference_Phone": "Telefon de conferință",
+      "equipment_Video_Conferencing": "Videoconferință",
+      "equipment_Smartboard": "Tablă inteligentă",
+
+      // Reservations Management Page
+      "manage_reservations_button": "Administrează Rezervări",
+      "reservations_management_title": "Administrare Rezervări",
+      "loading_reservations": "Se încarcă rezervările...",
+      "fetch_reservations_error": "Eroare la preluarea rezervărilor.",
+      "reserved_by_label": "Rezervat de",
+      "time_slot_label": "Interval Orar",
+      "status_pending": "În Așteptare",
+      "status_approved": "Aprobată",
+      "status_rejected": "Respinsă",
+      "status_cancelled": "Anulată",
+      "reservation_status_updated": "Starea rezervării a fost actualizată cu succes.",
+
+      // My Reservations Page
+      "my_reservations_button": "Rezervările Mele",
+      "my_reservations_title": "Rezervările Mele",
+      "no_reservations_found": "Nu ați făcut nicio rezervare încă.",
+
       // Form Messages & Errors
       "add_room_empty_fields_error": "Vă rugăm să completați toate câmpurile.",
       "capacity_invalid_error": "Capacitatea trebuie să fie un număr întreg pozitiv.", // More generic
@@ -294,19 +399,27 @@ const resources = {
 
       // Back Button
       "back_button": "Înapoi",
+
+      //Boolean variables
+      "boolean_yes": "Da",
+      "boolean_no": "Nu",
     }
   }
 };
 
 i18n
-  .use(initReactI18next) // passes i18n down to react-i18next
+  .use(LanguageDetector) // Use the language detector
+  .use(initReactI18next)
   .init({
     resources,
-    lng: "ro", // This sets the default language to Romanian
-    fallbackLng: "en", // Fallback to English if translation is missing
-
+    fallbackLng: "en", // Fallback to English if a translation is missing
     interpolation: {
-      escapeValue: false // react already escapes by default
+      escapeValue: false
+    },
+    // Configuration for the language detector
+    detection: {
+      order: ['localStorage', 'navigator'], // Check localStorage first, then the browser's language
+      caches: ['localStorage'], // Cache the user's choice in localStorage
     }
   });
 

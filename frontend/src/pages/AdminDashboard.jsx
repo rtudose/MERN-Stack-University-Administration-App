@@ -4,11 +4,11 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from 'react-i18next';
 
-// Import MUI components and icons
 import { Container, Box, Typography, Button, Stack } from '@mui/material';
 import ApartmentIcon from '@mui/icons-material/Apartment';
 import PeopleIcon from '@mui/icons-material/People';
 import SchoolIcon from '@mui/icons-material/School';
+import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -31,7 +31,7 @@ const AdminDashboard = () => {
       </Box>
 
       <Stack
-        direction={{ xs: 'column', sm: 'row' }} // Stack vertically on small screens, horizontally on others
+        direction={{ xs: 'column', sm: 'row' }}
         spacing={2}
         justifyContent="center"
         alignItems="center"
@@ -63,9 +63,17 @@ const AdminDashboard = () => {
         >
           {t('manage_courses_button')}
         </Button>
+        <Button
+          variant="contained"
+          size="large"
+          startIcon={<EventAvailableIcon />}
+          onClick={() => navigate('/reservations-management')}
+          sx={{ minWidth: '240px' }}
+        >
+          {t('manage_reservations_button')}
+        </Button>
       </Stack>
 
-      {/* Logout button can be placed in the Navbar, but we'll keep it here for now */}
       <Box sx={{ textAlign: 'center', mt: 5 }}>
         <Button variant="outlined" color="error" onClick={logout}>
           {t('logout_button')}

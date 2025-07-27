@@ -6,7 +6,10 @@ import Dashboard from './pages/Dashboard';
 import Rooms from './pages/Rooms';
 import Users from './pages/Users';
 import CoursesManagement from './pages/CoursesManagement';
+import BookRoom from './pages/BookRoom';
+import MyReservations from './pages/MyReservations';
 import AdminDashboard from './pages/AdminDashboard';
+import ReservationsManagement from './pages/ReservationsManagement';
 // import Register from './pages/Register'; // Uncomment if you have a register page
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -39,6 +42,8 @@ function App() {
               {/* Dashboard for authenticated users (both admin and student) */}
               <Route element={<ProtectedRoute allowedRoles={['admin', 'student', 'external_representative']} />}>
                 <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/book-room" element={<BookRoom />} />
+                 <Route path="/my-reservations" element={<MyReservations />} />
                 {/* Optional: If you want root path (when logged in) to also go to Dashboard, you can add this index route */}
                 {/* <Route index element={<Dashboard />} /> */}
               </Route>
@@ -49,9 +54,9 @@ function App() {
                 <Route path="/rooms" element={<Rooms />} /> {/* Your existing Rooms page for admins only */}
                 <Route path="/users" element={<Users />} />
                 <Route path="/courses-management" element={<CoursesManagement />} />
+                <Route path="/reservations-management" element={<ReservationsManagement />} />
                 {/* Add other admin-only routes here (e.g., /users, /courses-management) */}
               </Route>
-
               {/* Add more roles/routes as needed */}
             </Routes>
           </div>

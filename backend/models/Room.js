@@ -1,4 +1,4 @@
-// models/Room.js
+// backend/models/Room.js
 const mongoose = require('mongoose');
 
 const roomSchema = new mongoose.Schema({
@@ -13,18 +13,23 @@ const roomSchema = new mongoose.Schema({
     required: true,
     min: 1
   },
-  equipment: { // e.g., ['Projector', 'Whiteboard', 'Computers']
-    type: [String], // Array of strings
-    default: []
-  },
-  location: { // e.g., "Building A, Floor 3"
+  location: {
     type: String,
     required: true,
     trim: true
   },
-  isAvailableForExternal: { // Can external reps book this room?
+  equipment: {
+    type: [String],
+    default: []
+  },
+  isAvailableForExternal: {
     type: Boolean,
-    default: true
+    default: false
+  },
+  status: {
+    type: String,
+    enum: ['available', 'under_maintenance', 'unavailable'],
+    default: 'available'
   },
   createdAt: {
     type: Date,

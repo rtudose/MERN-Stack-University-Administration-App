@@ -10,28 +10,31 @@ const adminOnly = [auth, authorize(['admin'])];
 
 // @route   POST /api/rooms
 // @desc    Create a new room
-// @access  Private (Admin only)
+// @access  Admin
 router.post('/', adminOnly, async (req, res) => {
-  const { name, capacity, equipment, location, isAvailableForExternal } = req.body;
+  // Add new fields to destructuring
+  const { name, capacity, location, equipment, isAvailableForExternal, status } = req.body;
 
   try {
-    // Check if room name already exists
-    let room = await Room.findOne({ name });
-    if (room) {
-      return res.status(400).json({ msg: 'Room with this name already exists' });
-    }
-
-    room = new Room({
+    const newRoom = new Room({
       name,
       capacity,
-      equipment,
       location,
-      isAvailableForExternal
+      equipment,
+      isAvailableForExternal,
+      status
     });
 
-    await room.save();
+    const room = await newRoom.save();
     res.status(201).json(room);
   } catch (err) {
+    if (err.code === 11000) {
+      return res.status(400).json({ msg: 'Room with this name already exists' });
+    }
+    if (err.name === 'ValidationError') {
+        const message = Object.values(err.errors).map(val => val.message).join(', ');
+        return res.status(400).json({ msg: message });
+    }
     console.error(err.message);
     res.status(500).send('Server Error');
   }
@@ -70,19 +73,19 @@ router.get('/:id', adminOnly, async (req, res) => {
 });
 
 // @route   PUT /api/rooms/:id
-// @desc    Update a room by ID
-// @access  Private (Admin only)
+// @desc    Update a room
+// @access  Admin
 router.put('/:id', adminOnly, async (req, res) => {
-  const { name, capacity, equipment, location, isAvailableForExternal } = req.body;
+  // Add new fields to destructuring
+  const { name, capacity, location, equipment, isAvailableForExternal, status } = req.body;
 
-  // Build room object
   const roomFields = {};
   if (name) roomFields.name = name;
   if (capacity) roomFields.capacity = capacity;
-  if (equipment) roomFields.equipment = equipment;
   if (location) roomFields.location = location;
-  if (typeof isAvailableForExternal === 'boolean') roomFields.isAvailableForExternal = isAvailableForExternal;
-
+  if (equipment) roomFields.equipment = equipment;
+  if (isAvailableForExternal !== undefined) roomFields.isAvailableForExternal = isAvailableForExternal;
+  if (status) roomFields.status = status;
 
   try {
     let room = await Room.findById(req.params.id);
@@ -90,24 +93,22 @@ router.put('/:id', adminOnly, async (req, res) => {
       return res.status(404).json({ msg: 'Room not found' });
     }
 
-    // Check for duplicate name if it's being updated to an existing value
-    if (name && name !== room.name) {
-        const existingRoom = await Room.findOne({ name });
-        if (existingRoom) return res.status(400).json({ msg: 'Room with this name already exists' });
-    }
-
     room = await Room.findByIdAndUpdate(
       req.params.id,
       { $set: roomFields },
-      { new: true }
+      { new: true, runValidators: true }
     );
 
     res.json(room);
   } catch (err) {
-    console.error(err.message);
-    if (err.kind === 'ObjectId') {
-      return res.status(400).json({ msg: 'Invalid Room ID' });
+    if (err.code === 11000) {
+        return res.status(400).json({ msg: 'Room with this name already exists' });
     }
+    if (err.name === 'ValidationError') {
+        const message = Object.values(err.errors).map(val => val.message).join(', ');
+        return res.status(400).json({ msg: message });
+    }
+    console.error(err.message);
     res.status(500).send('Server Error');
   }
 });

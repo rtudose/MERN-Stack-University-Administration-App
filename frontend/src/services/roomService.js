@@ -1,32 +1,26 @@
 // src/services/roomService.js
-import axios from 'axios';
+import api from './api'; // 1. Import the new api client
 
-const API_URL = `${import.meta.env.VITE_API_URL}/api/rooms`;
-
-// Helper function to get the auth token and create headers
-const getAuthHeaders = () => {
-  const token = localStorage.getItem('token');
-  // In your original Rooms.jsx, you used 'Authorization': `Bearer ${token}`
-  // However, in the project description, you mentioned 'x-auth-token'.
-  // We will use 'x-auth-token' to match the backend 'auth.js' middleware expectation.
-  // Please ensure your backend middleware (backend/middleware/auth.js) looks for 'x-auth-token'.
-  return token ? { 'x-auth-token': token } : {};
+const getPublicRooms = () => {
+  // The token is now added automatically by the interceptor
+  return api.get('/api/public/rooms'); 
 };
 
 const getAllRooms = () => {
-  return axios.get(API_URL, { headers: getAuthHeaders() });
+  return api.get('/api/rooms');
 };
 
 const createRoom = (roomData) => {
-  return axios.post(API_URL, roomData, { headers: getAuthHeaders() });
+  return api.post('/api/rooms', roomData);
 };
 
 const updateRoom = (id, roomData) => {
-  return axios.put(`${API_URL}/${id}`, roomData, { headers: getAuthHeaders() });
+  return api.put(`/api/rooms/${id}`, roomData);
 };
 
 const deleteRoom = (id) => {
-  return axios.delete(`${API_URL}/${id}`, { headers: getAuthHeaders() });
+  return api.delete(`/api/rooms/${id}`);
 };
 
-export { getAllRooms, createRoom, updateRoom, deleteRoom };
+// 2. Export all functions as before
+export { getAllRooms, createRoom, updateRoom, deleteRoom, getPublicRooms };

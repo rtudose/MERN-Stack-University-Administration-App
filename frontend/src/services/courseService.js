@@ -1,27 +1,20 @@
 // src/services/courseService.js
-import axios from 'axios';
-
-const API_URL = `${import.meta.env.VITE_API_URL}/api/courses`;
-
-const getAuthHeaders = () => {
-  const token = localStorage.getItem('token');
-  return token ? { 'x-auth-token': token } : {};
-};
+import api from './api'; // Import the new centralized api client
 
 const getAllCourses = () => {
-  return axios.get(API_URL, { headers: getAuthHeaders() });
+  return api.get('/api/courses');
 };
 
 const createCourse = (courseData) => {
-  return axios.post(API_URL, courseData, { headers: getAuthHeaders() });
+  return api.post('/api/courses', courseData);
 };
 
 const updateCourse = (id, courseData) => {
-  return axios.put(`${API_URL}/${id}`, courseData, { headers: getAuthHeaders() });
+  return api.put(`/api/courses/${id}`, courseData);
 };
 
 const deleteCourse = (id) => {
-  return axios.delete(`${API_URL}/${id}`, { headers: getAuthHeaders() });
+  return api.delete(`/api/courses/${id}`);
 };
 
 export { getAllCourses, createCourse, updateCourse, deleteCourse };

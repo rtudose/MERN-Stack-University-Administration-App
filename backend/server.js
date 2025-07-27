@@ -12,6 +12,8 @@ const scheduleRoutes = require('./routes/scheduleRoutes');
 const roomReservationRoutes = require('./routes/roomReservationRoutes');
 const appointmentRoutes = require('./routes/appointmentRoutes');
 const userRoutes = require('./routes/userRoutes');
+const publicRoutes = require('./routes/publicRoutes');
+const reservationRoutes = require('./routes/reservationRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -41,6 +43,8 @@ app.use('/api/schedule', scheduleRoutes); // Register new schedule routes
 app.use('/api/room-reservations', roomReservationRoutes); // Register new room reservation routes
 app.use('/api/appointments', appointmentRoutes); // Register new appointment routes
 app.use('/api/users', userRoutes);
+app.use('/api/public', publicRoutes);
+app.use('/api/reservations', reservationRoutes);
 
 // Start the server
 app.listen(PORT, () => {

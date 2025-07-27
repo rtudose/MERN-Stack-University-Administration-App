@@ -1,10 +1,9 @@
-// src/pages/Login.jsx (Refactored with MUI)
+// src/pages/Login.jsx (Corrected with Error Translation)
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
-// Import MUI components
 import { Container, Box, Typography, TextField, Button, Alert, CircularProgress } from '@mui/material';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 
@@ -21,7 +20,6 @@ function Login() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      // Redirect based on role after successful login
       if (user?.role === 'admin') {
         navigate('/admin-dashboard', { replace: true });
       } else {
@@ -29,6 +27,20 @@ function Login() {
       }
     }
   }, [isAuthenticated, user, navigate]);
+
+  // NEW: Helper function to map backend errors to translation keys
+  const getTranslatedErrorMessage = (backendMsg) => {
+    switch (backendMsg) {
+      case 'Invalid Credentials':
+        return t('invalid_credentials_error');
+      case 'User not found':
+        return t('user_not_found_error');
+      case 'Server Error':
+        return t('server_error');
+      default:
+        return t('login_failed_generic');
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -47,10 +59,12 @@ function Login() {
       await login(email, password);
       // The useEffect will handle successful navigation
     } catch (error) {
-      const errorMsg = error.response?.data?.msg || 'login_failed_generic';
-      // We don't have a dedicated translation mapper here yet, so we'll just display the key for now.
-      // This can be improved by adding back the getTranslatedErrorMessage function.
-      setMessage(t(errorMsg, { fallback: errorMsg }));
+      // UPDATED: Use the new error mapping function
+      const errorMsg = error.response?.data?.msg 
+        ? getTranslatedErrorMessage(error.response.data.msg)
+        : t('login_failed_generic');
+      
+      setMessage(errorMsg);
       setIsError(true);
     } finally {
       setIsSubmitting(false);
@@ -95,6 +109,7 @@ function Login() {
             autoComplete="current-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            InputLabelProps={{ shrink: true }}
           />
           <Button
             type="submit"

@@ -135,18 +135,18 @@ const Users = () => {
         </Typography>
         <Box component="form" onSubmit={handleSubmit} noValidate>
           <Grid container spacing={2}>
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} sm={6}>
               <TextField fullWidth required name="username" label={t('username_label')} value={formData.username} onChange={handleInputChange} />
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} sm={6}>
               <TextField fullWidth required name="email" label={t('email_label')} type="email" value={formData.email} onChange={handleInputChange} />
             </Grid>
             {!isEditing && (
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12} sm={6}>
                 <TextField fullWidth required name="password" label={t('password_label')} type="password" value={formData.password} onChange={handleInputChange} inputProps={{ minLength: 6 }} />
               </Grid>
             )}
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} sm={6}>
               <FormControl fullWidth>
                 <InputLabel id="role-select-label">{t('role_label')}</InputLabel>
                 <Select

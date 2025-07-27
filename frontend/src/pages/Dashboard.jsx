@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { Container, Box, Typography, Button, Stack } from '@mui/material';
 import SchoolIcon from '@mui/icons-material/School';
 import MeetingRoomIcon from '@mui/icons-material/MeetingRoom';
+import PlaylistAddCheckIcon from '@mui/icons-material/PlaylistAddCheck';
 
 function Dashboard() {
   const { t } = useTranslation();
@@ -29,7 +30,7 @@ function Dashboard() {
   }, [isAuthenticated, user, loading, navigate]);
 
   const handleBookRoomClick = () => {
-    alert('Room booking page is not yet implemented.');
+     navigate('/book-room');
   };
 
   const handleViewCoursesClick = () => {
@@ -71,15 +72,27 @@ function Dashboard() {
         )}
         
         {isExternalRepresentative && (
-          <Button
-            variant="contained"
-            color="success"
-            size="large"
-            startIcon={<MeetingRoomIcon />}
-            onClick={handleBookRoomClick}
-          >
-            {t('book_a_room_button')}
-          </Button>
+          <>
+            <Button
+              variant="contained"
+              color="success"
+              size="large"
+              startIcon={<MeetingRoomIcon />}
+              onClick={handleBookRoomClick}
+            >
+              {t('book_a_room_button')}
+            </Button>
+
+            <Button
+              variant="contained"
+              color="success"
+              size="large"
+              startIcon={<PlaylistAddCheckIcon />}
+              onClick={() => navigate('/my-reservations')}
+            >
+              {t('my_reservations_button')}
+            </Button>
+          </>
         )}
       </Stack>
 

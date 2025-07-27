@@ -1,27 +1,20 @@
 // src/services/userService.js
-import axios from 'axios';
-
-const API_URL = `${import.meta.env.VITE_API_URL}/api/users`;
-
-const getAuthHeaders = () => {
-  const token = localStorage.getItem('token');
-  return token ? { 'x-auth-token': token } : {};
-};
+import api from './api'; // Import the new centralized api client
 
 const getAllUsers = () => {
-  return axios.get(API_URL, { headers: getAuthHeaders() });
+  return api.get('/api/users');
 };
 
 const createUser = (userData) => {
-  return axios.post(API_URL, userData, { headers: getAuthHeaders() });
+  return api.post('/api/users', userData);
 };
 
 const updateUser = (id, userData) => {
-  return axios.put(`${API_URL}/${id}`, userData, { headers: getAuthHeaders() });
+  return api.put(`/api/users/${id}`, userData);
 };
 
 const deleteUser = (id) => {
-  return axios.delete(`${API_URL}/${id}`, { headers: getAuthHeaders() });
+  return api.delete(`/api/users/${id}`);
 };
 
 export { getAllUsers, createUser, updateUser, deleteUser };

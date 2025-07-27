@@ -17,6 +17,7 @@ module.exports = function(req, res, next) {
     req.user = decoded.user; // Attach user payload (id, role) to the request object
     next(); // Move to the next middleware/route handler
   } catch (err) {
+    console.error('Token verification failed:', err.name);
     res.status(401).json({ msg: 'Token is not valid' });
   }
 };
