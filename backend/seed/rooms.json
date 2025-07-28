@@ -1,0 +1,34 @@
+[
+  {
+    "name": "Sala B201",
+    "capacity": 50,
+    "location": "Corp B, Etaj 2",
+    "equipment": ["Projector", "Whiteboard"],
+    "isAvailableForExternal": true,
+    "status": "available"
+  },
+  {
+    "name": "Laborator A105",
+    "capacity": 25,
+    "location": "Corp A, Etaj 1",
+    "equipment": ["Projector", "Smartboard", "Video_Conferencing"],
+    "isAvailableForExternal": true,
+    "status": "available"
+  },
+  {
+    "name": "Amfiteatru C3",
+    "capacity": 200,
+    "location": "Corp C, Parter",
+    "equipment": ["Projector"],
+    "isAvailableForExternal": false,
+    "status": "available"
+  },
+  {
+    "name": "Sala Senatului",
+    "capacity": 30,
+    "location": "Rectorat",
+    "equipment": ["Projector", "Video_Conferencing", "Conference_Phone"],
+    "isAvailableForExternal": true,
+    "status": "under_maintenance"
+  }
+]

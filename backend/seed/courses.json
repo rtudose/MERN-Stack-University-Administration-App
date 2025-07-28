@@ -1,0 +1,35 @@
+[
+    {
+        "name": "Software Engineering",
+        "code": "CS301",
+        "description": "Principles of software design and architecture.",
+        "credits": 5,
+        "professor": "Dr. Ioana Popescu",
+        "department": "Computer Science",
+        "yearOfStudy": 3,
+        "semester": 1,
+        "specialization": "Informatica"
+    },
+    {
+        "name": "Database Management Systems",
+        "code": "CS302",
+        "description": "Advanced topics in database systems.",
+        "credits": 5,
+        "professor": "Dr. Andrei Ionescu",
+        "department": "Computer Science",
+        "yearOfStudy": 3,
+        "semester": 1,
+        "specialization": "Informatica"
+    },
+    {
+        "name": "Calculus I",
+        "code": "MA101",
+        "description": "Introduction to differential calculus.",
+        "credits": 6,
+        "professor": "Dr. Maria Vasilescu",
+        "department": "Mathematics",
+        "yearOfStudy": 1,
+        "semester": 1,
+        "specialization": "General"
+    }
+]

@@ -1,0 +1,22 @@
+services:
+  # The service for your backend application
+  backend:
+    build: ./backend # UPDATED: This now correctly points to your backend folder
+    ports:
+      - "5000:5000"
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/faculty_db
+      - JWT_SECRET=v3AahqpAnY&qwH76^PQ@SQIJ0r#p0Q6ZeN9P9*iU
+    depends_on:
+      - mongo
+
+  # The service for your MongoDB database
+  mongo:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+volumes:
+  mongo-data:
