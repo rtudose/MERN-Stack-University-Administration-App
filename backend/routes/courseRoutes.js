@@ -12,22 +12,15 @@ const adminOnly = [auth, authorize(['admin'])];
 // @desc    Create a new course
 // @access  Admin
 router.post('/', adminOnly, async (req, res) => {
-  const { name, code, description, credits, professor, department } = req.body;
-
+  const { name, code, description, credits, professor, department, yearOfStudy, semester, specialization } = req.body;
   try {
     const newCourse = new Course({
-      name,
-      code,
-      description,
-      credits,
-      professor,
-      department
+      name, code, description, credits, professor, department,
+      yearOfStudy, semester, specialization
     });
-
     const course = await newCourse.save();
     res.status(201).json(course);
   } catch (err) {
-    // Smart error handling
     if (err.code === 11000) {
       const field = Object.keys(err.keyValue)[0];
       return res.status(400).json({ msg: `A course with this ${field} already exists` });
@@ -77,8 +70,7 @@ router.get('/:id', adminOnly, async (req, res) => {
 // @desc    Update a course by ID
 // @access  Admin
 router.put('/:id', adminOnly, async (req, res) => {
-  const { name, code, description, credits, professor, department } = req.body;
-
+  const { name, code, description, credits, professor, department, yearOfStudy, semester, specialization } = req.body;
   const courseFields = {};
   if (name) courseFields.name = name;
   if (code) courseFields.code = code;
@@ -86,22 +78,22 @@ router.put('/:id', adminOnly, async (req, res) => {
   if (credits) courseFields.credits = credits;
   if (professor) courseFields.professor = professor;
   if (department) courseFields.department = department;
+  if (yearOfStudy) courseFields.yearOfStudy = yearOfStudy;
+  if (semester) courseFields.semester = semester;
+  if (specialization) courseFields.specialization = specialization;
 
   try {
     let course = await Course.findById(req.params.id);
     if (!course) {
       return res.status(404).json({ msg: 'Course not found' });
     }
-
     course = await Course.findByIdAndUpdate(
       req.params.id,
       { $set: courseFields },
       { new: true, runValidators: true }
     );
-
     res.json(course);
   } catch (err) {
-    // UPDATED: Smart error handling
     if (err.code === 11000) {
       const field = Object.keys(err.keyValue)[0];
       return res.status(400).json({ msg: `A course with this ${field} already exists` });

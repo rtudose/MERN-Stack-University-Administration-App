@@ -1,4 +1,4 @@
-// models/User.js
+// backend/models/User.js
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs'); // For password hashing
 
@@ -7,7 +7,7 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
     unique: true,
-    trim: true, // Removes whitespace from both ends of a string
+    trim: true,
     minlength: 3
   },
   email: {
@@ -15,7 +15,7 @@ const userSchema = new mongoose.Schema({
     required: true,
     unique: true,
     trim: true,
-    lowercase: true, // Converts email to lowercase before saving
+    lowercase: true, 
     match: [/.+@.+\..+/, 'Please fill a valid email address'] // Basic email regex validation
   },
   password: {
@@ -27,6 +27,17 @@ const userSchema = new mongoose.Schema({
     type: String,
     enum: ['admin', 'student', 'external_representative'], // Enforces specific roles
     default: 'student' // Default role for new users if not specified
+  },
+  studentDetails: {
+    yearOfStudy: {
+      type: Number,
+      min: 1,
+      max: 4
+    },
+    specialization: {
+      type: String,
+      trim: true
+    }
   },
   createdAt: {
     type: Date,

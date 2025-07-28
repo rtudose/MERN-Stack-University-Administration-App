@@ -1,16 +1,16 @@
-// src/pages/CoursesManagement.jsx (Refactored with MUI)
+// src/pages/CoursesManagement.jsx (Complete and Corrected)
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getAllCourses, createCourse, updateCourse, deleteCourse } from '../services/courseService';
+import BackButton from '../components/BackButton';
 
-// Import MUI components and icons
 import {
   Container, Box, Typography, TextField, Button, Alert, Paper, Grid, Stack,
-  Table, TableBody, TableCell, TableContainer, TableHead, TableRow, IconButton
+  Table, TableBody, TableCell, TableContainer, TableHead, TableRow, IconButton,
+  Select, MenuItem, InputLabel, FormControl
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import BackButton from '../components/BackButton';
 
 const CoursesManagement = () => {
   const { t } = useTranslation();
@@ -21,9 +21,13 @@ const CoursesManagement = () => {
 
   const [isEditing, setIsEditing] = useState(false);
   const [currentCourseId, setCurrentCourseId] = useState(null);
-  const [formData, setFormData] = useState({
+  
+  // 1. Updated initial state to include new fields
+  const initialState = {
     name: '', code: '', description: '', credits: '', professor: '', department: '',
-  });
+    yearOfStudy: 1, semester: 1, specialization: 'General'
+  };
+  const [formData, setFormData] = useState(initialState);
 
   const fetchCourses = useCallback(async () => {
     try {
@@ -43,15 +47,16 @@ const CoursesManagement = () => {
     fetchCourses();
   }, [fetchCourses]);
 
+  // 2. Updated handler to use 'name' prop for better compatibility with Select
   const handleInputChange = (e) => {
-    const { id, value } = e.target;
-    setFormData(prev => ({ ...prev, [id]: value }));
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const resetForm = () => {
     setIsEditing(false);
     setCurrentCourseId(null);
-    setFormData({ name: '', code: '', description: '', credits: '', professor: '', department: '' });
+    setFormData(initialState);
   };
 
   const getTranslatedError = (msg) => {
@@ -62,12 +67,20 @@ const CoursesManagement = () => {
     return 'generic_error';
   };
 
-  const handleSubmit = async (e) => {
+    const handleSubmit = async (e) => {
     e.preventDefault();
     setFormMessage({ text: '', type: '' });
 
-    const creditsNumber = Number(formData.credits);
-    if (!Number.isInteger(creditsNumber)) {
+    // --- UPDATED VALIDATION BLOCK ---
+    const { name, code, credits, professor, yearOfStudy, semester, specialization } = formData;
+
+    if (!name.trim() || !code.trim() || !String(credits).trim() || !professor.trim() || !yearOfStudy || !semester || !specialization.trim()) {
+      setFormMessage({ text: 'course_form_error_all_fields', type: 'error' });
+      return;
+    }
+
+    const creditsNumber = Number(credits);
+    if (!Number.isInteger(creditsNumber) || creditsNumber < 1) {
       setFormMessage({ text: 'course_credits_integer_error', type: 'error' });
       return;
     }
@@ -90,6 +103,7 @@ const CoursesManagement = () => {
     }
   };
 
+  // 3. Updated handler to populate new fields when editing
   const handleEditClick = (course) => {
     setFormMessage({ text: '', type: '' });
     setIsEditing(true);
@@ -101,6 +115,9 @@ const CoursesManagement = () => {
       credits: course.credits,
       professor: course.professor,
       department: course.department || '',
+      yearOfStudy: course.yearOfStudy,
+      semester: course.semester,
+      specialization: course.specialization
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -122,7 +139,7 @@ const CoursesManagement = () => {
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-       <BackButton />
+      <BackButton />
       <Typography variant="h4" component="h1" gutterBottom sx={{ textAlign: 'center' }}>
         {t('courses_management_title')}
       </Typography>
@@ -133,16 +150,40 @@ const CoursesManagement = () => {
         </Typography>
         <Box component="form" onSubmit={handleSubmit} noValidate>
           <Grid container spacing={2}>
-            <Grid item xs={12} sm={6}><TextField fullWidth required id="name" label={t('course_name_label')} value={formData.name} onChange={handleInputChange} /></Grid>
-            <Grid item xs={12} sm={6}><TextField fullWidth required id="code" label={t('course_code_label')} value={formData.code} onChange={handleInputChange} /></Grid>
-            <Grid item xs={12} sm={6}><TextField fullWidth required id="credits" label={t('course_credits_label')} value={formData.credits} onChange={handleInputChange} type="number" inputProps={{ min: 1, step: 1 }} /></Grid>
-            <Grid item xs={12} sm={6}><TextField fullWidth required id="professor" label={t('course_professor_label')} value={formData.professor} onChange={handleInputChange} /></Grid>
-            <Grid item xs={12}><TextField fullWidth id="department" label={t('course_department_label')} value={formData.department} onChange={handleInputChange} /></Grid>
-            <Grid item xs={12}><TextField fullWidth id="description" label={t('course_description_label')} value={formData.description} onChange={handleInputChange} multiline rows={3} /></Grid>
+            <Grid item xs={12} md={4}><TextField fullWidth required name="name" label={t('course_name_label')} value={formData.name} onChange={handleInputChange} /></Grid>
+            <Grid item xs={12} md={4}><TextField fullWidth required name="code" label={t('course_code_label')} value={formData.code} onChange={handleInputChange} /></Grid>
+            <Grid item xs={12} md={4}><TextField fullWidth required name="credits" label={t('course_credits_label')} value={formData.credits} onChange={handleInputChange} type="number" inputProps={{ min: 1, step: 1 }} /></Grid>
+            
+            <Grid item xs={12} md={4}>
+              <FormControl fullWidth>
+                <InputLabel id="year-select-label">{t('course_year_label')}</InputLabel>
+                <Select labelId="year-select-label" name="yearOfStudy" value={formData.yearOfStudy} label={t('course_year_label')} onChange={handleInputChange}>
+                  <MenuItem value={1}>1</MenuItem>
+                  <MenuItem value={2}>2</MenuItem>
+                  <MenuItem value={3}>3</MenuItem>
+                  <MenuItem value={4}>4</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <FormControl fullWidth>
+                <InputLabel id="semester-select-label">{t('course_semester_label')}</InputLabel>
+                <Select labelId="semester-select-label" name="semester" value={formData.semester} label={t('course_semester_label')} onChange={handleInputChange}>
+                  <MenuItem value={1}>1</MenuItem>
+                  <MenuItem value={2}>2</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} md={4}><TextField fullWidth name="specialization" label={t('course_specialization_label')} value={formData.specialization} onChange={handleInputChange} /></Grid>
+
+            <Grid item xs={12} md={6}><TextField fullWidth required name="professor" label={t('course_professor_label')} value={formData.professor} onChange={handleInputChange} /></Grid>
+            <Grid item xs={12} md={6}><TextField fullWidth name="department" label={t('course_department_label')} value={formData.department} onChange={handleInputChange} /></Grid>
+            <Grid item xs={12}><TextField fullWidth name="description" label={t('course_description_label')} value={formData.description} onChange={handleInputChange} multiline rows={3} /></Grid>
           </Grid>
+
           <Stack direction="row" spacing={2} sx={{ mt: 3 }}>
             <Button type="submit" variant="contained">{isEditing ? t('update_course_button') : t('add_course_button')}</Button>
-            {isEditing && (<Button variant="outlined" onClick={() => { resetForm(); setFormMessage({ text: '', type: '' }); }}>{t('cancel_button')}</Button>)}
+            {isEditing && (<Button variant="outlined" onClick={resetForm}>{t('cancel_button')}</Button>)}
           </Stack>
         </Box>
         {formMessage.text && <Alert severity={formMessage.type} sx={{ mt: 2 }}>{t(formMessage.text)}</Alert>}
@@ -156,7 +197,9 @@ const CoursesManagement = () => {
               <TableRow>
                 <TableCell>{t('course_code_label')}</TableCell>
                 <TableCell>{t('course_name_label')}</TableCell>
-                <TableCell>{t('course_professor_label')}</TableCell>
+                <TableCell>{t('course_year_label')}</TableCell>
+                <TableCell>{t('course_semester_label')}</TableCell>
+                <TableCell>{t('course_specialization_label')}</TableCell>
                 <TableCell align="right">{t('course_credits_label')}</TableCell>
                 <TableCell align="center">{t('actions_label')}</TableCell>
               </TableRow>
@@ -166,7 +209,9 @@ const CoursesManagement = () => {
                 <TableRow key={course._id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
                   <TableCell component="th" scope="row">{course.code}</TableCell>
                   <TableCell>{course.name}</TableCell>
-                  <TableCell>{course.professor}</TableCell>
+                  <TableCell>{course.yearOfStudy}</TableCell>
+                  <TableCell>{course.semester}</TableCell>
+                  <TableCell>{course.specialization}</TableCell>
                   <TableCell align="right">{course.credits}</TableCell>
                   <TableCell align="center">
                     <IconButton onClick={() => handleEditClick(course)} color="primary"><EditIcon /></IconButton>

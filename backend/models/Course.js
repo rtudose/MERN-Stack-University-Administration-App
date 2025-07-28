@@ -1,4 +1,4 @@
-// models/Course.js
+// backend/models/Course.js
 const mongoose = require('mongoose');
 
 const courseSchema = new mongoose.Schema({
@@ -33,6 +33,24 @@ const courseSchema = new mongoose.Schema({
     type: String,
     required: false,
     trim: true
+  },
+  yearOfStudy: {
+    type: Number,
+    required: true,
+    min: 1,
+    max: 4 // Assuming a 4-year program, adjust as needed
+  },
+  semester: {
+    type: Number,
+    required: true,
+    min: 1,
+    max: 2
+  },
+  specialization: {
+    type: String,
+    required: true, 
+    trim: true,
+    default: 'General' // A default for courses in early years
   },
   createdAt: {
     type: Date,

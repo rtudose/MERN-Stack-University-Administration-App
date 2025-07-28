@@ -71,6 +71,9 @@ const resources = {
       // "password_label": "Password",
       "role_label": "Role",
       "role_label_student": "Student",
+      "course_year_label": "Year of Study",
+      "course_semester_label": "Semester",
+      "course_specialization_label": "Specialization",
       "role_label_admin": "Admin",
       "role_label_external_representative": "External Representative",
       "add_user_button": "Add User",
@@ -115,6 +118,7 @@ const resources = {
       "course_form_error_required": "Please fill out all required fields (Name, Code, Credits, Professor).",
       "course_credits_min_error": "Credits must be a positive number.",
       "course_credits_integer_error": "Credits must be a whole number.",
+      "course_form_error_all_fields": "Please ensure all fields are filled out correctly.",
 
       // Add/Edit Room Form
       "add_new_room_title": "Add New Room",
@@ -271,6 +275,9 @@ const resources = {
       // "password_label": "Parolă",
       "role_label": "Rol",
       "role_label_student": "Student",
+      "course_year_label": "An de Studiu",
+      "course_semester_label": "Semestru",
+      "course_specialization_label": "Specializare",
       "role_label_admin": "Administrator",
       "role_label_external_representative": "Reprezentant Extern",
       "add_user_button": "Adaugă Utilizator",
@@ -315,6 +322,7 @@ const resources = {
       "course_form_error_required": "Vă rugăm completați toate câmpurile obligatorii (Nume, Cod, Credite, Profesor).",
       "course_credits_min_error": "Numărul de credite trebuie să fie un număr pozitiv.",
       "course_credits_integer_error": "Numărul de credite trebuie să fie un număr întreg.",
+      "course_form_error_all_fields": "Vă rugăm să vă asigurați că toate câmpurile sunt completate corect.",
 
       // Add/Edit Room Form
       "add_new_room_title": "Adaugă Sală Nouă",
