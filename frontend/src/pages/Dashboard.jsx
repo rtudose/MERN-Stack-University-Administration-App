@@ -34,7 +34,7 @@ function Dashboard() {
   };
 
   const handleViewCoursesClick = () => {
-    alert('My Courses page is not yet implemented.');
+    navigate('/my-courses');
   };
 
   if (loading || dashboardLoading) {

@@ -1,9 +1,9 @@
-// src/pages/Users.jsx
+// src/pages/Users.jsx (Complete and Final Code)
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getAllUsers, createUser, updateUser, deleteUser } from '../services/userService';
+import BackButton from '../components/BackButton';
 
-// Import MUI components and icons
 import {
   Container, Box, Typography, TextField, Button, Alert, Paper, Grid, Stack,
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow, IconButton,
@@ -11,7 +11,6 @@ import {
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import BackButton from '../components/BackButton';
 
 const Users = () => {
   const { t } = useTranslation();
@@ -22,12 +21,11 @@ const Users = () => {
 
   const [isEditing, setIsEditing] = useState(false);
   const [currentUserId, setCurrentUserId] = useState(null);
-  const [formData, setFormData] = useState({
-    username: '',
-    email: '',
-    password: '',
-    role: 'student',
-  });
+  const initialState = {
+    username: '', email: '', password: '', role: 'student',
+    studentDetails: { yearOfStudy: 1, specialization: '' }
+  };
+  const [formData, setFormData] = useState(initialState);
 
   const fetchUsers = useCallback(async () => {
     try {
@@ -49,17 +47,24 @@ const Users = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    if (name === 'yearOfStudy' || name === 'specialization') {
+      setFormData(prev => ({
+        ...prev,
+        studentDetails: { ...prev.studentDetails, [name]: value }
+      }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
 
   const resetForm = () => {
     setIsEditing(false);
     setCurrentUserId(null);
-    setFormData({ username: '', email: '', password: '', role: 'student' });
+    setFormData(initialState);
   };
   
   const getTranslatedError = (msg) => {
-    if (msg.includes('Password must be at least')) return t('password_minlength_error');
+    if (msg.includes('is shorter than the minimum allowed length')) return t('password_minlength_error');
     if (msg.includes('Please fill a valid email address')) return t('email_invalid_error');
     if (msg.includes('username already exists')) return t('username_exists_error');
     if (msg.includes('email already exists')) return t('user_exists_error');
@@ -73,19 +78,23 @@ const Users = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setFormMessage({ text: '', type: '' });
-
     if (!formData.email || !formData.username || (!isEditing && !formData.password)) {
         setFormMessage({ text: t('form_error_all_fields'), type: 'error' });
         return;
     }
 
     try {
+      const payload = { ...formData };
+      if (payload.role !== 'student') {
+        delete payload.studentDetails;
+      }
+      
       if (isEditing) {
-        const { username, email, role } = formData;
-        await updateUser(currentUserId, { username, email, role });
+        const { username, email, role, studentDetails } = payload;
+        await updateUser(currentUserId, { username, email, role, studentDetails });
         setFormMessage({ text: t('user_updated_success'), type: 'success' });
       } else {
-        await createUser(formData);
+        await createUser(payload);
         setFormMessage({ text: t('user_created_success'), type: 'success' });
       }
       resetForm();
@@ -102,6 +111,7 @@ const Users = () => {
     setCurrentUserId(user._id);
     setFormData({
       username: user.username, email: user.email, password: '', role: user.role,
+      studentDetails: user.studentDetails || { yearOfStudy: 1, specialization: '' }
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -135,52 +145,46 @@ const Users = () => {
         </Typography>
         <Box component="form" onSubmit={handleSubmit} noValidate>
           <Grid container spacing={2}>
-            <Grid item xs={12} sm={6}>
-              <TextField fullWidth required name="username" label={t('username_label')} value={formData.username} onChange={handleInputChange} />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField fullWidth required name="email" label={t('email_label')} type="email" value={formData.email} onChange={handleInputChange} />
-            </Grid>
-            {!isEditing && (
-              <Grid item xs={12} sm={6}>
-                <TextField fullWidth required name="password" label={t('password_label')} type="password" value={formData.password} onChange={handleInputChange} inputProps={{ minLength: 6 }} />
-              </Grid>
-            )}
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
+            <Grid item xs={12} md={6}><TextField fullWidth required name="username" label={t('username_label')} value={formData.username} onChange={handleInputChange} /></Grid>
+            <Grid item xs={12} md={6}><TextField fullWidth required name="email" label={t('email_label')} type="email" value={formData.email} onChange={handleInputChange} /></Grid>
+            {!isEditing && (<Grid item xs={12} md={6}><TextField fullWidth required name="password" label={t('password_label')} type="password" value={formData.password} onChange={handleInputChange} inputProps={{ minLength: 6 }} /></Grid>)}
+            <Grid item xs={12} md={isEditing ? 12 : 6}>
+              <FormControl fullWidth required>
                 <InputLabel id="role-select-label">{t('role_label')}</InputLabel>
-                <Select
-                  labelId="role-select-label"
-                  name="role"
-                  value={formData.role}
-                  label={t('role_label')}
-                  onChange={handleInputChange}
-                >
+                <Select labelId="role-select-label" name="role" value={formData.role} label={t('role_label')} onChange={handleInputChange}>
                   <MenuItem value="student">{t('role_label_student')}</MenuItem>
                   <MenuItem value="admin">{t('role_label_admin')}</MenuItem>
                   <MenuItem value="external_representative">{t('role_label_external_representative')}</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
+
+            {formData.role === 'student' && (
+              <>
+                <Grid item xs={12} md={6}>
+                  <FormControl fullWidth required>
+                    <InputLabel id="year-select-label">{t('course_year_label')}</InputLabel>
+                    <Select labelId="year-select-label" name="yearOfStudy" value={formData.studentDetails.yearOfStudy} label={t('course_year_label')} onChange={handleInputChange}>
+                        <MenuItem value={1}>1</MenuItem><MenuItem value={2}>2</MenuItem><MenuItem value={3}>3</MenuItem><MenuItem value={4}>4</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField fullWidth required name="specialization" label={t('course_specialization_label')} value={formData.studentDetails.specialization} onChange={handleInputChange} />
+                </Grid>
+              </>
+            )}
           </Grid>
           <Stack direction="row" spacing={2} sx={{ mt: 3 }}>
-            <Button type="submit" variant="contained">
-              {isEditing ? t('update_user_button') : t('add_user_button')}
-            </Button>
-            {isEditing && (
-              <Button variant="outlined" onClick={() => { resetForm(); setFormMessage({ text: '', type: '' }); }}>
-                {t('cancel_button')}
-              </Button>
-            )}
+            <Button type="submit" variant="contained">{isEditing ? t('update_user_button') : t('add_user_button')}</Button>
+            {isEditing && (<Button variant="outlined" onClick={resetForm}>{t('cancel_button')}</Button>)}
           </Stack>
         </Box>
-        {formMessage.text && <Alert severity={formMessage.type} sx={{ mt: 2 }}>{formMessage.text}</Alert>}
+        {formMessage.text && <Alert severity={formMessage.type} sx={{ mt: 2 }}>{t(formMessage.text)}</Alert>}
       </Paper>
       
       <Paper sx={{ p: { xs: 2, md: 3 } }}>
-        <Typography variant="h5" component="h2" gutterBottom>
-          {t('existing_users_title')}
-        </Typography>
+        <Typography variant="h5" component="h2" gutterBottom>{t('existing_users_title')}</Typography>
         <TableContainer>
           <Table>
             <TableHead>
@@ -188,15 +192,19 @@ const Users = () => {
                 <TableCell>{t('username_label')}</TableCell>
                 <TableCell>{t('email_label')}</TableCell>
                 <TableCell>{t('role_label')}</TableCell>
+                <TableCell>{t('course_year_label')}</TableCell>
+                <TableCell>{t('course_specialization_label')}</TableCell>
                 <TableCell align="center">{t('actions_label')}</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {users.map((user) => (
                 <TableRow key={user._id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-                  <TableCell component="th" scope="row">{user.username}</TableCell>
+                  <TableCell>{user.username}</TableCell>
                   <TableCell>{user.email}</TableCell>
                   <TableCell>{t(`role_label_${user.role}`)}</TableCell>
+                  <TableCell>{user.studentDetails?.yearOfStudy || 'N/A'}</TableCell>
+                  <TableCell>{user.studentDetails?.specialization || 'N/A'}</TableCell>
                   <TableCell align="center">
                     <IconButton onClick={() => handleEditClick(user)} color="primary"><EditIcon /></IconButton>
                     <IconButton onClick={() => handleDeleteClick(user._id)} color="error"><DeleteIcon /></IconButton>

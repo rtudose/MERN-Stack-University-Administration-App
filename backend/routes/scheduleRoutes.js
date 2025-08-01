@@ -2,10 +2,13 @@
 const express = require('express');
 const router = express.Router();
 const ScheduleEntry = require('../models/ScheduleEntry');
-const Course = require('../models/Course'); // Needed for validation/population
-const Room = require('../models/Room');     // Needed for validation/population
+const Course = require('../models/Course');
+const Room = require('../models/Room');
+const User = require('../models/User');
 const auth = require('../middleware/auth');
 const authorize = require('../middleware/authorize');
+
+const studentOnly = [auth, authorize(['student'])]; // Middleware for students
 
 // Helper function to check for overlaps (can be extracted to a utility file)
 const checkOverlap = (existingEntry, newEntry) => {
@@ -31,6 +34,44 @@ const checkOverlap = (existingEntry, newEntry) => {
   return newStart < existingEnd && newEnd > existingStart;
 };
 
+// --- STUDENT-SPECIFIC ROUTE ---
+
+// @route   GET /api/schedule/my-schedule
+// @desc    Get the personal weekly schedule for the logged-in student
+// @access  Student
+router.get('/my-schedule', studentOnly, async (req, res) => {
+    try {
+        const student = await User.findById(req.user.id);
+        if (!student || !student.studentDetails) {
+            return res.status(400).json({ msg: 'Student details not found.' });
+        }
+
+        const { yearOfStudy, specialization, group } = student.studentDetails;
+
+        // 1. Find all courses relevant to the student
+        const studentCourses = await Course.find({
+            yearOfStudy: yearOfStudy,
+            specialization: { $in: [specialization, 'General'] }
+        }).select('_id');
+
+        const studentCourseIds = studentCourses.map(course => course._id);
+
+        // 2. Find all schedule entries for those courses that match the student's group or are general lectures
+        const schedule = await ScheduleEntry.find({
+            course: { $in: studentCourseIds },
+            group: { $in: [group, null, ''] }
+        })
+        .populate('course', 'name code professor type')
+        .populate('room', 'name location');
+
+        res.json(schedule);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+});
+
+// --- ADMIN AND PUBLIC ROUTES ---
 
 // @route   POST /api/schedule
 // @desc    Create a new schedule entry with overlap detection

@@ -9,6 +9,7 @@ import ApartmentIcon from '@mui/icons-material/Apartment';
 import PeopleIcon from '@mui/icons-material/People';
 import SchoolIcon from '@mui/icons-material/School';
 import EventAvailableIcon from '@mui/icons-material/EventAvailable';
+import ScheduleIcon from '@mui/icons-material/Schedule';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -62,6 +63,15 @@ const AdminDashboard = () => {
           sx={{ minWidth: '240px' }}
         >
           {t('manage_courses_button')}
+        </Button>
+        <Button
+          variant="contained"
+          size="large"
+          startIcon={<ScheduleIcon />}
+          onClick={() => navigate('/schedule-management')}
+          sx={{ minWidth: '240px' }}
+        >
+          {t('manage_schedule_button')}
         </Button>
         <Button
           variant="contained"

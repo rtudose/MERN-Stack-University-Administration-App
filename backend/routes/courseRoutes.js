@@ -2,11 +2,55 @@
 const express = require('express');
 const router = express.Router();
 const Course = require('../models/Course');
+const User = require('../models/User');
 const auth = require('../middleware/auth');
 const authorize = require('../middleware/authorize');
 
-// Middleware for admin-only access
+// Middleware for admin-only and student-only access
 const adminOnly = [auth, authorize(['admin'])];
+const studentOnly = [auth, authorize(['student'])];
+
+// --- STUDENT ROUTE ---
+
+// @route   GET /api/courses/my-courses
+// @desc    Get courses for the logged-in student for the current semester
+// @access  Student
+router.get('/my-courses', [auth, authorize(['student'])], async (req, res) => {
+    try {
+        const student = await User.findById(req.user.id);
+        if (!student || !student.studentDetails) {
+            return res.status(400).json({ msg: 'Student details not found.' });
+        }
+
+        const { yearOfStudy, specialization } = student.studentDetails;
+        
+        const currentDate = new Date();
+        const currentMonth = currentDate.getMonth() + 1; // getMonth() is 0-indexed (0=Jan, 11=Dec)
+
+        // Determine current semester based on the month
+        // Semester 1: October (10) to February (2)
+        // Semester 2: March (3) to September (9)
+        let currentSemester;
+        if (currentMonth >= 3 && currentMonth <= 9) {
+            currentSemester = 2;
+        } else {
+            currentSemester = 1;
+        }
+
+        const courses = await Course.find({
+            yearOfStudy: yearOfStudy,
+            semester: currentSemester, // Add semester to the query
+            specialization: { $in: [specialization, 'General'] }
+        });
+
+        res.json(courses);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+});
+
+// --- ADMIN ROUTES ---
 
 // @route   POST /api/courses
 // @desc    Create a new course

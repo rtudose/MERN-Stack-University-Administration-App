@@ -25,82 +25,75 @@ router.get('/', adminOnly, async (req, res) => {
 // @desc    Create a new user (by an admin)
 // @access  Admin
 router.post('/', adminOnly, async (req, res) => {
-  const { username, email, password, role } = req.body;
-
-  try {
-    const user = new User({
-      username,
-      email,
-      password,
-      role: role || 'student',
-    });
-
-    await user.save();
-    
-    const userResponse = user.toObject();
-    delete userResponse.password;
-
-    res.status(201).json(userResponse);
-  } catch (err) {
-    // UPDATED: Smart catch block
-    if (err.code === 11000) {
-      const field = Object.keys(err.keyValue)[0];
-      return res.status(400).json({ msg: `User with this ${field} already exists` });
+    const { username, email, password, role, studentDetails } = req.body;
+    try {
+        const userPayload = { username, email, password, role };
+        if (role === 'student' && studentDetails) {
+            userPayload.studentDetails = studentDetails;
+        }
+        const user = new User(userPayload);
+        await user.save();
+        const userResponse = user.toObject();
+        delete userResponse.password;
+        res.status(201).json(userResponse);
+    } catch (err) {
+        if (err.code === 11000) {
+            const field = Object.keys(err.keyValue)[0];
+            return res.status(400).json({ msg: `User with this ${field} already exists` });
+        }
+        if (err.name === 'ValidationError') {
+            const message = Object.values(err.errors).map(val => val.message).join(', ');
+            return res.status(400).json({ msg: message });
+        }
+        console.error(err.message);
+        res.status(500).send('Server Error');
     }
-    // NEW: Handle Mongoose validation errors specifically
-    if (err.name === 'ValidationError') {
-      const message = Object.values(err.errors).map(val => val.message).join(', ');
-      return res.status(400).json({ msg: message });
-    }
-    console.error(err.message);
-    res.status(500).send('Server Error');
-  }
 });
 
 // @route   PUT /api/users/:id
 // @desc    Update a user's role or info
 // @access  Admin
 router.put('/:id', adminOnly, async (req, res) => {
-  const { username, email, role } = req.body;
-  const userFields = {};
-  if (username) userFields.username = username;
-  if (email) userFields.email = email;
-  if (role) userFields.role = role;
+    const { username, email, role, studentDetails } = req.body;
+    const userFields = {};
+    if (username) userFields.username = username;
+    if (email) userFields.email = email;
+    if (role) userFields.role = role;
+    if (studentDetails) userFields.studentDetails = studentDetails;
 
-  try {
-    let user = await User.findById(req.params.id);
-    if (!user) {
-      return res.status(404).json({ msg: 'User not found' });
-    }
+    try {
+        let user = await User.findById(req.params.id);
+        if (!user) { return res.status(404).json({ msg: 'User not found' }); }
 
-    if (user.role === 'admin' && role && role !== 'admin') {
-      const adminCount = await User.countDocuments({ role: 'admin' });
-      if (adminCount <= 1) {
-        return res.status(400).json({ msg: 'Cannot remove the last administrator' });
-      }
-    }
+        if (role && role !== 'student') {
+            await User.updateOne({ _id: req.params.id }, { $unset: { studentDetails: 1 } });
+        }
 
-    const updatedUser = await User.findByIdAndUpdate(
-      req.params.id,
-      { $set: userFields },
-      { new: true, runValidators: true }
-    ).select('-password');
-
-    res.json(updatedUser);
-  } catch (err) {
-    // UPDATED: Smart catch block
-    if (err.code === 11000) {
-      const field = Object.keys(err.keyValue)[0];
-      return res.status(400).json({ msg: `User with this ${field} already exists` });
+        if (user.role === 'admin' && role && role !== 'admin') {
+            const adminCount = await User.countDocuments({ role: 'admin' });
+            if (adminCount <= 1) {
+                return res.status(400).json({ msg: 'Cannot remove the last administrator' });
+            }
+        }
+        
+        const updatedUser = await User.findByIdAndUpdate(
+            req.params.id,
+            { $set: userFields },
+            { new: true, runValidators: true }
+        ).select('-password');
+        res.json(updatedUser);
+    } catch (err) {
+        if (err.code === 11000) {
+            const field = Object.keys(err.keyValue)[0];
+            return res.status(400).json({ msg: `User with this ${field} already exists` });
+        }
+        if (err.name === 'ValidationError') {
+            const message = Object.values(err.errors).map(val => val.message).join(', ');
+            return res.status(400).json({ msg: message });
+        }
+        console.error(err.message);
+        res.status(500).send('Server Error');
     }
-    // NEW: Handle Mongoose validation errors specifically
-    if (err.name === 'ValidationError') {
-      const message = Object.values(err.errors).map(val => val.message).join(', ');
-      return res.status(400).json({ msg: message });
-    }
-    console.error(err.message);
-    res.status(500).send('Server Error');
-  }
 });
 
 // @route   DELETE /api/users/:id

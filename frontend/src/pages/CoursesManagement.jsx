@@ -1,4 +1,4 @@
-// src/pages/CoursesManagement.jsx (Complete and Corrected)
+// src/pages/CoursesManagement.jsx (Corrected with required asterisks)
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getAllCourses, createCourse, updateCourse, deleteCourse } from '../services/courseService';
@@ -22,7 +22,6 @@ const CoursesManagement = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [currentCourseId, setCurrentCourseId] = useState(null);
   
-  // 1. Updated initial state to include new fields
   const initialState = {
     name: '', code: '', description: '', credits: '', professor: '', department: '',
     yearOfStudy: 1, semester: 1, specialization: 'General'
@@ -30,24 +29,13 @@ const CoursesManagement = () => {
   const [formData, setFormData] = useState(initialState);
 
   const fetchCourses = useCallback(async () => {
-    try {
-      setLoading(true);
-      const response = await getAllCourses();
-      setCourses(response.data);
-      setError(null);
-    } catch (err) {
-      console.error("Failed to fetch courses:", err);
-      setError('fetch_courses_error');
-    } finally {
-      setLoading(false);
-    }
+    try { setLoading(true); const response = await getAllCourses(); setCourses(response.data); setError(null); } 
+    catch (err) { console.error("Failed to fetch courses:", err); setError('fetch_courses_error'); } 
+    finally { setLoading(false); }
   }, []);
 
-  useEffect(() => {
-    fetchCourses();
-  }, [fetchCourses]);
+  useEffect(() => { fetchCourses(); }, [fetchCourses]);
 
-  // 2. Updated handler to use 'name' prop for better compatibility with Select
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -67,26 +55,18 @@ const CoursesManagement = () => {
     return 'generic_error';
   };
 
-    const handleSubmit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setFormMessage({ text: '', type: '' });
-
-    // --- UPDATED VALIDATION BLOCK ---
     const { name, code, credits, professor, yearOfStudy, semester, specialization } = formData;
-
     if (!name.trim() || !code.trim() || !String(credits).trim() || !professor.trim() || !yearOfStudy || !semester || !specialization.trim()) {
-      setFormMessage({ text: 'course_form_error_all_fields', type: 'error' });
-      return;
+      setFormMessage({ text: 'course_form_error_all_fields', type: 'error' }); return;
     }
-
     const creditsNumber = Number(credits);
     if (!Number.isInteger(creditsNumber) || creditsNumber < 1) {
-      setFormMessage({ text: 'course_credits_integer_error', type: 'error' });
-      return;
+      setFormMessage({ text: 'course_credits_integer_error', type: 'error' }); return;
     }
-
     const courseData = { ...formData, credits: creditsNumber };
-
     try {
       if (isEditing) {
         await updateCourse(currentCourseId, courseData);
@@ -95,42 +75,29 @@ const CoursesManagement = () => {
         await createCourse(courseData);
         setFormMessage({ text: 'course_created_success', type: 'success' });
       }
-      resetForm();
-      fetchCourses();
+      resetForm(); fetchCourses();
     } catch (err) {
       const errorKey = err.response?.data?.msg ? getTranslatedError(err.response.data.msg) : 'generic_error';
       setFormMessage({ text: errorKey, type: 'error' });
     }
   };
 
-  // 3. Updated handler to populate new fields when editing
   const handleEditClick = (course) => {
     setFormMessage({ text: '', type: '' });
     setIsEditing(true);
     setCurrentCourseId(course._id);
     setFormData({
-      name: course.name,
-      code: course.code,
-      description: course.description || '',
-      credits: course.credits,
-      professor: course.professor,
-      department: course.department || '',
-      yearOfStudy: course.yearOfStudy,
-      semester: course.semester,
-      specialization: course.specialization
+      name: course.name, code: course.code, description: course.description || '', 
+      credits: course.credits, professor: course.professor, department: course.department || '',
+      yearOfStudy: course.yearOfStudy, semester: course.semester, specialization: course.specialization
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleDeleteClick = async (courseId) => {
     if (window.confirm(t('delete_course_confirm'))) {
-      try {
-        await deleteCourse(courseId);
-        setFormMessage({ text: 'course_deleted_success', type: 'success' });
-        fetchCourses();
-      } catch (err) {
-        setFormMessage({ text: 'delete_course_error', type: 'error' });
-      }
+      try { await deleteCourse(courseId); setFormMessage({ text: 'course_deleted_success', type: 'success' }); fetchCourses(); } 
+      catch (err) { setFormMessage({ text: 'delete_course_error', type: 'error' }); }
     }
   };
 
@@ -155,26 +122,22 @@ const CoursesManagement = () => {
             <Grid item xs={12} md={4}><TextField fullWidth required name="credits" label={t('course_credits_label')} value={formData.credits} onChange={handleInputChange} type="number" inputProps={{ min: 1, step: 1 }} /></Grid>
             
             <Grid item xs={12} md={4}>
-              <FormControl fullWidth>
+              <FormControl fullWidth required>
                 <InputLabel id="year-select-label">{t('course_year_label')}</InputLabel>
                 <Select labelId="year-select-label" name="yearOfStudy" value={formData.yearOfStudy} label={t('course_year_label')} onChange={handleInputChange}>
-                  <MenuItem value={1}>1</MenuItem>
-                  <MenuItem value={2}>2</MenuItem>
-                  <MenuItem value={3}>3</MenuItem>
-                  <MenuItem value={4}>4</MenuItem>
+                  <MenuItem value={1}>1</MenuItem><MenuItem value={2}>2</MenuItem><MenuItem value={3}>3</MenuItem><MenuItem value={4}>4</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
             <Grid item xs={12} md={4}>
-              <FormControl fullWidth>
+              <FormControl fullWidth required>
                 <InputLabel id="semester-select-label">{t('course_semester_label')}</InputLabel>
                 <Select labelId="semester-select-label" name="semester" value={formData.semester} label={t('course_semester_label')} onChange={handleInputChange}>
-                  <MenuItem value={1}>1</MenuItem>
-                  <MenuItem value={2}>2</MenuItem>
+                  <MenuItem value={1}>1</MenuItem><MenuItem value={2}>2</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12} md={4}><TextField fullWidth name="specialization" label={t('course_specialization_label')} value={formData.specialization} onChange={handleInputChange} /></Grid>
+            <Grid item xs={12} md={4}><TextField fullWidth required name="specialization" label={t('course_specialization_label')} value={formData.specialization} onChange={handleInputChange} /></Grid>
 
             <Grid item xs={12} md={6}><TextField fullWidth required name="professor" label={t('course_professor_label')} value={formData.professor} onChange={handleInputChange} /></Grid>
             <Grid item xs={12} md={6}><TextField fullWidth name="department" label={t('course_department_label')} value={formData.department} onChange={handleInputChange} /></Grid>
@@ -195,24 +158,16 @@ const CoursesManagement = () => {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>{t('course_code_label')}</TableCell>
-                <TableCell>{t('course_name_label')}</TableCell>
-                <TableCell>{t('course_year_label')}</TableCell>
-                <TableCell>{t('course_semester_label')}</TableCell>
-                <TableCell>{t('course_specialization_label')}</TableCell>
-                <TableCell align="right">{t('course_credits_label')}</TableCell>
-                <TableCell align="center">{t('actions_label')}</TableCell>
+                <TableCell>{t('course_code_label')}</TableCell><TableCell>{t('course_name_label')}</TableCell><TableCell>{t('course_year_label')}</TableCell>
+                <TableCell>{t('course_semester_label')}</TableCell><TableCell>{t('course_specialization_label')}</TableCell>
+                <TableCell align="right">{t('course_credits_label')}</TableCell><TableCell align="center">{t('actions_label')}</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {courses.map((course) => (
                 <TableRow key={course._id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-                  <TableCell component="th" scope="row">{course.code}</TableCell>
-                  <TableCell>{course.name}</TableCell>
-                  <TableCell>{course.yearOfStudy}</TableCell>
-                  <TableCell>{course.semester}</TableCell>
-                  <TableCell>{course.specialization}</TableCell>
-                  <TableCell align="right">{course.credits}</TableCell>
+                  <TableCell component="th" scope="row">{course.code}</TableCell><TableCell>{course.name}</TableCell><TableCell>{course.yearOfStudy}</TableCell>
+                  <TableCell>{course.semester}</TableCell><TableCell>{course.specialization}</TableCell><TableCell align="right">{course.credits}</TableCell>
                   <TableCell align="center">
                     <IconButton onClick={() => handleEditClick(course)} color="primary"><EditIcon /></IconButton>
                     <IconButton onClick={() => handleDeleteClick(course._id)} color="error"><DeleteIcon /></IconButton>

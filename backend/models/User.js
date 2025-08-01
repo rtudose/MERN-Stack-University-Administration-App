@@ -37,6 +37,10 @@ const userSchema = new mongoose.Schema({
     specialization: {
       type: String,
       trim: true
+    },
+    group: {
+      type: String,
+      trim: true
     }
   },
   createdAt: {

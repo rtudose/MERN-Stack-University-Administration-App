@@ -1,4 +1,4 @@
-// models/ScheduleEntry.js
+// backend/models/ScheduleEntry.js
 const mongoose = require('mongoose');
 
 const scheduleEntrySchema = new mongoose.Schema({
@@ -32,7 +32,7 @@ const scheduleEntrySchema = new mongoose.Schema({
     enum: ['Lecture', 'Lab', 'Seminar', 'Practice'],
     default: 'Lecture'
   },
-  group: { // For different student groups if applicable
+  group: { // For different student groups (split the series in 3/4 equal groups, in order to be able to schedule the "Lab" and the "Seminar" for all students in the same week)
     type: String,
     required: false,
     trim: true
@@ -43,9 +43,9 @@ const scheduleEntrySchema = new mongoose.Schema({
     trim: true
   },
   semester: { // e.g., "Fall", "Spring"
-    type: String,
+    type: Number,
     required: true,
-    enum: ['Fall', 'Spring', 'Summer']
+    enum: [1, 2] //Maybe use ['Fall', 'Spring'] notation?
   },
   createdAt: {
     type: Date,

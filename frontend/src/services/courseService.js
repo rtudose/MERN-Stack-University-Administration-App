@@ -1,6 +1,11 @@
 // src/services/courseService.js
 import api from './api'; // Import the new centralized api client
 
+// For a student to get their own courses
+const getMyCourses = () => {
+  return api.get('/api/courses/my-courses');
+};
+
 const getAllCourses = () => {
   return api.get('/api/courses');
 };
@@ -17,4 +22,4 @@ const deleteCourse = (id) => {
   return api.delete(`/api/courses/${id}`);
 };
 
-export { getAllCourses, createCourse, updateCourse, deleteCourse };
+export { getMyCourses, getAllCourses, createCourse, updateCourse, deleteCourse };
