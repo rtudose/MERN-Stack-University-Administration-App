@@ -8,7 +8,7 @@ import Users from './pages/Users';
 import CoursesManagement from './pages/CoursesManagement';
 import BookRoom from './pages/BookRoom';
 import MyReservations from './pages/MyReservations';
-import MyCourses from './pages/MyCourses';
+import MySchedule from './pages/MySchedule';
 import AdminDashboard from './pages/AdminDashboard';
 import ReservationsManagement from './pages/ReservationsManagement';
 import ScheduleManagement from './pages/ScheduleManagement';
@@ -46,7 +46,7 @@ function App() {
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/book-room" element={<BookRoom />} />
                  <Route path="/my-reservations" element={<MyReservations />} />
-                  <Route path="/my-courses" element={<MyCourses />} />
+                  <Route path="/my-schedule" element={<MySchedule />} />
                 {/* Optional: If you want root path (when logged in) to also go to Dashboard, you can add this index route */}
                 {/* <Route index element={<Dashboard />} /> */}
               </Route>

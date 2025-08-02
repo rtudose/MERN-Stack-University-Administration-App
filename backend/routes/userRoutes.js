@@ -1,4 +1,4 @@
-// routes/userRoutes.js
+// backend/routes/userRoutes.js
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
@@ -7,23 +7,16 @@ const authorize = require('../middleware/authorize');
 
 const adminOnly = [auth, authorize(['admin'])];
 
-// @route   GET /api/users
-// @desc    Get all users
-// @access  Admin
 router.get('/', adminOnly, async (req, res) => {
-  try {
-    const users = await User.find().select('-password');
-    res.json(users);
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
-  }
+    try {
+        const users = await User.find().select('-password');
+        res.json(users);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
 });
 
-
-// @route   POST /api/users
-// @desc    Create a new user (by an admin)
-// @access  Admin
 router.post('/', adminOnly, async (req, res) => {
     const { username, email, password, role, studentDetails } = req.body;
     try {
@@ -50,11 +43,9 @@ router.post('/', adminOnly, async (req, res) => {
     }
 });
 
-// @route   PUT /api/users/:id
-// @desc    Update a user's role or info
-// @access  Admin
 router.put('/:id', adminOnly, async (req, res) => {
     const { username, email, role, studentDetails } = req.body;
+    
     const userFields = {};
     if (username) userFields.username = username;
     if (email) userFields.email = email;
@@ -65,10 +56,6 @@ router.put('/:id', adminOnly, async (req, res) => {
         let user = await User.findById(req.params.id);
         if (!user) { return res.status(404).json({ msg: 'User not found' }); }
 
-        if (role && role !== 'student') {
-            await User.updateOne({ _id: req.params.id }, { $unset: { studentDetails: 1 } });
-        }
-
         if (user.role === 'admin' && role && role !== 'admin') {
             const adminCount = await User.countDocuments({ role: 'admin' });
             if (adminCount <= 1) {
@@ -76,11 +63,17 @@ router.put('/:id', adminOnly, async (req, res) => {
             }
         }
         
+        const updateOperation = { $set: userFields };
+        if (role && role !== 'student') {
+            updateOperation.$unset = { studentDetails: 1 };
+        }
+        
         const updatedUser = await User.findByIdAndUpdate(
             req.params.id,
-            { $set: userFields },
+            updateOperation,
             { new: true, runValidators: true }
         ).select('-password');
+        
         res.json(updatedUser);
     } catch (err) {
         if (err.code === 11000) {
@@ -96,36 +89,25 @@ router.put('/:id', adminOnly, async (req, res) => {
     }
 });
 
-// @route   DELETE /api/users/:id
-// @desc    Delete a user
-// @access  Admin
 router.delete('/:id', adminOnly, async (req, res) => {
-  try {
-    const user = await User.findById(req.params.id);
-
-    if (!user) {
-      return res.status(404).json({ msg: 'User not found' });
+    try {
+        const user = await User.findById(req.params.id);
+        if (!user) { return res.status(404).json({ msg: 'User not found' }); }
+        if (user._id.toString() === req.user.id) {
+            return res.status(400).json({ msg: 'You cannot delete your own account' });
+        }
+        if (user.role === 'admin') {
+            const adminCount = await User.countDocuments({ role: 'admin' });
+            if (adminCount <= 1) {
+                return res.status(400).json({ msg: 'Cannot delete the last administrator' });
+            }
+        }
+        await User.findByIdAndDelete(req.params.id);
+        res.json({ msg: 'User removed' });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
     }
-    
-    if (user._id.toString() === req.user.id) {
-        return res.status(400).json({ msg: 'You cannot delete your own account' });
-    }
-    
-    if (user.role === 'admin') {
-      const adminCount = await User.countDocuments({ role: 'admin' });
-      if (adminCount <= 1) {
-        return res.status(400).json({ msg: 'Cannot delete the last administrator' });
-      }
-    }
-
-    await User.findByIdAndDelete(req.params.id);
-    
-    res.json({ msg: 'User removed' });
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
-  }
 });
-
 
 module.exports = router;

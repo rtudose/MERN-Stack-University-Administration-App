@@ -22,6 +22,28 @@
         "specialization": "Informatica"
     },
     {
+        "name": "Computer Networks",
+        "code": "CS303",
+        "description": "Understanding network protocols and layers.",
+        "credits": 4,
+        "professor": "Dr. Radu Georgescu",
+        "department": "Computer Science",
+        "yearOfStudy": 3,
+        "semester": 1,
+        "specialization": "Informatica"
+    },
+    {
+        "name": "Artificial Intelligence",
+        "code": "CS304",
+        "description": "Introduction to AI concepts and algorithms.",
+        "credits": 5,
+        "professor": "Dr. Ioana Popescu",
+        "department": "Computer Science",
+        "yearOfStudy": 3,
+        "semester": 2,
+        "specialization": "Informatica"
+    },
+    {
         "name": "Calculus I",
         "code": "MA101",
         "description": "Introduction to differential calculus.",

@@ -16,7 +16,7 @@ function Dashboard() {
   const navigate = useNavigate();
   const [dashboardLoading, setDashboardLoading] = useState(true);
 
-  // This logic is preserved to correctly redirect admins away from this page
+  // Logic to correctly redirect admins away from this page
   useEffect(() => {
     if (!loading) {
       if (!isAuthenticated) {
@@ -33,8 +33,8 @@ function Dashboard() {
      navigate('/book-room');
   };
 
-  const handleViewCoursesClick = () => {
-    navigate('/my-courses');
+  const handleMyScheduleClick = () => {
+    navigate('/my-schedule');
   };
 
   if (loading || dashboardLoading) {
@@ -65,9 +65,9 @@ function Dashboard() {
             color="success"
             size="large"
             startIcon={<SchoolIcon />}
-            onClick={handleViewCoursesClick}
+            onClick={handleMyScheduleClick}
           >
-            {t('view_my_courses_button')}
+            {t('my_schedule_button')}
           </Button>
         )}
         

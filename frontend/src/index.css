@@ -1,5 +1,7 @@
-/* Hide the default number input arrows (spinners) */
-/* For Chrome, Safari, Edge, Opera */
+/* 
+  Hide the default number input arrows (spinners)
+  For Chrome, Safari, Edge, Opera 
+*/
 input[type=number]::-webkit-inner-spin-button, 
 input[type=number]::-webkit-outer-spin-button { 
   -webkit-appearance: none; 
@@ -9,4 +11,12 @@ input[type=number]::-webkit-outer-spin-button {
 /* For Firefox */
 input[type=number] {
   -moz-appearance: textfield;
+}
+
+/*
+  Fix for time input clock icon in dark mode for Chrome/Edge/Safari.
+  This inverts the color of the icon to make it white on a dark background.
+*/
+html[data-mui-color-scheme="dark"] input[type="time"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
 }

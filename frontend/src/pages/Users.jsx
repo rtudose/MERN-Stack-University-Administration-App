@@ -1,4 +1,4 @@
-// src/pages/Users.jsx (Complete and Final Code)
+// src/pages/Users.jsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getAllUsers, createUser, updateUser, deleteUser } from '../services/userService';
@@ -21,9 +21,10 @@ const Users = () => {
 
   const [isEditing, setIsEditing] = useState(false);
   const [currentUserId, setCurrentUserId] = useState(null);
+  
   const initialState = {
     username: '', email: '', password: '', role: 'student',
-    studentDetails: { yearOfStudy: 1, specialization: '' }
+    studentDetails: { yearOfStudy: 1, specialization: '', group: '' }
   };
   const [formData, setFormData] = useState(initialState);
 
@@ -47,7 +48,7 @@ const Users = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    if (name === 'yearOfStudy' || name === 'specialization') {
+    if (['yearOfStudy', 'specialization', 'group'].includes(name)) {
       setFormData(prev => ({
         ...prev,
         studentDetails: { ...prev.studentDetails, [name]: value }
@@ -78,7 +79,11 @@ const Users = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setFormMessage({ text: '', type: '' });
-    if (!formData.email || !formData.username || (!isEditing && !formData.password)) {
+    if (!formData.email.trim() || !formData.username.trim() || (!isEditing && !formData.password)) {
+        setFormMessage({ text: t('form_error_all_fields'), type: 'error' });
+        return;
+    }
+    if (formData.role === 'student' && (!formData.studentDetails.specialization.trim() || !formData.studentDetails.group.trim())) {
         setFormMessage({ text: t('form_error_all_fields'), type: 'error' });
         return;
     }
@@ -90,6 +95,7 @@ const Users = () => {
       }
       
       if (isEditing) {
+        // Only send fields that can be updated
         const { username, email, role, studentDetails } = payload;
         await updateUser(currentUserId, { username, email, role, studentDetails });
         setFormMessage({ text: t('user_updated_success'), type: 'success' });
@@ -111,7 +117,7 @@ const Users = () => {
     setCurrentUserId(user._id);
     setFormData({
       username: user.username, email: user.email, password: '', role: user.role,
-      studentDetails: user.studentDetails || { yearOfStudy: 1, specialization: '' }
+      studentDetails: user.studentDetails || { yearOfStudy: 1, specialization: '', group: '' }
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -161,7 +167,7 @@ const Users = () => {
 
             {formData.role === 'student' && (
               <>
-                <Grid item xs={12} md={6}>
+                <Grid item xs={12} md={4}>
                   <FormControl fullWidth required>
                     <InputLabel id="year-select-label">{t('course_year_label')}</InputLabel>
                     <Select labelId="year-select-label" name="yearOfStudy" value={formData.studentDetails.yearOfStudy} label={t('course_year_label')} onChange={handleInputChange}>
@@ -169,8 +175,11 @@ const Users = () => {
                     </Select>
                   </FormControl>
                 </Grid>
-                <Grid item xs={12} md={6}>
+                <Grid item xs={12} md={4}>
                   <TextField fullWidth required name="specialization" label={t('course_specialization_label')} value={formData.studentDetails.specialization} onChange={handleInputChange} />
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <TextField fullWidth required name="group" label={t('user_group_label')} value={formData.studentDetails.group} onChange={handleInputChange} />
                 </Grid>
               </>
             )}
@@ -189,22 +198,17 @@ const Users = () => {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>{t('username_label')}</TableCell>
-                <TableCell>{t('email_label')}</TableCell>
-                <TableCell>{t('role_label')}</TableCell>
-                <TableCell>{t('course_year_label')}</TableCell>
-                <TableCell>{t('course_specialization_label')}</TableCell>
+                <TableCell>{t('username_label')}</TableCell><TableCell>{t('email_label')}</TableCell><TableCell>{t('role_label')}</TableCell>
+                <TableCell>{t('course_year_label')}</TableCell><TableCell>{t('course_specialization_label')}</TableCell><TableCell>{t('user_group_label')}</TableCell>
                 <TableCell align="center">{t('actions_label')}</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {users.map((user) => (
-                <TableRow key={user._id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-                  <TableCell>{user.username}</TableCell>
-                  <TableCell>{user.email}</TableCell>
-                  <TableCell>{t(`role_label_${user.role}`)}</TableCell>
-                  <TableCell>{user.studentDetails?.yearOfStudy || 'N/A'}</TableCell>
-                  <TableCell>{user.studentDetails?.specialization || 'N/A'}</TableCell>
+                <TableRow key={user._id}>
+                  <TableCell>{user.username}</TableCell><TableCell>{user.email}</TableCell><TableCell>{t(`role_label_${user.role}`)}</TableCell>
+                  <TableCell>{user.studentDetails?.yearOfStudy || 'N/A'}</TableCell><TableCell>{user.studentDetails?.specialization || 'N/A'}</TableCell>
+                  <TableCell>{user.studentDetails?.group || 'N/A'}</TableCell>
                   <TableCell align="center">
                     <IconButton onClick={() => handleEditClick(user)} color="primary"><EditIcon /></IconButton>
                     <IconButton onClick={() => handleDeleteClick(user._id)} color="error"><DeleteIcon /></IconButton>

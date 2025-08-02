@@ -48,15 +48,31 @@ router.get('/my-schedule', studentOnly, async (req, res) => {
 
         const { yearOfStudy, specialization, group } = student.studentDetails;
 
-        // 1. Find all courses relevant to the student
+        // --- SEMESTER LOGIC (Previously missing) ---
+        const currentDate = new Date();
+        const currentMonth = currentDate.getMonth() + 1; // getMonth() is 0-indexed
+
+        // Determine current semester based on the month
+        // Semester 1: October (10) to February (2)
+        // Semester 2: March (3) to September (9)
+        let currentSemester;
+        if (currentMonth >= 3 && currentMonth <= 9) {
+            currentSemester = 2;
+        } else {
+            currentSemester = 1;
+        }
+        // --- END SEMESTER LOGIC ---
+
+        // 1. Find all courses relevant to the student for the CURRENT semester
         const studentCourses = await Course.find({
             yearOfStudy: yearOfStudy,
+            semester: currentSemester, // Filter courses by semester
             specialization: { $in: [specialization, 'General'] }
         }).select('_id');
 
         const studentCourseIds = studentCourses.map(course => course._id);
 
-        // 2. Find all schedule entries for those courses that match the student's group or are general lectures
+        // 2. Find all schedule entries for those courses that match the student's group
         const schedule = await ScheduleEntry.find({
             course: { $in: studentCourseIds },
             group: { $in: [group, null, ''] }
@@ -106,7 +122,14 @@ router.post('/', auth, authorize(['admin']), async (req, res) => {
         // Found an overlap!
         const overlappingCourse = await Course.findById(entry.course); // Get course details for clearer error
         return res.status(400).json({
-          msg: `Overlap detected! Room ${existingRoom.name} is already booked for '${overlappingCourse ? overlappingCourse.name : 'Unknown Course'}' from ${entry.startTime} to ${entry.endTime} on ${entry.dayOfWeek}.`
+          msg: 'ROOM_OVERLAP',
+          details: {
+            roomName: existingRoom.name,
+            courseName: overlappingCourse ? overlappingCourse.name : 'Unknown Course',
+            startTime: entry.startTime,
+            endTime: entry.endTime,
+            dayOfWeek: entry.dayOfWeek
+          }
         });
       }
     }
@@ -126,7 +149,13 @@ router.post('/', auth, authorize(['admin']), async (req, res) => {
             // To avoid self-overlap when updating
             if (entry.id.toString() === req.params.id) continue;
             return res.status(400).json({
-                msg: `Professor ${existingCourse.professor} is already booked for another class from ${entry.startTime} to ${entry.endTime} on ${entry.dayOfWeek}.`
+                msg: 'PROFESSOR_OVERLAP', // A unique code for this error
+                details: { // Data for translation
+                    professorName: existingCourse.professor,
+                    startTime: entry.startTime,
+                    endTime: entry.endTime,
+                    dayOfWeek: entry.dayOfWeek
+                }
             });
         }
     }
@@ -254,7 +283,14 @@ router.put('/:id', auth, authorize(['admin']), async (req, res) => {
                 const overlappingCourse = await Course.findById(entry.course);
                 const overlappingRoom = await Room.findById(entry.room);
                 return res.status(400).json({
-                    msg: `Overlap detected! Room ${overlappingRoom ? overlappingRoom.name : 'Unknown Room'} is already booked for '${overlappingCourse ? overlappingCourse.name : 'Unknown Course'}' from ${entry.startTime} to ${entry.endTime} on ${entry.dayOfWeek}.`
+                    msg: 'ROOM_OVERLAP',
+                    details: {
+                    roomName: overlappingRoom ? overlappingRoom.name : 'Unknown Room',
+                    courseName: overlappingCourse ? overlappingCourse.name : 'Unknown Course',
+                    startTime: entry.startTime,
+                    endTime: entry.endTime,
+                    dayOfWeek: entry.dayOfWeek
+                    }
                 });
             }
         }
@@ -271,8 +307,14 @@ router.put('/:id', auth, authorize(['admin']), async (req, res) => {
         for (let entry of professorOverlaps) {
             if (checkOverlap(entry, newEntryCandidate)) {
                 return res.status(400).json({
-                    msg: `Professor ${currentProfessor} is already booked for another class from ${entry.startTime} to ${entry.endTime} on ${entry.dayOfWeek}.`
-                });
+                  msg: 'PROFESSOR_OVERLAP',
+                  details: {
+                      professorName: currentProfessor,
+                      startTime: entry.startTime,
+                      endTime: entry.endTime,
+                      dayOfWeek: entry.dayOfWeek
+                }
+            });
             }
         }
 

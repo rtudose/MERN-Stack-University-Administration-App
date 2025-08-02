@@ -73,6 +73,7 @@ const resources = {
       "course_year_label": "Year of Study",
       "course_semester_label": "Semester",
       "course_specialization_label": "Specialization",
+      "user_group_label": "Group",
       "role_label_admin": "Admin",
       "role_label_external_representative": "External Representative",
       "add_user_button": "Add User",
@@ -178,9 +179,11 @@ const resources = {
       "my_reservations_title": "My Reservations",
       "no_reservations_found": "You have not made any reservations yet.",
 
-      // My Courses Page
-      "my_courses_title": "My Courses",
-      "no_courses_found": "No courses found for your year and specialization.",
+      // My Schedule Page
+      "my_schedule_button": "My Schedule",
+      "my_schedule_title": "My Schedule",
+      "loading_schedule": "Loading your schedule...",
+      "no_classes_today": "No classes scheduled.",
 
       //Schedule Management Page
       "manage_schedule_button": "Manage Schedule",
@@ -210,7 +213,11 @@ const resources = {
       "type_Practice": "Practice",
       "semester_1": "1",
       "semester_2": "2",
-      "course_details_label": "Course Details (Read-only)",
+      "course_details_label": "Course Details",
+      "room_details_label": "Room Details",
+      "all_groups": "All",
+      "professor_overlap_error": "Professor {{professorName}} is already booked from {{startTime}} to {{endTime}} on {{dayOfWeek}}.",
+      "room_overlap_error": "Overlap detected! Room {{roomName}} is already booked for '{{courseName}}' from {{startTime}} to {{endTime}} on {{dayOfWeek}}.",
 
       // Form Messages & Errors
       "add_room_empty_fields_error": "Please fill in all fields.",
@@ -310,6 +317,7 @@ const resources = {
       "course_year_label": "An de Studiu",
       "course_semester_label": "Semestru",
       "course_specialization_label": "Specializare",
+      "user_group_label": "Grupă",
       "role_label_admin": "Administrator",
       "role_label_external_representative": "Reprezentant Extern",
       "add_user_button": "Adaugă Utilizator",
@@ -415,9 +423,11 @@ const resources = {
       "my_reservations_title": "Rezervările Mele",
       "no_reservations_found": "Nu ați făcut nicio rezervare încă.",
 
-      // My Courses Page
-      "my_courses_title": "Cursurile Mele",
-      "no_courses_found": "Nu s-au găsit cursuri pentru anul și specializarea dumneavoastră.",
+      // My Schedules Page
+      "my_schedule_button": "Orarul Meu",
+      "my_schedule_title": "Orarul Meu",
+      "loading_schedule": "Se încarcă orarul...",
+      "no_classes_today": "Niciun curs programat.",
 
       //Schedule Management Page
       "manage_schedule_button": "Administrează Orar",
@@ -447,7 +457,11 @@ const resources = {
       "type_Practice": "Practică",
       "semester_1": "1",
       "semester_2": "2",
-      "course_details_label": "Detalii Curs (Doar citire)",
+      "course_details_label": "Detalii Curs",
+      "room_details_label": "Detalii Sală",
+      "all_groups": "Toate",
+      "professor_overlap_error": "Profesorul {{professorName}} este deja ocupat de la {{startTime}} la {{endTime}} în ziua de {{dayOfWeek}}.",
+      "room_overlap_error": "Suprapunere detectată! Sala {{roomName}} este deja rezervată pentru '{{courseName}}' de la {{startTime}} la {{endTime}} în ziua de {{dayOfWeek}}.",
 
       // Form Messages & Errors
       "add_room_empty_fields_error": "Vă rugăm să completați toate câmpurile.",
