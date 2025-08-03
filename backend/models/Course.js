@@ -24,10 +24,10 @@ const courseSchema = new mongoose.Schema({
     required: true,
     min: 1 // Minimum 1 credit
   },
-  professor: {
-    type: String, // Might later link this to a 'Professor' User ID
-    required: true,
-    trim: true
+  professors: {
+    lecture: { type: String, required: true, trim: true },
+    seminar: { type: String, trim: true },
+    lab: { type: String, trim: true }
   },
   department: {
     type: String,

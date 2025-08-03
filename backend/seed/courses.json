@@ -4,7 +4,11 @@
         "code": "CS301",
         "description": "Principles of software design and architecture.",
         "credits": 5,
-        "professor": "Dr. Ioana Popescu",
+        "professors": {
+            "lecture": "Dr. Ioana Popescu",
+            "seminar": "Dr. Ioana Popescu",
+            "lab": "Asist. Radu Andrei"
+        },
         "department": "Computer Science",
         "yearOfStudy": 3,
         "semester": 1,
@@ -15,7 +19,10 @@
         "code": "CS302",
         "description": "Advanced topics in database systems.",
         "credits": 5,
-        "professor": "Dr. Andrei Ionescu",
+        "professors": {
+            "lecture": "Dr. Andrei Ionescu",
+            "lab": "Asist. Vlad Stoica"
+        },
         "department": "Computer Science",
         "yearOfStudy": 3,
         "semester": 1,
@@ -26,7 +33,9 @@
         "code": "CS303",
         "description": "Understanding network protocols and layers.",
         "credits": 4,
-        "professor": "Dr. Radu Georgescu",
+        "professors": {
+            "lecture": "Dr. Radu Georgescu"
+        },
         "department": "Computer Science",
         "yearOfStudy": 3,
         "semester": 1,
@@ -37,7 +46,10 @@
         "code": "CS304",
         "description": "Introduction to AI concepts and algorithms.",
         "credits": 5,
-        "professor": "Dr. Ioana Popescu",
+        "professors": {
+            "lecture": "Dr. Ioana Popescu",
+            "lab": "Asist. Radu Andrei"
+        },
         "department": "Computer Science",
         "yearOfStudy": 3,
         "semester": 2,
@@ -48,7 +60,9 @@
         "code": "MA101",
         "description": "Introduction to differential calculus.",
         "credits": 6,
-        "professor": "Dr. Maria Vasilescu",
+        "professors": {
+            "lecture": "Dr. Maria Vasilescu"
+        },
         "department": "Mathematics",
         "yearOfStudy": 1,
         "semester": 1,

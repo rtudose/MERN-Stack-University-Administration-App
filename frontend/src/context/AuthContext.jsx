@@ -71,6 +71,7 @@ export const AuthProvider = ({ children }) => {
     isAdmin: user && user.role === 'admin',
     isStudent: user && user.role === 'student',
     isExternalRepresentative: user && user.role === 'external_representative',
+    isTeacher: user && user.role === 'teacher',
   };
 
   return (

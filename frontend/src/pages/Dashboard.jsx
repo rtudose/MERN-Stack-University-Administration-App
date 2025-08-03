@@ -9,10 +9,12 @@ import { Container, Box, Typography, Button, Stack } from '@mui/material';
 import SchoolIcon from '@mui/icons-material/School';
 import MeetingRoomIcon from '@mui/icons-material/MeetingRoom';
 import PlaylistAddCheckIcon from '@mui/icons-material/PlaylistAddCheck';
+import AssignmentIndIcon from '@mui/icons-material/AssignmentInd';
+import RateReviewIcon from '@mui/icons-material/RateReview';
 
 function Dashboard() {
   const { t } = useTranslation();
-  const { user, isAuthenticated, loading, isStudent, isExternalRepresentative, logout } = useAuth();
+  const { user, isAuthenticated, loading, isStudent, isExternalRepresentative, isTeacher, logout } = useAuth();
   const navigate = useNavigate();
   const [dashboardLoading, setDashboardLoading] = useState(true);
 
@@ -60,15 +62,37 @@ function Dashboard() {
       >
         {/* Conditional rendering for the buttons */}
         {isStudent && (
-          <Button
-            variant="contained"
-            color="success"
-            size="large"
-            startIcon={<SchoolIcon />}
-            onClick={handleMyScheduleClick}
-          >
-            {t('my_schedule_button')}
-          </Button>
+          <>
+            <Button
+              variant="contained"
+              color="success"
+              size="large"
+              startIcon={<SchoolIcon />}
+              onClick={handleMyScheduleClick}
+            >
+              {t('my_schedule_button')}
+            </Button>
+          
+            <Button
+              variant="contained"
+              color="success"
+              size="large"
+              startIcon={<AssignmentIndIcon />}
+              onClick={() => navigate('/book-appointment')}
+            >
+              {t('book_appointment_button')}
+            </Button>
+
+            <Button
+              variant="contained"
+              color="success"
+              size="large"
+              startIcon={<RateReviewIcon />}
+              onClick={() => navigate('/my-appointments')}
+            >
+              {t('my_appointments_button')}
+            </Button>
+          </>
         )}
         
         {isExternalRepresentative && (
@@ -94,6 +118,19 @@ function Dashboard() {
             </Button>
           </>
         )}
+
+        {isTeacher && (
+            <Button
+              variant="contained"
+              color="primary"
+              size="large"
+              startIcon={<SchoolIcon />}
+              onClick={() => navigate('/my-schedule')}
+            >
+              {t('my_schedule_button')}
+            </Button>
+        )}
+
       </Stack>
 
       <Box sx={{ textAlign: 'center', mt: 5 }}>

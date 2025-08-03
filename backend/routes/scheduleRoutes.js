@@ -1,4 +1,4 @@
-// routes/scheduleRoutes.js
+// backend/routes/scheduleRoutes.js
 const express = require('express');
 const router = express.Router();
 const ScheduleEntry = require('../models/ScheduleEntry');
@@ -8,31 +8,55 @@ const User = require('../models/User');
 const auth = require('../middleware/auth');
 const authorize = require('../middleware/authorize');
 
-const studentOnly = [auth, authorize(['student'])]; // Middleware for students
+const studentOnly = [auth, authorize(['student'])];
+const teacherOnly = [auth, authorize(['teacher'])];
+const adminOnly = [auth, authorize(['admin'])];
 
-// Helper function to check for overlaps (can be extracted to a utility file)
 const checkOverlap = (existingEntry, newEntry) => {
-  // Check for same day
-  if (existingEntry.dayOfWeek !== newEntry.dayOfWeek) {
-    return false;
-  }
-
-  // Convert times to comparable format (e.g., minutes from midnight)
-  const parseTime = (timeStr) => {
-    const [hours, minutes] = timeStr.split(':').map(Number);
-    return hours * 60 + minutes;
-  };
-
+  if (existingEntry.dayOfWeek !== newEntry.dayOfWeek) { return false; }
+  const parseTime = (timeStr) => { const [hours, minutes] = timeStr.split(':').map(Number); return hours * 60 + minutes; };
   const existingStart = parseTime(existingEntry.startTime);
   const existingEnd = parseTime(existingEntry.endTime);
   const newStart = parseTime(newEntry.startTime);
   const newEnd = parseTime(newEntry.endTime);
-
-  // Check for overlap conditions:
-  // (newStart < existingEnd AND newEnd > existingStart)
-  // This covers all forms of overlap (new starts within old, old starts within new, new encompasses old, old encompasses new)
   return newStart < existingEnd && newEnd > existingStart;
 };
+
+// --- TEACHER-SPECIFIC ROUTE ---
+
+// @route   GET /api/schedule/my-teacher-schedule
+// @desc    Get the personal weekly schedule for the logged-in professor
+// @access  Teacher
+router.get('/my-teacher-schedule', teacherOnly, async (req, res) => {
+    try {
+        const teacher = await User.findById(req.user.id);
+        if (!teacher) { return res.status(404).json({ msg: 'Teacher not found.' }); }
+        
+        const teacherCourses = await Course.find({
+            $or: [
+                { 'professors.lecture': teacher.username },
+                { 'professors.seminar': teacher.username },
+                { 'professors.lab': teacher.username }
+            ]
+        });
+        const teacherCourseIds = teacherCourses.map(c => c._id);
+
+        const schedule = await ScheduleEntry.find({ course: { $in: teacherCourseIds } })
+            .populate('course', 'name code professors type')
+            .populate('room', 'name');
+            
+        const personalSchedule = schedule.filter(entry => {
+            const profs = entry.course.professors;
+            const activityType = entry.type.toLowerCase();
+            return profs && profs[activityType] === teacher.username;
+        });
+
+        res.json(personalSchedule);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+});
 
 // --- STUDENT-SPECIFIC ROUTE ---
 
@@ -42,44 +66,20 @@ const checkOverlap = (existingEntry, newEntry) => {
 router.get('/my-schedule', studentOnly, async (req, res) => {
     try {
         const student = await User.findById(req.user.id);
-        if (!student || !student.studentDetails) {
-            return res.status(400).json({ msg: 'Student details not found.' });
-        }
-
+        if (!student || !student.studentDetails) { return res.status(400).json({ msg: 'Student details not found.' }); }
         const { yearOfStudy, specialization, group } = student.studentDetails;
-
-        // --- SEMESTER LOGIC (Previously missing) ---
         const currentDate = new Date();
-        const currentMonth = currentDate.getMonth() + 1; // getMonth() is 0-indexed
-
-        // Determine current semester based on the month
-        // Semester 1: October (10) to February (2)
-        // Semester 2: March (3) to September (9)
+        const currentMonth = currentDate.getMonth() + 1;
         let currentSemester;
-        if (currentMonth >= 3 && currentMonth <= 9) {
-            currentSemester = 2;
-        } else {
-            currentSemester = 1;
-        }
-        // --- END SEMESTER LOGIC ---
-
-        // 1. Find all courses relevant to the student for the CURRENT semester
-        const studentCourses = await Course.find({
-            yearOfStudy: yearOfStudy,
-            semester: currentSemester, // Filter courses by semester
-            specialization: { $in: [specialization, 'General'] }
-        }).select('_id');
-
+        if (currentMonth >= 3 && currentMonth <= 9) { currentSemester = 2; } else { currentSemester = 1; }
+        const studentCourses = await Course.find({ yearOfStudy: yearOfStudy, semester: currentSemester, specialization: { $in: [specialization, 'General'] } }).select('_id');
         const studentCourseIds = studentCourses.map(course => course._id);
-
-        // 2. Find all schedule entries for those courses that match the student's group
         const schedule = await ScheduleEntry.find({
             course: { $in: studentCourseIds },
             group: { $in: [group, null, ''] }
         })
         .populate('course', 'name code professor type')
         .populate('room', 'name location');
-
         res.json(schedule);
     } catch (err) {
         console.error(err.message);
@@ -92,125 +92,126 @@ router.get('/my-schedule', studentOnly, async (req, res) => {
 // @route   POST /api/schedule
 // @desc    Create a new schedule entry with overlap detection
 // @access  Private (Admin only)
-router.post('/', auth, authorize(['admin']), async (req, res) => {
-  const { course, room, dayOfWeek, startTime, endTime, type, group, academicYear, semester } = req.body;
-
+router.post('/', adminOnly, async (req, res) => {
+  const { course, room, dayOfWeek, startTime, endTime, type, academicYear, semester } = req.body;
   try {
-    // 1. Validate Course and Room exist and are valid ObjectIds
     const existingCourse = await Course.findById(course);
-    if (!existingCourse) {
-      return res.status(404).json({ msg: 'Course not found' });
-    }
+    if (!existingCourse) { return res.status(404).json({ msg: 'Course not found' }); }
     const existingRoom = await Room.findById(room);
-    if (!existingRoom) {
-      return res.status(404).json({ msg: 'Room not found' });
-    }
-
-    // 2. Overlap Detection Logic
-    // Find existing schedule entries for the same room on the same day
-    const existingEntries = await ScheduleEntry.find({
-      room,
-      dayOfWeek,
-      academicYear, // Consider academic year and semester for schedules
-      semester
-    });
-
-    const newEntryCandidate = { dayOfWeek, startTime, endTime }; // Object to pass to overlap checker
-
-    for (let entry of existingEntries) {
+    if (!existingRoom) { return res.status(404).json({ msg: 'Room not found' }); }
+    const newEntryCandidate = { dayOfWeek, startTime, endTime };
+    
+    // Room Overlap
+    const roomEntries = await ScheduleEntry.find({ room, dayOfWeek, academicYear, semester });
+    for (let entry of roomEntries) {
       if (checkOverlap(entry, newEntryCandidate)) {
-        // Found an overlap!
-        const overlappingCourse = await Course.findById(entry.course); // Get course details for clearer error
-        return res.status(400).json({
-          msg: 'ROOM_OVERLAP',
-          details: {
-            roomName: existingRoom.name,
-            courseName: overlappingCourse ? overlappingCourse.name : 'Unknown Course',
-            startTime: entry.startTime,
-            endTime: entry.endTime,
-            dayOfWeek: entry.dayOfWeek
-          }
-        });
+        const oCourse = await Course.findById(entry.course);
+        return res.status(400).json({ msg: 'ROOM_OVERLAP', details: { roomName: existingRoom.name, courseName: oCourse.name, startTime: entry.startTime, endTime: entry.endTime, dayOfWeek: entry.dayOfWeek }});
       }
     }
-
-    // Also check if the professor is double booked (optional, but good for a "smart" algorithm)
-    // This requires knowing the professor's ID or name consistently across courses.
-    // For now, we only check room overlaps.
-    const professorOverlaps = await ScheduleEntry.find({
-        professor: existingCourse.professor, // Assuming professor name is stored consistently
-        dayOfWeek,
-        academicYear,
-        semester
-    });
-
-    for (let entry of professorOverlaps) {
+    
+    // Professor Overlap
+    const professorName = existingCourse.professors[type.toLowerCase()];
+    if (professorName) {
+        const professorCourses = await Course.find({ 
+            $or: [ { 'professors.lecture': professorName }, { 'professors.seminar': professorName }, { 'professors.lab': professorName }] 
+        }).distinct('_id');
+        const professorOverlaps = await ScheduleEntry.find({ 'course': { $in: professorCourses }, dayOfWeek, academicYear, semester });
+        for (let entry of professorOverlaps) {
+            if (checkOverlap(entry, newEntryCandidate)) {
+                return res.status(400).json({ msg: 'PROFESSOR_OVERLAP', details: { professorName, startTime: entry.startTime, endTime: entry.endTime, dayOfWeek: entry.dayOfWeek }});
+            }
+        }
+    }
+    
+    // Course Overlap
+    const courseEntries = await ScheduleEntry.find({ course, dayOfWeek, academicYear, semester });
+    for (let entry of courseEntries) {
         if (checkOverlap(entry, newEntryCandidate)) {
-            // To avoid self-overlap when updating
-            if (entry.id.toString() === req.params.id) continue;
-            return res.status(400).json({
-                msg: 'PROFESSOR_OVERLAP', // A unique code for this error
-                details: { // Data for translation
-                    professorName: existingCourse.professor,
-                    startTime: entry.startTime,
-                    endTime: entry.endTime,
-                    dayOfWeek: entry.dayOfWeek
-                }
-            });
+            const oRoom = await Room.findById(entry.room);
+            return res.status(400).json({ msg: 'COURSE_OVERLAP', details: { courseName: existingCourse.name, roomName: oRoom.name, startTime: entry.startTime, endTime: entry.endTime, dayOfWeek: entry.dayOfWeek }});
         }
     }
 
-
-    // 3. If no overlaps, create and save the new schedule entry
-    const newScheduleEntry = new ScheduleEntry({
-      course,
-      room,
-      dayOfWeek,
-      startTime,
-      endTime,
-      type,
-      group,
-      academicYear,
-      semester
-    });
-
+    const newScheduleEntry = new ScheduleEntry(req.body);
     await newScheduleEntry.save();
     res.status(201).json(newScheduleEntry);
-
   } catch (err) {
+    if (err.name === 'Error' && err.message.includes('End time must be after start time')) { return res.status(400).json({ msg: err.message }); }
     console.error(err.message);
-    // Handle validation errors (e.g., endTime before startTime from schema pre-save hook)
-    if (err.name === 'Error' && err.message.includes('End time must be after start time')) {
-        return res.status(400).json({ msg: err.message });
-    }
     res.status(500).send('Server Error');
   }
+});
+
+// @route   PUT /api/schedule/:id
+// @desc    Update a schedule entry (with overlap detection)
+// @access  Private (Admin only)
+router.put('/:id', adminOnly, async (req, res) => {
+    const { course, room, dayOfWeek, startTime, endTime, type, group, academicYear, semester } = req.body;
+    try {
+        let scheduleEntry = await ScheduleEntry.findById(req.params.id);
+        if (!scheduleEntry) { return res.status(404).json({ msg: 'Schedule entry not found' }); }
+        const courseId = course || scheduleEntry.course;
+        const currentCourse = await Course.findById(courseId);
+        if (!currentCourse) return res.status(404).json({ msg: 'Course not found' });
+        const currentRoomId = room || scheduleEntry.room;
+        const currentDayOfWeek = dayOfWeek || scheduleEntry.dayOfWeek;
+        const currentAcademicYear = academicYear || scheduleEntry.academicYear;
+        const currentSemester = semester || scheduleEntry.semester;
+        const newEntryCandidate = { dayOfWeek: currentDayOfWeek, startTime: startTime || scheduleEntry.startTime, endTime: endTime || scheduleEntry.endTime };
+        const commonQuery = { dayOfWeek: currentDayOfWeek, academicYear: currentAcademicYear, semester: currentSemester, _id: { $ne: req.params.id } };
+
+        const roomOverlaps = await ScheduleEntry.find({ room: currentRoomId, ...commonQuery });
+        for (let entry of roomOverlaps) {
+            if (checkOverlap(entry, newEntryCandidate)) {
+                const oCourse = await Course.findById(entry.course);
+                const oRoom = await Room.findById(entry.room);
+                return res.status(400).json({ msg: 'ROOM_OVERLAP', details: { roomName: oRoom.name, courseName: oCourse.name, startTime: entry.startTime, endTime: entry.endTime, dayOfWeek: entry.dayOfWeek } });
+            }
+        }
+        
+        const professorOverlaps = await ScheduleEntry.find({ 'course': { $in: await Course.find({ professor: currentCourse.professor }).distinct('_id') }, ...commonQuery });
+        for (let entry of professorOverlaps) {
+            if (checkOverlap(entry, newEntryCandidate)) {
+                return res.status(400).json({ msg: 'PROFESSOR_OVERLAP', details: { professorName: currentCourse.professors, startTime: entry.startTime, endTime: entry.endTime, dayOfWeek: entry.dayOfWeek } });
+            }
+        }
+
+        const courseOverlaps = await ScheduleEntry.find({ course: courseId, ...commonQuery });
+        for (let entry of courseOverlaps) {
+            if (checkOverlap(entry, newEntryCandidate)) {
+                const oRoom = await Room.findById(entry.room);
+                return res.status(400).json({ msg: 'COURSE_OVERLAP', details: { courseName: currentCourse.name, roomName: oRoom.name, startTime: entry.startTime, endTime: entry.endTime, dayOfWeek: entry.dayOfWeek } });
+            }
+        }
+
+        scheduleEntry.set(req.body);
+        await scheduleEntry.save();
+        res.json(scheduleEntry);
+    } catch (err) {
+        if (err.name === 'Error' && err.message.includes('End time must be after start time')) { return res.status(400).json({ msg: err.message }); }
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
 });
 
 // @route   GET /api/schedule
 // @desc    Get all schedule entries (or filter by academicYear/semester/day)
 // @access  Public
 router.get('/', async (req, res) => {
-  try {
-    const { academicYear, semester, dayOfWeek, group } = req.query;
-    let filter = {};
-
-    if (academicYear) filter.academicYear = academicYear;
-    if (semester) filter.semester = semester;
-    if (dayOfWeek) filter.dayOfWeek = dayOfWeek;
-    if (group) filter.group = group;
-
-    // Use .populate() to get full Course and Room details
-    const scheduleEntries = await ScheduleEntry.find(filter)
-      .populate('course', ['name', 'code', 'professor']) // Only get name, code, professor from Course
-      .populate('room', ['name', 'capacity', 'location']) // Only get name, capacity, location from Room
-      .sort({ dayOfWeek: 1, startTime: 1 }); // Sort for better readability
-
-    res.json(scheduleEntries);
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
-  }
+    try {
+        const { academicYear, semester, dayOfWeek, group } = req.query;
+        let filter = {};
+        if (academicYear) filter.academicYear = academicYear;
+        if (semester) filter.semester = semester;
+        if (dayOfWeek) filter.dayOfWeek = dayOfWeek;
+        if (group) filter.group = group;
+        const scheduleEntries = await ScheduleEntry.find(filter).populate('course', ['name', 'code', 'professor']).populate('room', ['name', 'capacity', 'location']).sort({ dayOfWeek: 1, startTime: 1 });
+        res.json(scheduleEntries);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
 });
 
 // @route   GET /api/schedule/:id
@@ -223,7 +224,7 @@ router.get('/:id', async (req, res) => {
       .populate('room', ['name', 'capacity', 'location']);
 
     if (!scheduleEntry) {
-      return res.status(404).json({ msg: 'Schedule entry not found' });
+      return res.status(44).json({ msg: 'Schedule entry not found' });
     }
     res.json(scheduleEntry);
   } catch (err) {
@@ -235,134 +236,19 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// @route   PUT /api/schedule/:id
-// @desc    Update a schedule entry (with overlap detection)
-// @access  Private (Admin only)
-router.put('/:id', auth, authorize(['admin']), async (req, res) => {
-    const { course, room, dayOfWeek, startTime, endTime, type, group, academicYear, semester } = req.body;
-
-    try {
-        let scheduleEntry = await ScheduleEntry.findById(req.params.id);
-        if (!scheduleEntry) {
-            return res.status(404).json({ msg: 'Schedule entry not found' });
-        }
-
-        // Validate Course and Room if they are being updated
-        let updatedCourse = course ? await Course.findById(course) : null;
-        if (course && !updatedCourse) return res.status(404).json({ msg: 'Course not found' });
-
-        let updatedRoom = room ? await Room.findById(room) : null;
-        if (room && !updatedRoom) return res.status(404).json({ msg: 'Room not found' });
-
-        // Prepare potential new values for overlap check
-        const currentRoomId = room || scheduleEntry.room; // Use new room if provided, else old
-        const currentDayOfWeek = dayOfWeek || scheduleEntry.dayOfWeek;
-        const currentStartTime = startTime || scheduleEntry.startTime;
-        const currentEndTime = endTime || scheduleEntry.endTime;
-        const currentAcademicYear = academicYear || scheduleEntry.academicYear;
-        const currentSemester = semester || scheduleEntry.semester;
-        const currentProfessor = updatedCourse ? updatedCourse.professor : (await Course.findById(scheduleEntry.course)).professor; // Get prof from new/old course
-
-        // Overlap Detection Logic (similar to POST, but exclude self)
-        const existingEntries = await ScheduleEntry.find({
-            room: currentRoomId,
-            dayOfWeek: currentDayOfWeek,
-            academicYear: currentAcademicYear,
-            semester: currentSemester,
-            _id: { $ne: req.params.id } // Exclude the current entry being updated
-        });
-
-        const newEntryCandidate = {
-            dayOfWeek: currentDayOfWeek,
-            startTime: currentStartTime,
-            endTime: currentEndTime
-        };
-
-        for (let entry of existingEntries) {
-            if (checkOverlap(entry, newEntryCandidate)) {
-                const overlappingCourse = await Course.findById(entry.course);
-                const overlappingRoom = await Room.findById(entry.room);
-                return res.status(400).json({
-                    msg: 'ROOM_OVERLAP',
-                    details: {
-                    roomName: overlappingRoom ? overlappingRoom.name : 'Unknown Room',
-                    courseName: overlappingCourse ? overlappingCourse.name : 'Unknown Course',
-                    startTime: entry.startTime,
-                    endTime: entry.endTime,
-                    dayOfWeek: entry.dayOfWeek
-                    }
-                });
-            }
-        }
-
-        // Check for professor overlaps (excluding self)
-        const professorOverlaps = await ScheduleEntry.find({
-            'course': { $in: await Course.find({ professor: currentProfessor }).distinct('_id') }, // Find all courses by this professor
-            dayOfWeek: currentDayOfWeek,
-            academicYear: currentAcademicYear,
-            semester: currentSemester,
-            _id: { $ne: req.params.id } // Exclude the current entry
-        });
-
-        for (let entry of professorOverlaps) {
-            if (checkOverlap(entry, newEntryCandidate)) {
-                return res.status(400).json({
-                  msg: 'PROFESSOR_OVERLAP',
-                  details: {
-                      professorName: currentProfessor,
-                      startTime: entry.startTime,
-                      endTime: entry.endTime,
-                      dayOfWeek: entry.dayOfWeek
-                }
-            });
-            }
-        }
-
-
-        // Update the schedule entry fields
-        scheduleEntry.course = course || scheduleEntry.course;
-        scheduleEntry.room = room || scheduleEntry.room;
-        scheduleEntry.dayOfWeek = dayOfWeek || scheduleEntry.dayOfWeek;
-        scheduleEntry.startTime = startTime || scheduleEntry.startTime;
-        scheduleEntry.endTime = endTime || scheduleEntry.endTime;
-        scheduleEntry.type = type || scheduleEntry.type;
-        scheduleEntry.group = group || scheduleEntry.group;
-        scheduleEntry.academicYear = academicYear || scheduleEntry.academicYear;
-        scheduleEntry.semester = semester || scheduleEntry.semester;
-
-        await scheduleEntry.save(); // save() will trigger the pre-save hook for time validation
-        res.json(scheduleEntry);
-
-    } catch (err) {
-        console.error(err.message);
-        if (err.kind === 'ObjectId') {
-            return res.status(400).json({ msg: 'Invalid Schedule Entry ID' });
-        }
-        if (err.name === 'Error' && err.message.includes('End time must be after start time')) {
-            return res.status(400).json({ msg: err.message });
-        }
-        res.status(500).send('Server Error');
-    }
-});
-
-
 // @route   DELETE /api/schedule/:id
 // @desc    Delete a schedule entry by ID
 // @access  Private (Admin only)
-router.delete('/:id', auth, authorize(['admin']), async (req, res) => {
+router.delete('/:id', adminOnly, async (req, res) => {
   try {
     const scheduleEntry = await ScheduleEntry.findByIdAndDelete(req.params.id);
-    if (!scheduleEntry) {
-      return res.status(404).json({ msg: 'Schedule entry not found' });
-    }
-    res.json({ msg: 'Schedule entry removed' });
+    if (!scheduleEntry) { return res.status(404).json({ msg: 'Schedule entry not found' }); }
+    res.json({ msg: 'Course removed' });
   } catch (err) {
     console.error(err.message);
-    if (err.kind === 'ObjectId') {
-      return res.status(400).json({ msg: 'Invalid Schedule Entry ID' });
-    }
     res.status(500).send('Server Error');
   }
 });
+
 
 module.exports = router;

@@ -3,7 +3,6 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getAllUsers, createUser, updateUser, deleteUser } from '../services/userService';
 import BackButton from '../components/BackButton';
-
 import {
   Container, Box, Typography, TextField, Button, Alert, Paper, Grid, Stack,
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow, IconButton,
@@ -21,7 +20,6 @@ const Users = () => {
 
   const [isEditing, setIsEditing] = useState(false);
   const [currentUserId, setCurrentUserId] = useState(null);
-  
   const initialState = {
     username: '', email: '', password: '', role: 'student',
     studentDetails: { yearOfStudy: 1, specialization: '', group: '' }
@@ -160,6 +158,7 @@ const Users = () => {
                 <Select labelId="role-select-label" name="role" value={formData.role} label={t('role_label')} onChange={handleInputChange}>
                   <MenuItem value="student">{t('role_label_student')}</MenuItem>
                   <MenuItem value="admin">{t('role_label_admin')}</MenuItem>
+                  <MenuItem value="teacher">{t('role_label_teacher')}</MenuItem>
                   <MenuItem value="external_representative">{t('role_label_external_representative')}</MenuItem>
                 </Select>
               </FormControl>

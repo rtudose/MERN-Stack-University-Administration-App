@@ -86,10 +86,14 @@ const ScheduleManagement = () => {
       fetchData();
     } catch (err) {
       const errorData = err.response?.data;
-      if (errorData?.msg === 'PROFESSOR_OVERLAP' || errorData?.msg === 'ROOM_OVERLAP') {
-        const errorKey = errorData.msg === 'PROFESSOR_OVERLAP' ? 'professor_overlap_error' : 'room_overlap_error';
-        const translatedDetails = { ...errorData.details, dayOfWeek: t(`day_${errorData.details.dayOfWeek}`) };
-        setFormMessage({ text: errorKey, type: 'error', details: translatedDetails });
+
+      if (errorData?.msg === 'PROFESSOR_OVERLAP' || errorData?.msg === 'ROOM_OVERLAP' || errorData?.msg === 'COURSE_OVERLAP') {
+        let errorKey = 'generic_error';
+        if (errorData.msg === 'PROFESSOR_OVERLAP') errorKey = 'professor_overlap_error';
+        if (errorData.msg === 'ROOM_OVERLAP') errorKey = 'room_overlap_error';
+        if (errorData.msg === 'COURSE_OVERLAP') errorKey = 'course_overlap_error';
+
+        setFormMessage({ text: errorKey, type: 'error', details: errorData.details });
       } else {
         setFormMessage({ text: errorData?.msg || 'generic_error', type: 'error', details: null });
       }
@@ -117,7 +121,17 @@ const ScheduleManagement = () => {
       <Typography variant="h4" component="h1" gutterBottom sx={{ textAlign: 'center' }}>
         {t('schedule_management_title')}
       </Typography>
-      {formMessage.text && <Alert severity={formMessage.type} sx={{ mb: 2 }} onClose={() => setFormMessage({ text: '', type: '' })}>{t(formMessage.text, { ...formMessage.details, fallback: formMessage.text })}</Alert>}
+      {formMessage.text && 
+        <Alert 
+          severity={formMessage.type} 
+          sx={{ mb: 2 }} 
+          onClose={() => setFormMessage({ text: '', type: '' })}
+        >
+          {t(formMessage.text, {
+            ...formMessage.details, 
+            dayOfWeek: formMessage.details?.dayOfWeek ? t(`day_${formMessage.details.dayOfWeek}`) : ''
+          })}
+        </Alert>}
 
       <Paper sx={{ p: 3, mb: 4 }}>
         <Typography variant="h5" component="h2" gutterBottom>

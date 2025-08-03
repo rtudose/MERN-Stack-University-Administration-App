@@ -14,9 +14,16 @@ const deleteScheduleEntry = (id) => {
   return api.delete(`/api/schedule/${id}`);
 };
 
-// --- STUDENT FUNCTIONS ---
+// --- STUDENT AND TEACHER FUNCTIONS ---
+
+// For students to get their schedule
 const getMySchedule = () => {
   return api.get('/api/schedule/my-schedule');
+};
+
+// For teachers to get their schedule
+const getMyTeacherSchedule = () => {
+  return api.get('/api/schedule/my-teacher-schedule');
 };
 
 export {
@@ -24,4 +31,5 @@ export {
   createScheduleEntry,
   deleteScheduleEntry,
   getMySchedule,
+  getMyTeacherSchedule,
 };

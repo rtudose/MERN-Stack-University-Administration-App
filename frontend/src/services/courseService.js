@@ -1,7 +1,7 @@
 // src/services/courseService.js
 import api from './api'; // Import the new centralized api client
 
-// For a student to get their own courses
+// For a student and a teacher to get their own courses
 const getMyCourses = () => {
   return api.get('/api/courses/my-courses');
 };

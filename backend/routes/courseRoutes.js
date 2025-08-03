@@ -15,7 +15,7 @@ const studentOnly = [auth, authorize(['student'])];
 // @route   GET /api/courses/my-courses
 // @desc    Get courses for the logged-in student for the current semester
 // @access  Student
-router.get('/my-courses', [auth, authorize(['student'])], async (req, res) => {
+router.get('/my-courses', studentOnly, async (req, res) => {
     try {
         const student = await User.findById(req.user.id);
         if (!student || !student.studentDetails) {
@@ -56,12 +56,9 @@ router.get('/my-courses', [auth, authorize(['student'])], async (req, res) => {
 // @desc    Create a new course
 // @access  Admin
 router.post('/', adminOnly, async (req, res) => {
-  const { name, code, description, credits, professor, department, yearOfStudy, semester, specialization } = req.body;
+   const { name, code, description, credits, professors, department, yearOfStudy, semester, specialization } = req.body;
   try {
-    const newCourse = new Course({
-      name, code, description, credits, professor, department,
-      yearOfStudy, semester, specialization
-    });
+    const newCourse = new Course({ name, code, description, credits, professors, department, yearOfStudy, semester, specialization });
     const course = await newCourse.save();
     res.status(201).json(course);
   } catch (err) {
@@ -114,13 +111,13 @@ router.get('/:id', adminOnly, async (req, res) => {
 // @desc    Update a course by ID
 // @access  Admin
 router.put('/:id', adminOnly, async (req, res) => {
-  const { name, code, description, credits, professor, department, yearOfStudy, semester, specialization } = req.body;
+  const { name, code, description, credits, professors, department, yearOfStudy, semester, specialization } = req.body;
   const courseFields = {};
   if (name) courseFields.name = name;
   if (code) courseFields.code = code;
   if (description) courseFields.description = description;
   if (credits) courseFields.credits = credits;
-  if (professor) courseFields.professor = professor;
+  if (professors) courseFields.professors = professors;
   if (department) courseFields.department = department;
   if (yearOfStudy) courseFields.yearOfStudy = yearOfStudy;
   if (semester) courseFields.semester = semester;

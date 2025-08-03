@@ -34,7 +34,7 @@ const checkTimeOverlap = (start1, end1, start2, end2) => {
 
             const appointmentsForDay = await Appointment.find({
                 date: queryDate,
-                status: { $in: ['pending', 'confirmed'] } // Only confirmed/pending slots are unavailable
+                status: { $in: ['pending', 'confirmed', 'completed'] } // Only confirmed/pending/completed slots are unavailable
             }).select('startTime endTime'); // Select only the time fields
 
             const allSlots = [];

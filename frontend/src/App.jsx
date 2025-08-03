@@ -7,11 +7,14 @@ import Rooms from './pages/Rooms';
 import Users from './pages/Users';
 import CoursesManagement from './pages/CoursesManagement';
 import BookRoom from './pages/BookRoom';
+import BookAppointment from './pages/BookAppointment';
+import MyAppointments from './pages/MyAppointments';
 import MyReservations from './pages/MyReservations';
-import MySchedule from './pages/MySchedule';
+import MySchedulePage from './pages/MySchedule.jsx';
 import AdminDashboard from './pages/AdminDashboard';
 import ReservationsManagement from './pages/ReservationsManagement';
 import ScheduleManagement from './pages/ScheduleManagement';
+import AppointmentsManagement from './pages/AppointmentsManagement';
 // import Register from './pages/Register'; // Uncomment if you have a register page
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -35,34 +38,41 @@ function App() {
 
             <Routes>
               <Route path="/login" element={<Login />} />
-              {/* <Route path="/register" element={<Register />} /> */}
-
-              {/* Default path, redirects to /login if not authenticated, or Dashboard if authenticated */}
-              {/* This route now ensures that if you hit the root URL, it redirects appropriately */}
               <Route path="/" element={<Navigate to="/login" replace />} />
 
-              {/* Dashboard for authenticated users (admin ,student and external_representative) */}
-              <Route element={<ProtectedRoute allowedRoles={['admin', 'student', 'external_representative']} />}>
+              {/* SHARED Routes for multiple roles */}
+              <Route element={<ProtectedRoute allowedRoles={['student', 'teacher', 'external_representative']} />}>
                 <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/book-room" element={<BookRoom />} />
-                 <Route path="/my-reservations" element={<MyReservations />} />
-                  <Route path="/my-schedule" element={<MySchedule />} />
-                {/* Optional: If you want root path (when logged in) to also go to Dashboard, you can add this index route */}
-                {/* <Route index element={<Dashboard />} /> */}
               </Route>
 
-              {/* Admin-only Protected Routes Group */}
+              {/* STUDENT & TEACHER Routes */}
+              <Route element={<ProtectedRoute allowedRoles={['student', 'teacher']} />}>
+                <Route path="/my-schedule" element={<MySchedulePage />} />
+              </Route>
+              
+              {/* STUDENT-only Routes */}
+              <Route element={<ProtectedRoute allowedRoles={['student']} />}>
+                  <Route path="/book-appointment" element={<BookAppointment />} />
+                  <Route path="/my-appointments" element={<MyAppointments />} />
+              </Route>
+              
+              {/* EXTERNAL REP-only Routes */}
+              <Route element={<ProtectedRoute allowedRoles={['external_representative']} />}>
+                  <Route path="/book-room" element={<BookRoom />} />
+                  <Route path="/my-reservations" element={<MyReservations />} />
+              </Route>
+
+              {/* ADMIN-only Routes */}
               <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
-                <Route path="/admin-dashboard" element={<AdminDashboard />} /> {/* This is the new Admin Dashboard route */}
-                <Route path="/rooms" element={<Rooms />} /> {/* Your existing Rooms page for admins only */}
+                <Route path="/admin-dashboard" element={<AdminDashboard />} />
+                <Route path="/rooms" element={<Rooms />} />
                 <Route path="/users" element={<Users />} />
                 <Route path="/courses-management" element={<CoursesManagement />} />
                 <Route path="/reservations-management" element={<ReservationsManagement />} />
                 <Route path="/schedule-management" element={<ScheduleManagement />} />
-                {/* Add other admin-only routes here (e.g., /users, /courses-management) */}
+                <Route path="/appointments-management" element={<AppointmentsManagement />} />
               </Route>
-              {/* Add more roles/routes as needed */}
-            </Routes>
+          </Routes>
           </div>
         </AuthProvider>
       </Router>

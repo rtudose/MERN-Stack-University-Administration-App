@@ -10,6 +10,7 @@ import PeopleIcon from '@mui/icons-material/People';
 import SchoolIcon from '@mui/icons-material/School';
 import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 import ScheduleIcon from '@mui/icons-material/Schedule';
+import FactCheckIcon from '@mui/icons-material/FactCheck';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -81,6 +82,15 @@ const AdminDashboard = () => {
           sx={{ minWidth: '240px' }}
         >
           {t('manage_reservations_button')}
+        </Button>
+        <Button
+          variant="contained"
+          size="large"
+          startIcon={<FactCheckIcon />}
+          onClick={() => navigate('/appointments-management')}
+          sx={{ minWidth: '240px' }}
+        >
+          {t('manage_appointments_button')}
         </Button>
       </Stack>
 
