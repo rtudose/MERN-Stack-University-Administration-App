@@ -117,8 +117,8 @@ const resources = {
       "course_code_exists_error": "A course with this code already exists.",
       "course_name_exists_error": "A course with this name already exists.",
       "course_form_error_required": "Please fill out all required fields (Name, Code, Credits, Professor).",
-      "course_credits_min_error": "Credits must be a positive number.",
-      "course_credits_integer_error": "Credits must be a whole number.",
+      "course_credits_min_error": "Credits must be a natural number (a positive whole number).",
+      "course_credits_integer_error": "Credits must be a natural number (a positive whole number).",
       "course_form_error_all_fields": "Please ensure all fields are filled out correctly.",
 
       // Add/Edit Room Form
@@ -217,9 +217,17 @@ const resources = {
       "course_details_label": "Course Details",
       "room_details_label": "Room Details",
       "all_groups": "All",
+      "schedule_form_error_required": "Please ensure all required dropdown fields (Course, Room, etc.) are selected.",
+      "schedule_error_endtime": "End time must be after start time.",
+      "schedule_form_error_selection": "Please make a selection for all required dropdown fields (Course, Room, etc.).",
       "professor_overlap_error": "Professor {{professorName}} is already booked from {{startTime}} to {{endTime}} on {{dayOfWeek}}.",
       "room_overlap_error": "Overlap detected! Room '{{roomName}}' is already booked for '{{courseName}}' from {{startTime}} to {{endTime}} on {{dayOfWeek}}.",
       "course_overlap_error": "Overlap detected! Course '{{courseName}}' is already scheduled in Room '{{roomName}}' from {{startTime}} to {{endTime}} on {{dayOfWeek}}.",
+      "student_group_overlap_error": "Overlap detected for student group '{{group}}'. They already have the course '{{courseName}}' from {{startTime}} to {{endTime}}.",
+      "student_group_overlap_error_Lecture": "Overlap detected for this student group. They already have the lecture for '{{courseName}}' from {{startTime}} to {{endTime}}.",
+      "student_group_overlap_error_Seminar": "Overlap detected for this student group. They already have the seminar for '{{courseName}}' from {{startTime}} to {{endTime}}.",
+      "student_group_overlap_error_Lab": "Overlap detected for this student group. They already have the lab for '{{courseName}}' from {{startTime}} to {{endTime}}.",
+      "student_group_overlap_error_Practice": "Overlap detected for this student group. They already have the practice session for '{{courseName}}' from {{startTime}} to {{endTime}}.",
       "lecture_professor_label": "Lecture Professor",
       "seminar_professor_label": "Seminar Professor",
       "lab_professor_label": "Lab Professor",
@@ -268,7 +276,7 @@ const resources = {
 
       // Form Messages & Errors
       "add_room_empty_fields_error": "Please fill in all fields.",
-      "capacity_invalid_error": "Capacity must be a positive whole number.", // More generic
+      "capacity_invalid_error": "Capacity must be a natural number (a positive whole number.)", // More generic
       "room_exists_error": "A room with this name already exists.",
       "invalid_room_data": "Invalid room data provided.",
       "room_location_required_error": "Room location is required.",
@@ -408,8 +416,8 @@ const resources = {
       "course_code_exists_error": "Un curs cu acest cod există deja.",
       "course_name_exists_error": "Un curs cu acest nume există deja.",
       "course_form_error_required": "Vă rugăm completați toate câmpurile obligatorii (Nume, Cod, Credite, Profesor).",
-      "course_credits_min_error": "Numărul de credite trebuie să fie un număr pozitiv.",
-      "course_credits_integer_error": "Numărul de credite trebuie să fie un număr întreg.",
+      "course_credits_min_error": "Numărul de credite trebuie să fie un număr natural (un număr întreg pozitiv).",
+      "course_credits_integer_error": "Numărul de credite trebuie să fie un număr natural (un număr întreg pozitiv).",
       "course_form_error_all_fields": "Vă rugăm să vă asigurați că toate câmpurile sunt completate corect.",
 
       // Add/Edit Room Form
@@ -508,9 +516,17 @@ const resources = {
       "course_details_label": "Detalii Curs",
       "room_details_label": "Detalii Sală",
       "all_groups": "Toate",
+      "schedule_form_error_required": "Vă rugăm să vă asigurați că toate câmpurile obligatorii (Curs, Sală etc.) sunt selectate.",
+      "schedule_error_endtime": "Ora de sfârșit trebuie să fie după ora de început.",
+      "schedule_form_error_selection": "Vă rugăm să faceți o selecție pentru toate câmpurile obligatorii (Curs, Sală etc.).",
       "professor_overlap_error": "Profesorul {{professorName}} este deja ocupat de la {{startTime}} la {{endTime}} în ziua de {{dayOfWeek}}.",
       "room_overlap_error": "Suprapunere detectată! Sala '{{roomName}}' este deja rezervată pentru '{{courseName}}' de la {{startTime}} la {{endTime}} în ziua de {{dayOfWeek}}.",
       "course_overlap_error": "Suprapunere detectată! Cursul '{{courseName}}' este deja programat în Sala '{{roomName}}' de la {{startTime}} la {{endTime}} în ziua de {{dayOfWeek}}.",
+      "student_group_overlap_error": "Suprapunere detectată pentru grupa '{{group}}'. Aceștia au deja cursul '{{courseName}}' de la {{startTime}} la {{endTime}}.",
+      "student_group_overlap_error_Lecture": "Suprapunere detectată pentru această grupă. Studenții au deja cursul pentru '{{courseName}}' de la {{startTime}} la {{endTime}}.",
+      "student_group_overlap_error_Seminar": "Suprapunere detectată pentru această grupă. Studenții au deja seminarul pentru '{{courseName}}' de la {{startTime}} la {{endTime}}.",
+      "student_group_overlap_error_Lab": "Suprapunere detectată pentru această grupă. Studenții au deja laboratorul pentru '{{courseName}}' de la {{startTime}} la {{endTime}}.",
+      "student_group_overlap_error_Practice": "Suprapunere detectată pentru această grupă. Studenții au deja practica pentru '{{courseName}}' de la {{startTime}} la {{endTime}}.",
       "lecture_professor_label": "Profesor Curs",
       "seminar_professor_label": "Profesor Seminar",
       "lab_professor_label": "Profesor Laborator",
@@ -559,7 +575,7 @@ const resources = {
 
       // Form Messages & Errors
       "add_room_empty_fields_error": "Vă rugăm să completați toate câmpurile.",
-      "capacity_invalid_error": "Capacitatea trebuie să fie un număr întreg pozitiv.", // More generic
+      "capacity_invalid_error": "Capacitatea trebuie să fie un număr natural (un număr întreg pozitiv).", // More generic
       "room_exists_error": "O sală cu acest nume există deja.",
       "invalid_room_data": "Datele sălii sunt invalide.",
       "room_location_required_error": "Locația sălii este obligatorie.",

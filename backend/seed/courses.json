@@ -67,5 +67,205 @@
         "yearOfStudy": 1,
         "semester": 1,
         "specialization": "General"
+    },
+    {
+        "name": "Senzori si circuite de conditionare a semnalelor",
+        "code": "SCCS",
+        "description": "Continuare materii CIA, IEM",
+        "credits": 3,
+        "professors": {
+            "lecture": "Prof. Marius Enachescu",
+            "lab": "Asist. Andrei Daescu"
+        },
+        "department": "Catedra de Electronica",
+        "yearOfStudy": 3,
+        "semester": 2,
+        "specialization": "MON"
+    },
+    {
+        "name": "Decizie si estimare in prelucrarea informatiilor",
+        "code": "DEPI",
+        "description": "Continuare materie TTI",
+        "credits": 4,
+        "professors": {
+            "lecture": "Prof. Corneliu Nicolae Florea",
+            "seminar": "Asist. Cosmin-Razvan Danisor",
+            "lab": "Asist. Laura Florea"
+        },
+        "department": "Catedra de Electronica",
+        "yearOfStudy": 3,
+        "semester": 2,
+        "specialization": "MON"
+    },
+    {
+        "name": "Prelucrarea digitală a semnalelor",
+        "code": "PDS",
+        "description": "Continuare materii SS1/SS2/SS3",
+        "credits": 4,
+        "professors": {
+            "lecture": "Prof. Dragos Burileanu",
+            "lab": "Asist. Serban Mihalache"
+        },
+        "department": "Catedra de Electronica",
+        "yearOfStudy": 3,
+        "semester": 2,
+        "specialization": "MON"
+    },
+    {
+        "name": "Instrumente software pentru microelectronica",
+        "code": "ISM",
+        "description": "Continuare materie CIA + punere in practica",
+        "credits": 2,
+        "professors": {
+            "lecture": "Prof. Claudius Dan",
+            "lab": "Asist. Florin Silviu Dumitru"
+        },
+        "department": "Catedra de Electronica",
+        "yearOfStudy": 3,
+        "semester": 2,
+        "specialization": "MON"
+    },
+    {
+        "name": "Calitate si fiabiliate",
+        "code": "CAF",
+        "description": "Notiuni de baza despre calitatea produselor electronice produse/cumparate",
+        "credits": 2,
+        "professors": {
+            "lecture": "Prof. Angelica Bacivarov",
+            "lab": "Asist. Sebastian Arghirescu"
+        },
+        "department": "Catedra de Electronica",
+        "yearOfStudy": 3,
+        "semester": 2,
+        "specialization": "MON"
+    },
+    {
+        "name": "Inteligenta artificiala",
+        "code": "IA",
+        "description": "Notiuni de baza despre Inteligenta Artificiala",
+        "credits": 2,
+        "professors": {
+            "lecture": "Asist. Serban Mihalache",
+            "lab": "Asist. Serban Mihalache"
+        },
+        "department": "Catedra de Electronica",
+        "yearOfStudy": 3,
+        "semester": 2,
+        "specialization": "MON"
+    },
+    {
+        "name": "Televiziune",
+        "code": "TV",
+        "description": "Notiuni de baza despre emisia/receptia semnalelor TV",
+        "credits": 2,
+        "professors": {
+            "lecture": "Prof. Ioan Tache",
+            "lab": "Prof. Ioan Tache"
+        },
+        "department": "Catedra de Electronica",
+        "yearOfStudy": 3,
+        "semester": 2,
+        "specialization": "MON"
+    },
+    {
+        "name": "Baze de date",
+        "code": "BD",
+        "description": "Notiuni de baza despre Baze de date (Oracle, SQL)",
+        "credits": 5,
+        "professors": {
+            "lecture": "Prof. Dan Galatchi",
+            "lab": "Prof. Dan Galatchi"
+        },
+        "department": "Catedra de Electronica",
+        "yearOfStudy": 2,
+        "semester": 2,
+        "specialization": "General"
+    },
+    {
+        "name": "Circuite electronice fundamentale",
+        "code": "CEF",
+        "description": "Continuare materii DE + Baze1/2",
+        "credits": 5,
+        "professors": {
+            "lecture": "Prof. Florin Draghici",
+            "seminar": "Prof. Florin Mitu",
+            "lab": "Prof. Florin Draghici"
+        },
+        "department": "Catedra de Electronica",
+        "yearOfStudy": 2,
+        "semester": 2,
+        "specialization": "General"
+    },
+    {
+        "name": "Circuite integrate digitale",
+        "code": "CID",
+        "description": "Continuare materie AMP1 (realizare circuite din spatele registrilor si memoriilor)",
+        "credits": 4,
+        "professors": {
+            "lecture": "Prof. Mihai Antonescu",
+            "seminar": "Prof. Mihai Antonescu",
+            "lab": "Prof. Mihai Antonescu"
+        },
+        "department": "Catedra de Electronica",
+        "yearOfStudy": 2,
+        "semester": 2,
+        "specialization": "General"
+    },
+    {
+        "name": "Arhitectura microprocesoarelor 2",
+        "code": "AMP2",
+        "description": "Continuare materie AMP1 (aprofundare arhitecturi cunoscute + invatare arhitecturi noi)",
+        "credits": 4,
+        "professors": {
+            "lecture": "Prof. Ana-Antonia Neacsu",
+            "lab": "Prof. Ana-Antonia Neacsu"
+        },
+        "department": "Catedra de Electronica",
+        "yearOfStudy": 2,
+        "semester": 2,
+        "specialization": "General"
+    },
+    {
+        "name": "Semnale si sisteme 2",
+        "code": "SS2",
+        "description": "Continuare materie SS1 (aprofundare tranfsormate + accent pe semnale discrete)",
+        "credits": 5,
+        "professors": {
+            "lecture": "Prof. Teodor Petrescu",
+            "seminar": "Prof. Carmen Florea",
+            "lab": "Asist. Ana-Maria Dragan"
+        },
+        "department": "Catedra de Electronica",
+        "yearOfStudy": 2,
+        "semester": 2,
+        "specialization": "General"
+    },
+    {
+        "name": "Teoria probabilitatilor si statistica matematica",
+        "code": "TPSM",
+        "description": "",
+        "credits": 5,
+        "professors": {
+            "lecture": "Prof. Adriana Balan",
+            "seminar": "Prof. Adriana Balan"
+        },
+        "department": "Catedra de Electronica",
+        "yearOfStudy": 2,
+        "semester": 2,
+        "specialization": "General"
+    },
+    {
+        "name": "Modele ale componentelor electronice pentru SPICE",
+        "code": "SPICE",
+        "description": "Optional, aprofundare cunostiinte diode si tranzistori in OrCAD si LTSpice",
+        "credits": 3,
+        "professors": {
+            "lecture": "Prof. Adriana Balan",
+            "seminar": "Prof. Adriana Balan"
+        },
+        "department": "Catedra de Electronica",
+        "yearOfStudy": 2,
+        "semester": 2,
+        "specialization": "General"
     }
 ]

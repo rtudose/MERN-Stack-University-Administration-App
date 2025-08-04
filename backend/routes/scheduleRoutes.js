@@ -93,16 +93,23 @@ router.get('/my-schedule', studentOnly, async (req, res) => {
 // @desc    Create a new schedule entry with overlap detection
 // @access  Private (Admin only)
 router.post('/', adminOnly, async (req, res) => {
-  const { course, room, dayOfWeek, startTime, endTime, type, academicYear, semester } = req.body;
   try {
+    const { course, room, dayOfWeek, startTime, endTime, type, group, academicYear, semester } = req.body;
+    
+    const newScheduleEntry = new ScheduleEntry(req.body);
+    const validationError = newScheduleEntry.validateSync();
+    if (validationError) { throw validationError; }
+
     const existingCourse = await Course.findById(course);
     if (!existingCourse) { return res.status(404).json({ msg: 'Course not found' }); }
     const existingRoom = await Room.findById(room);
     if (!existingRoom) { return res.status(404).json({ msg: 'Room not found' }); }
-    const newEntryCandidate = { dayOfWeek, startTime, endTime };
     
-    // Room Overlap
-    const roomEntries = await ScheduleEntry.find({ room, dayOfWeek, academicYear, semester });
+    const newEntryCandidate = { dayOfWeek, startTime, endTime };
+    const commonQuery = { dayOfWeek, academicYear, semester };
+
+    // 1. Room Overlap
+    const roomEntries = await ScheduleEntry.find({ room, ...commonQuery });
     for (let entry of roomEntries) {
       if (checkOverlap(entry, newEntryCandidate)) {
         const oCourse = await Course.findById(entry.course);
@@ -110,35 +117,58 @@ router.post('/', adminOnly, async (req, res) => {
       }
     }
     
-    // Professor Overlap
-    const professorName = existingCourse.professors[type.toLowerCase()];
-    if (professorName) {
-        const professorCourses = await Course.find({ 
-            $or: [ { 'professors.lecture': professorName }, { 'professors.seminar': professorName }, { 'professors.lab': professorName }] 
-        }).distinct('_id');
-        const professorOverlaps = await ScheduleEntry.find({ 'course': { $in: professorCourses }, dayOfWeek, academicYear, semester });
-        for (let entry of professorOverlaps) {
-            if (checkOverlap(entry, newEntryCandidate)) {
-                return res.status(400).json({ msg: 'PROFESSOR_OVERLAP', details: { professorName, startTime: entry.startTime, endTime: entry.endTime, dayOfWeek: entry.dayOfWeek }});
+    // 2. Professor Overlap
+    if (existingCourse.professors && type) {
+        const professorName = existingCourse.professors[type.toLowerCase()];
+        if(professorName) {
+            const professorCourses = await Course.find({ 
+                $or: [ { 'professors.lecture': professorName }, { 'professors.seminar': professorName }, { 'professors.lab': professorName }] 
+            }).distinct('_id');
+            const professorOverlaps = await ScheduleEntry.find({ 'course': { $in: professorCourses }, ...commonQuery });
+            for (let entry of professorOverlaps) {
+                if (checkOverlap(entry, newEntryCandidate)) {
+                    return res.status(400).json({ msg: 'PROFESSOR_OVERLAP', details: { professorName: professorName, startTime: entry.startTime, endTime: entry.endTime, dayOfWeek: entry.dayOfWeek }});
+                }
             }
         }
     }
     
-    // Course Overlap
-    const courseEntries = await ScheduleEntry.find({ course, dayOfWeek, academicYear, semester });
+    // 3. Course Overlap
+    const courseEntries = await ScheduleEntry.find({ course, ...commonQuery });
     for (let entry of courseEntries) {
         if (checkOverlap(entry, newEntryCandidate)) {
             const oRoom = await Room.findById(entry.room);
             return res.status(400).json({ msg: 'COURSE_OVERLAP', details: { courseName: existingCourse.name, roomName: oRoom.name, startTime: entry.startTime, endTime: entry.endTime, dayOfWeek: entry.dayOfWeek }});
         }
     }
+    
+    // 4. Student Group Overlap
+    const { yearOfStudy, specialization } = existingCourse;
+    const cohortCourses = await Course.find({ yearOfStudy, specialization }).select('_id');
+    const cohortScheduleEntries = await ScheduleEntry.find({ course: { $in: cohortCourses }, ...commonQuery });
 
-    const newScheduleEntry = new ScheduleEntry(req.body);
+    for (let entry of cohortScheduleEntries) {
+        if ((group && (entry.group === group || !entry.group)) || (!group && !entry.group)) {
+            if (checkOverlap(entry, newEntryCandidate)) {
+                const oCourse = await Course.findById(entry.course);
+                return res.status(400).json({ msg: 'STUDENT_GROUP_OVERLAP', details: { group: `Year ${yearOfStudy} ${specialization} Group ${group || 'All'}`, courseName: oCourse.name, type: entry.type, startTime: entry.startTime, endTime: entry.endTime }});
+            }
+        }
+    }
+
     await newScheduleEntry.save();
     res.status(201).json(newScheduleEntry);
   } catch (err) {
-    if (err.name === 'Error' && err.message.includes('End time must be after start time')) { return res.status(400).json({ msg: err.message }); }
-    console.error(err.message);
+    if (err.name === 'ValidationError' || err.name === 'CastError') {
+      const message = err.name === 'CastError' 
+          ? `Invalid data for field ${err.path}. Please check your selections.`
+          : Object.values(err.errors).map(val => val.message).join(', ');
+      return res.status(400).json({ msg: message });
+    }
+    if (err.message === 'End time must be after start time.') { return res.status(400).json({ msg: err.message }); }
+    if (err.code === 11000) { return res.status(400).json({ msg: 'This room is already booked at this time on this day.' }); }
+    
+    console.error(err);
     res.status(500).send('Server Error');
   }
 });
@@ -189,7 +219,17 @@ router.put('/:id', adminOnly, async (req, res) => {
         await scheduleEntry.save();
         res.json(scheduleEntry);
     } catch (err) {
-        if (err.name === 'Error' && err.message.includes('End time must be after start time')) { return res.status(400).json({ msg: err.message }); }
+        if (err.code === 11000) {
+            const field = Object.keys(err.keyValue)[0];
+            return res.status(400).json({ msg: `A schedule entry with this ${field} already exists.` });
+        }
+        if (err.name === 'ValidationError') {
+            const message = Object.values(err.errors).map(val => val.message).join(', ');
+            return res.status(400).json({ msg: message });
+        }
+        if (err.name === 'Error' && err.message.includes('End time must be after start time')) {
+            return res.status(400).json({ msg: err.message });
+        }
         console.error(err.message);
         res.status(500).send('Server Error');
     }

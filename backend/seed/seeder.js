@@ -1,4 +1,4 @@
-// backend/seed/seeder.js
+// backend/seed/seeder.js (Advanced Version)
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const fs = require('fs');
@@ -20,59 +20,85 @@ const courses = JSON.parse(fs.readFileSync(path.join(__dirname, 'courses.json'),
 
 const importData = async () => {
   try {
+    console.log('Destroying existing data...');
     await User.deleteMany();
     await Room.deleteMany();
     await Course.deleteMany();
     await RoomReservation.deleteMany();
     await ScheduleEntry.deleteMany();
 
+    console.log('Importing primary data...');
     const createdUsers = await User.create(users);
     const createdRooms = await Room.create(rooms);
     const createdCourses = await Course.create(courses);
 
-    console.log('Users, Rooms, and Courses Imported...');
+    console.log('Primary data imported.');
 
-    // --- Create sample reservation ---
-    const externalRep = createdUsers.find(u => u.role === 'external_representative');
-    const availableRoomForBooking = createdRooms.find(r => r.name === 'Sala B201');
-    if (externalRep && availableRoomForBooking) {
-      const tomorrow = new Date();
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      const sampleReservation = {
-        room: availableRoomForBooking._id, reservedBy: externalRep.username, contactEmail: externalRep.email,
-        date: tomorrow, startTime: '10:00', endTime: '12:00',
-        purpose: 'Client Meeting', attendees: 5, status: 'pending'
-      };
-      await RoomReservation.create(sampleReservation);
-      console.log('Sample Reservation Imported...');
-    }
+    // --- Programmatically build a realistic schedule ---
+    console.log('Building schedule from blueprint...');
 
-    // --- Create Full Sample Schedule for Current Semester (Semester 2) ---
-    console.log('Creating full sample schedule...');
-    // Get a semester 2 course
-    const courseAI = createdCourses.find(c => c.code === 'CS304');
-    
-    const roomB201 = createdRooms.find(r => r.name === 'Sala B201');
-    const roomA105 = createdRooms.find(r => r.name === 'Laborator A105');
+    const scheduleBlueprint = [
+        // Year 3, Informatica, Semester 1
+        { courseCode: 'CS301', roomName: 'Sala B201', day: 'Monday', time: ['10:00', '12:00'], type: 'Lecture', group: '' },
+        { courseCode: 'CS301', roomName: 'Laborator A105', day: 'Tuesday', time: ['10:00', '12:00'], type: 'Lab', group: 'A' },
+        { courseCode: 'CS301', roomName: 'Laborator A105', day: 'Tuesday', time: ['12:00', '14:00'], type: 'Lab', group: 'B' },
+        { courseCode: 'CS302', roomName: 'Sala B201', day: 'Wednesday', time: ['14:00', '16:00'], type: 'Lecture', group: '' },
+        { courseCode: 'CS302', roomName: 'Laborator A105', day: 'Wednesday', time: ['16:00', '18:00'], type: 'Lab', group: 'A' },
+        { courseCode: 'CS303', roomName: 'Sala B201', day: 'Friday', time: ['08:00', '10:00'], type: 'Lecture', group: '' },
+        
+        // Year 3, Informatica, Semester 2
+        { courseCode: 'CS304', roomName: 'Amfiteatru C3', day: 'Tuesday', time: ['12:00', '14:00'], type: 'Lecture', group: '' },
+        { courseCode: 'CS304', roomName: 'Laborator A105', day: 'Tuesday', time: ['14:00', '17:00'], type: 'Lab', group: 'A' },
+        { courseCode: 'CS304', roomName: 'Laborator A105', day: 'Tuesday', time: ['12:00', '14:00'], type: 'Lab', group: 'B' },
 
-    const scheduleEntries = [
-      // Monday
-      { course: courseAI._id, room: roomB201._id, dayOfWeek: 'Monday', startTime: '10:00', endTime: '12:00', type: 'Lecture', group: '', academicYear: '2024-2025', semester: 2 },
-      
-      // Tuesday
-      { course: courseAI._id, room: roomA105._id, dayOfWeek: 'Tuesday', startTime: '14:00', endTime: '16:00', type: 'Lab', group: 'A', academicYear: '2024-2025', semester: 2 },
-      
-      // Wednesday
-      { course: courseAI._id, room: roomB201._id, dayOfWeek: 'Wednesday', startTime: '11:00', endTime: '13:00', type: 'Seminar', group: 'A', academicYear: '2024-2025', semester: 2 },
+        // Year 3, MON, Semester 2
+        { courseCode: 'SCCS', roomName: 'Laborator A105', day: 'Monday', time: ['14:00', '16:00'], type: 'Lab', group: 'A' },
+        { courseCode: 'DEPI', roomName: 'Sala B201', day: 'Tuesday', time: ['16:00', '18:00'], type: 'Lecture', group: '' },
+        { courseCode: 'PDS', roomName: 'Laborator A105', day: 'Thursday', time: ['10:00', '12:00'], type: 'Lab', group: 'B' },
+        { courseCode: 'TV', roomName: 'Amfiteatru C3', day: 'Wednesday', time: ['09:00', '11:00'], type: 'Lecture', group: '' },
+        { courseCode: 'SCCS', roomName: 'Amfiteatru C3', day: 'Wednesday', time: ['11:00', '13:00'], type: 'Lecture', group: '' },
+        { courseCode: 'DEPI', roomName: 'Sala B201', day: 'Wednesday', time: ['15:00', '17:00'], type: 'Lab', group: 'A' },
+        { courseCode: 'DEPI', roomName: 'Sala Senatului', day: 'Thursday', time: ['10:00', '12:00'], type: 'Seminar', group: 'B' },
+        { courseCode: 'CAF', roomName: 'Laborator A105', day: 'Thursday', time: ['11:00', '13:00'], type: 'Lab', group: 'B' },
+        { courseCode: 'PDS', roomName: 'Amfiteatru C3', day: 'Friday', time: ['12:00', '16:00'], type: 'Lecture', group: '' },
+
+        // Year 2, General, Semester 2
+        { courseCode: 'CEF', roomName: 'Sala B201', day: 'Monday', time: ['08:00', '10:00'], type: 'Lecture', group: '' },
+        { courseCode: 'CEF', roomName: 'Laborator A105', day: 'Monday', time: ['10:00', '12:00'], type: 'Lab', group: 'A' },
+        { courseCode: 'CEF', roomName: 'Laborator A105', day: 'Friday', time: ['10:00', '12:00'], type: 'Lab', group: 'B' },
+        { courseCode: 'SS2', roomName: 'Sala B201', day: 'Thursday', time: ['14:00', '16:00'], type: 'Lecture', group: '' },
+        { courseCode: 'SS2', roomName: 'Sala B201', day: 'Thursday', time: ['16:00', '18:00'], type: 'Seminar', group: 'A' },
     ];
 
-    await ScheduleEntry.create(scheduleEntries);
-    console.log('Full Sample Schedule Imported...');
-    
+    const finalScheduleEntries = scheduleBlueprint.map(entry => {
+        const course = createdCourses.find(c => c.code === entry.courseCode);
+        const room = createdRooms.find(r => r.name === entry.roomName);
+        
+        if (!course || !room) {
+            console.warn(`Could not create schedule entry for ${entry.courseCode} in ${entry.roomName}. Course or Room not found.`);
+            return null;
+        }
+
+        return {
+            course: course._id,
+            room: room._id,
+            dayOfWeek: entry.day,
+            startTime: entry.time[0],
+            endTime: entry.time[1],
+            type: entry.type,
+            group: entry.group,
+            academicYear: '2024-2025',
+            semester: course.semester,
+        };
+    }).filter(entry => entry !== null); // Filter out any null entries
+
+    await ScheduleEntry.create(finalScheduleEntries);
+    console.log(`${finalScheduleEntries.length} schedule entries created.`);
+
     console.log('Data Import Complete!');
     process.exit();
   } catch (err) {
-    console.error(err);
+    console.error('Seeder script failed:', err);
     process.exit(1);
   }
 };
