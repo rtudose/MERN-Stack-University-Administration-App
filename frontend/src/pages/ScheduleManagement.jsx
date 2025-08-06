@@ -64,7 +64,7 @@ const ScheduleManagement = () => {
   const getTranslatedError = (msg) => {
     if (!msg) return t('generic_error');
     if (msg.includes('is required')) return t('schedule_form_error_required');
-     if (msg.includes('Invalid data for field')) return t('schedule_form_error_selection');
+     if (msg.includes('at path "room"') || msg.includes('at path "course"')) return t('schedule_form_error_selection');
     if (msg.includes('End time must be after start time')) return t('schedule_error_endtime');
     return t('generic_error');
   };
