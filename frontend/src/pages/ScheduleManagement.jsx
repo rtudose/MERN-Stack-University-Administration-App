@@ -1,15 +1,16 @@
-// src/pages/ScheduleManagement.jsx (Final and Definitive Version)
-import React, { useState, useEffect, useCallback } from 'react';
+// src/pages/ScheduleManagement.jsx (Final and Complete)
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { getAllScheduleEntries, createScheduleEntry, deleteScheduleEntry } from '../services/scheduleService';
+import { getAllScheduleEntries, createScheduleEntry, deleteScheduleEntry, updateScheduleEntry } from '../services/scheduleService';
 import { getAllCourses } from '../services/courseService';
 import { getAllRooms } from '../services/roomService';
 import BackButton from '../components/BackButton';
 import {
   Container, Typography, Paper, Table, TableBody, TableCell, TableContainer,
   TableHead, TableRow, IconButton, Alert, Box, Grid, FormControl,
-  InputLabel, Select, MenuItem, TextField, Button, Stack, Chip
+  InputLabel, Select, MenuItem, TextField, Button, Stack, Chip, TableSortLabel
 } from '@mui/material';
+import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 
 const dayOfWeekKeys = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
@@ -28,6 +29,12 @@ const ScheduleManagement = () => {
   const [selectedCourseDetails, setSelectedCourseDetails] = useState(null);
   const [selectedRoomDetails, setSelectedRoomDetails] = useState(null);
 
+  const [order, setOrder] = useState('asc');
+  const [orderBy, setOrderBy] = useState('dayOfWeek');
+  
+  const [isEditing, setIsEditing] = useState(false);
+  const [currentEntryId, setCurrentEntryId] = useState(null);
+
   const initialState = {
     course: '', room: '', dayOfWeek: dayOfWeekKeys[0], startTime: '08:00', endTime: '10:00',
     type: activityTypeKeys[0], group: '', academicYear: academicYears[0], semester: semesterKeys[0]
@@ -41,8 +48,12 @@ const ScheduleManagement = () => {
       setSchedule(scheduleRes.data);
       setCourses(coursesRes.data);
       setRooms(roomsRes.data);
-    } catch (err) { setError('fetch_schedule_error'); }
-    finally { setLoading(false); }
+      setError(null);
+    } catch (err) {
+      setError('fetch_schedule_error');
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => { fetchData(); }, [fetchData]);
@@ -60,11 +71,19 @@ const ScheduleManagement = () => {
       setFormData(prev => ({ ...prev, room: value }));
     }
   };
+  
+  const resetForm = () => {
+      setIsEditing(false);
+      setCurrentEntryId(null);
+      setSelectedCourseDetails(null);
+      setSelectedRoomDetails(null);
+      setFormData(initialState);
+  };
 
   const getTranslatedError = (msg) => {
     if (!msg) return t('generic_error');
     if (msg.includes('is required')) return t('schedule_form_error_required');
-     if (msg.includes('at path "room"') || msg.includes('at path "course"')) return t('schedule_form_error_selection');
+    if (msg.includes('at path "room"') || msg.includes('at path "course"')) return t('schedule_form_error_selection');
     if (msg.includes('End time must be after start time')) return t('schedule_error_endtime');
     return t('generic_error');
   };
@@ -73,11 +92,14 @@ const ScheduleManagement = () => {
     e.preventDefault();
     setFormMessage({ text: '', type: '' });
     try {
-      await createScheduleEntry(formData);
-      setFormMessage({ text: 'schedule_entry_created_success', type: 'success' });
-      setFormData(initialState);
-      setSelectedCourseDetails(null);
-      setSelectedRoomDetails(null);
+      if (isEditing) {
+        await updateScheduleEntry(currentEntryId, formData);
+        setFormMessage({ text: 'schedule_entry_updated_success', type: 'success' });
+      } else {
+        await createScheduleEntry(formData);
+        setFormMessage({ text: 'schedule_entry_created_success', type: 'success' });
+      }
+      resetForm();
       fetchData();
     } catch (err) {
       const errorData = err.response?.data;
@@ -106,6 +128,55 @@ const ScheduleManagement = () => {
     }
   };
 
+  const handleEditClick = (entry) => {
+    setFormMessage({ text: '', type: '' });
+    setIsEditing(true);
+    setCurrentEntryId(entry._id);
+    setSelectedCourseDetails(entry.course);
+    setSelectedRoomDetails(entry.room);
+    setFormData({
+        course: entry.course._id,
+        room: entry.room._id,
+        dayOfWeek: entry.dayOfWeek,
+        startTime: entry.startTime,
+        endTime: entry.endTime,
+        type: entry.type,
+        group: entry.group || '',
+        academicYear: entry.academicYear,
+        semester: entry.semester
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+  
+  const handleRequestSort = (property) => {
+    const isAsc = orderBy === property && order === 'asc';
+    setOrder(isAsc ? 'desc' : 'asc');
+    setOrderBy(property);
+  };
+  
+  const sortedSchedule = useMemo(() => {
+    if (!orderBy) return schedule;
+    const dayOrder = { 'Monday': 1, 'Tuesday': 2, 'Wednesday': 3, 'Thursday': 4, 'Friday': 5 };
+    const typeOrder = { 'Lecture': 1, 'Seminar': 2, 'Lab': 3, 'Practice': 4 };
+    const getSortValue = (item, property) => {
+      switch (property) {
+        case 'course.name': return item.course?.name || '';
+        case 'room.name': return item.room?.name || '';
+        case 'course.yearOfStudy': return item.course?.yearOfStudy || 0;
+        case 'dayOfWeek': return dayOrder[item.dayOfWeek] || 99;
+        case 'type': return typeOrder[item.type] || 99;
+        default: return item[property] || '';
+      }
+    };
+    return [...schedule].sort((a, b) => {
+      const valA = getSortValue(a, orderBy);
+      const valB = getSortValue(b, orderBy);
+      if (valA < valB) return order === 'asc' ? -1 : 1;
+      if (valA > valB) return order === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }, [schedule, order, orderBy]);
+
   if (loading) return <div>{t('loading')}</div>;
   if (error) return <Alert severity="error">{t(error)}</Alert>;
 
@@ -130,11 +201,11 @@ const ScheduleManagement = () => {
 
       <Paper sx={{ p: 3, mb: 4 }}>
         <Typography variant="h5" component="h2" gutterBottom>
-          {t('add_schedule_entry_title')}
+          {isEditing ? t('edit_entry_button') : t('add_schedule_entry_title')}
         </Typography>
         <Box component="form" onSubmit={handleSubmit} noValidate>
           <Grid container spacing={2}>
-            <Grid item xs={12} md={6}><FormControl fullWidth required><InputLabel>{t('course_label')}</InputLabel><Select name="course" value={formData.course} label={t('course_label')} onChange={handleInputChange}>{courses.map(c => <MenuItem key={c._id} value={c._id}>{c.name} ({c.code})</MenuItem>)}</Select></FormControl></Grid>
+            <Grid item xs={12} md={6}><FormControl fullWidth required><InputLabel>{t('course_label')}</InputLabel><Select name="course" value={formData.course} label={t('course_label')} onChange={handleInputChange}>{courses.map(c => <MenuItem key={c._id} value={c._id}>{`${c.name} (${c.code})`}</MenuItem>)}</Select></FormControl></Grid>
             <Grid item xs={12} md={6}><FormControl fullWidth required><InputLabel>{t('room_label')}</InputLabel><Select name="room" value={formData.room} label={t('room_label')} onChange={handleInputChange}>{rooms.map(r => <MenuItem key={r._id} value={r._id}>{r.name}</MenuItem>)}</Select></FormControl></Grid>
             {(selectedCourseDetails || selectedRoomDetails) && (
               <Grid item xs={12}>
@@ -154,7 +225,13 @@ const ScheduleManagement = () => {
                                 <Typography variant="subtitle2" gutterBottom>{t('room_details_label')}</Typography>
                                 <Stack direction="row" spacing={3}>
                                     <TextField label={t('room_capacity_label')} value={selectedRoomDetails.capacity} InputProps={{ readOnly: true }} variant="standard" />
-                                    <TextField label={t('equipment_label')} value={selectedRoomDetails.equipment.map(key => t(`equipment_${key}`)).join(', ') || 'None'} InputProps={{ readOnly: true }} variant="standard" fullWidth/>
+                                    <TextField 
+                                      label={t('equipment_label')} 
+                                      value={(selectedRoomDetails.equipment || []).map(key => t(`equipment_${key}`)).join(', ') || t('none')} 
+                                      InputProps={{ readOnly: true }} 
+                                      variant="standard" 
+                                      fullWidth
+                                    />
                                 </Stack>
                             </Grid>
                         )}
@@ -170,27 +247,53 @@ const ScheduleManagement = () => {
             <Grid item xs={12} sm={4}><FormControl fullWidth required><InputLabel>{t('academic_year_label')}</InputLabel><Select name="academicYear" value={formData.academicYear} label={t('academic_year_label')} onChange={handleInputChange}>{academicYears.map(y => <MenuItem key={y} value={y}>{y}</MenuItem>)}</Select></FormControl></Grid>
             <Grid item xs={12} sm={4}><FormControl fullWidth required disabled={!!selectedCourseDetails}><InputLabel>{t('semester_label')}</InputLabel><Select name="semester" value={formData.semester} label={t('semester_label')} onChange={handleInputChange}>{semesterKeys.map(s => <MenuItem key={s} value={s}>{t(`semester_${s}`)}</MenuItem>)}</Select></FormControl></Grid>
           </Grid>
-          <Button type="submit" variant="contained" sx={{ mt: 3 }}>{t('add_entry_button')}</Button>
+          <Stack direction="row" spacing={2} sx={{ mt: 3 }}>
+            <Button type="submit" variant="contained">
+              {isEditing ? t('update_entry_button') : t('add_entry_button')}
+            </Button>
+            {isEditing && (
+              <Button variant="outlined" onClick={resetForm}>
+                {t('cancel_button')}
+              </Button>
+            )}
+          </Stack>
         </Box>
       </Paper>
       
       <Paper>
         <TableContainer>
-          <Table>
+          <Table stickyHeader>
             <TableHead>
               <TableRow>
-                <TableCell>{t('course_label')}</TableCell><TableCell>{t('room_label')}</TableCell><TableCell>{t('day_of_week_label')}</TableCell>
-                <TableCell>{t('time_slot_label')}</TableCell><TableCell>{t('type_label')}</TableCell><TableCell>{t('group_label')}</TableCell>
+                <TableCell sortDirection={orderBy === 'course.name' ? order : false}><TableSortLabel active={orderBy === 'course.name'} direction={order} onClick={() => handleRequestSort('course.name')}>{t('course_label')}</TableSortLabel></TableCell>
+                <TableCell sortDirection={orderBy === 'type' ? order : false}><TableSortLabel active={orderBy === 'type'} direction={order} onClick={() => handleRequestSort('type')}>{t('type_label')}</TableSortLabel></TableCell>
+                <TableCell sortDirection={orderBy === 'room.name' ? order : false}><TableSortLabel active={orderBy === 'room.name'} direction={order} onClick={() => handleRequestSort('room.name')}>{t('room_label')}</TableSortLabel></TableCell>
+                <TableCell sortDirection={orderBy === 'dayOfWeek' ? order : false}><TableSortLabel active={orderBy === 'dayOfWeek'} direction={order} onClick={() => handleRequestSort('dayOfWeek')}>{t('day_of_week_label')}</TableSortLabel></TableCell>
+                <TableCell sortDirection={orderBy === 'startTime' ? order : false}><TableSortLabel active={orderBy === 'startTime'} direction={order} onClick={() => handleRequestSort('startTime')}>{t('time_slot_label')}</TableSortLabel></TableCell>
+                <TableCell sortDirection={orderBy === 'group' ? order : false}><TableSortLabel active={orderBy === 'group'} direction={order} onClick={() => handleRequestSort('group')}>{t('group_label')}</TableSortLabel></TableCell>
+                <TableCell sortDirection={orderBy === 'course.yearOfStudy' ? order : false}><TableSortLabel active={orderBy === 'course.yearOfStudy'} direction={order} onClick={() => handleRequestSort('course.yearOfStudy')}>{t('course_year_label')}</TableSortLabel></TableCell>
+                <TableCell sortDirection={orderBy === 'semester' ? order : false}><TableSortLabel active={orderBy === 'semester'} direction={order} onClick={() => handleRequestSort('semester')}>{t('course_semester_label')}</TableSortLabel></TableCell>
+                <TableCell sortDirection={orderBy === 'academicYear' ? order : false}><TableSortLabel active={orderBy === 'academicYear'} direction={order} onClick={() => handleRequestSort('academicYear')}>{t('academic_year_label')}</TableSortLabel></TableCell>
                 <TableCell align="center">{t('actions_label')}</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {schedule.map((entry) => (
-                <TableRow key={entry._id}>
-                  <TableCell>{entry.course?.name || 'N/A'}</TableCell><TableCell>{entry.room?.name || 'N/A'}</TableCell>
-                  <TableCell>{t(`day_${entry.dayOfWeek}`)}</TableCell><TableCell>{`${entry.startTime} - ${entry.endTime}`}</TableCell>
-                  <TableCell>{t(`type_${entry.type}`)}</TableCell><TableCell>{entry.group || t('all_groups')}</TableCell>
+              {sortedSchedule.map((entry) => (
+                <TableRow key={entry._id} hover>
+                  <TableCell>
+                    <Typography variant="body2" sx={{ fontWeight: 'bold' }}>{entry.course?.name || 'N/A'}</Typography>
+                    <Typography variant="caption" color="text.secondary">{entry.course?.code || ''}</Typography>
+                  </TableCell>
+                  <TableCell>{t(`type_${entry.type}`)}</TableCell>
+                  <TableCell>{entry.room?.name || 'N/A'}</TableCell>
+                  <TableCell>{t(`day_${entry.dayOfWeek}`)}</TableCell>
+                  <TableCell>{`${entry.startTime} - ${entry.endTime}`}</TableCell>
+                  <TableCell>{entry.group || t('all_groups')}</TableCell>
+                  <TableCell>{entry.course?.yearOfStudy}</TableCell>
+                  <TableCell>{entry.semester}</TableCell>
+                  <TableCell>{entry.academicYear}</TableCell>
                   <TableCell align="center">
+                    <IconButton color="primary" onClick={() => handleEditClick(entry)}><EditIcon /></IconButton>
                     <IconButton color="error" onClick={() => handleDelete(entry._id)}><DeleteIcon /></IconButton>
                   </TableCell>
                 </TableRow>

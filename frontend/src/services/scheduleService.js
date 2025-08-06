@@ -10,6 +10,10 @@ const createScheduleEntry = (data) => {
   return api.post('/api/schedule', data);
 };
 
+const updateScheduleEntry = (id, data) => {
+  return api.put(`/api/schedule/${id}`, data);
+};
+
 const deleteScheduleEntry = (id) => {
   return api.delete(`/api/schedule/${id}`);
 };
@@ -32,4 +36,5 @@ export {
   deleteScheduleEntry,
   getMySchedule,
   getMyTeacherSchedule,
+  updateScheduleEntry,
 };
