@@ -1,22 +1,46 @@
-/* 
-  Hide the default number input arrows (spinners)
-  For Chrome, Safari, Edge, Opera 
-*/
+/* src/index.css
+/* Hide the default number input arrows (spinners) */
 input[type=number]::-webkit-inner-spin-button, 
 input[type=number]::-webkit-outer-spin-button { 
   -webkit-appearance: none; 
   margin: 0; 
 }
-
-/* For Firefox */
 input[type=number] {
   -moz-appearance: textfield;
 }
 
-/*
-  Fix for time input clock icon in dark mode for Chrome/Edge/Safari.
-  This inverts the color of the icon to make it white on a dark background.
-*/
+/* Fix for time input clock icon in dark mode */
 html[data-mui-color-scheme="dark"] input[type="time"]::-webkit-calendar-picker-indicator {
   filter: invert(1);
+}
+
+/* --- NEW: Targeted Scrollbar Styles --- */
+
+/* Target only the main content box and MUI Table Containers */
+main::-webkit-scrollbar,
+.MuiTableContainer-root::-webkit-scrollbar {
+  width: 8px;
+  height: 8px; /* For horizontal scrollbars */
+}
+
+main::-webkit-scrollbar-track,
+.MuiTableContainer-root::-webkit-scrollbar-track {
+  background: transparent; /* Make the track invisible */
+}
+
+main::-webkit-scrollbar-thumb,
+.MuiTableContainer-root::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+/* Style the scrollbar thumb in dark mode */
+html[data-mui-color-scheme="dark"] main::-webkit-scrollbar-thumb,
+html[data-mui-color-scheme="dark"] .MuiTableContainer-root::-webkit-scrollbar-thumb {
+  background: #555;
+}
+
+html[data-mui-color-scheme="dark"] main::-webkit-scrollbar-thumb:hover,
+html[data-mui-color-scheme="dark"] .MuiTableContainer-root::-webkit-scrollbar-thumb:hover {
+  background: #777;
 }

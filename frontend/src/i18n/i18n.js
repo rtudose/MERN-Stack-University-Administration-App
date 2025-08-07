@@ -277,7 +277,7 @@ const resources = {
       "secretariat_notes_label": "Secretariat Notes",
 
       // Form Messages & Errors
-      "add_room_empty_fields_error": "Please fill in all fields.",
+      "add_room_empty_fields_error": "Please fill in all required fields.",
       "capacity_invalid_error": "Capacity must be a natural number (a positive whole number.)", // More generic
       "room_exists_error": "A room with this name already exists.",
       "invalid_room_data": "Invalid room data provided.",
@@ -578,7 +578,7 @@ const resources = {
       "secretariat_notes_label": "Notițe Secretariat",
 
       // Form Messages & Errors
-      "add_room_empty_fields_error": "Vă rugăm să completați toate câmpurile.",
+      "add_room_empty_fields_error": "Vă rugăm să completați toate câmpurile obligatorii.",
       "capacity_invalid_error": "Capacitatea trebuie să fie un număr natural (un număr întreg pozitiv).", // More generic
       "room_exists_error": "O sală cu acest nume există deja.",
       "invalid_room_data": "Datele sălii sunt invalide.",

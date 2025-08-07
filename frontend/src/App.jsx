@@ -1,6 +1,11 @@
 // src/App.jsx
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import { useTranslation } from 'react-i18next';
+import { ColorModeProvider } from './context/ThemeContext';
+import { CssBaseline, Box } from '@mui/material';
+
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Rooms from './pages/Rooms';
@@ -16,12 +21,9 @@ import ReservationsManagement from './pages/ReservationsManagement';
 import ScheduleManagement from './pages/ScheduleManagement';
 import AppointmentsManagement from './pages/AppointmentsManagement';
 // import Register from './pages/Register'; // Uncomment if you have a register page
-import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Navbar from './components/Navbar';
-import { useTranslation } from 'react-i18next';
-import { ColorModeProvider } from './context/ThemeContext';
-import { CssBaseline } from '@mui/material';
+
 
 function App() {
   const { t } = useTranslation();
@@ -31,49 +33,47 @@ function App() {
       <CssBaseline />
       <Router>
         <AuthProvider>
-          <div>
-            <h1 style={{ textAlign: 'center', color: '#0056b3', marginTop: '20px' }}>{t('app_title')}</h1>
-
+          <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
             <Navbar />
+            <Box component="main" sx={{ flexGrow: 1, overflow: 'auto', p: 3 }}>
+              <Routes>
+                <Route path="/login" element={<Login />} />
+                <Route path="/" element={<Navigate to="/login" replace />} />
 
-            <Routes>
-              <Route path="/login" element={<Login />} />
-              <Route path="/" element={<Navigate to="/login" replace />} />
+                {/* SHARED Routes for multiple roles */}
+                <Route element={<ProtectedRoute allowedRoles={['student', 'teacher', 'external_representative']} />}>
+                  <Route path="/dashboard" element={<Dashboard />} />
+                </Route>
 
-              {/* SHARED Routes for multiple roles */}
-              <Route element={<ProtectedRoute allowedRoles={['student', 'teacher', 'external_representative']} />}>
-                <Route path="/dashboard" element={<Dashboard />} />
-              </Route>
+                {/* STUDENT & TEACHER Routes */}
+                <Route element={<ProtectedRoute allowedRoles={['student', 'teacher']} />}>
+                  <Route path="/my-schedule" element={<MySchedulePage />} />
+                </Route>
+                
+                {/* STUDENT-only Routes */}
+                <Route element={<ProtectedRoute allowedRoles={['student']} />}>
+                    <Route path="/book-appointment" element={<BookAppointment />} />
+                    <Route path="/my-appointments" element={<MyAppointments />} />
+                </Route>
+                
+                {/* EXTERNAL REP-only Routes */}
+                <Route element={<ProtectedRoute allowedRoles={['external_representative']} />}>
+                    <Route path="/book-room" element={<BookRoom />} />
+                    <Route path="/my-reservations" element={<MyReservations />} />
+                </Route>
 
-              {/* STUDENT & TEACHER Routes */}
-              <Route element={<ProtectedRoute allowedRoles={['student', 'teacher']} />}>
-                <Route path="/my-schedule" element={<MySchedulePage />} />
-              </Route>
-              
-              {/* STUDENT-only Routes */}
-              <Route element={<ProtectedRoute allowedRoles={['student']} />}>
-                  <Route path="/book-appointment" element={<BookAppointment />} />
-                  <Route path="/my-appointments" element={<MyAppointments />} />
-              </Route>
-              
-              {/* EXTERNAL REP-only Routes */}
-              <Route element={<ProtectedRoute allowedRoles={['external_representative']} />}>
-                  <Route path="/book-room" element={<BookRoom />} />
-                  <Route path="/my-reservations" element={<MyReservations />} />
-              </Route>
-
-              {/* ADMIN-only Routes */}
-              <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
-                <Route path="/admin-dashboard" element={<AdminDashboard />} />
-                <Route path="/rooms" element={<Rooms />} />
-                <Route path="/users" element={<Users />} />
-                <Route path="/courses-management" element={<CoursesManagement />} />
-                <Route path="/reservations-management" element={<ReservationsManagement />} />
-                <Route path="/schedule-management" element={<ScheduleManagement />} />
-                <Route path="/appointments-management" element={<AppointmentsManagement />} />
-              </Route>
-          </Routes>
-          </div>
+                {/* ADMIN-only Routes */}
+                <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
+                  <Route path="/admin-dashboard" element={<AdminDashboard />} />
+                  <Route path="/rooms" element={<Rooms />} />
+                  <Route path="/users" element={<Users />} />
+                  <Route path="/courses-management" element={<CoursesManagement />} />
+                  <Route path="/reservations-management" element={<ReservationsManagement />} />
+                  <Route path="/schedule-management" element={<ScheduleManagement />} />
+                </Route>
+              </Routes>
+            </Box>
+          </Box>
         </AuthProvider>
       </Router>
     </ColorModeProvider>

@@ -135,7 +135,7 @@ const CoursesManagement = () => {
   if (error) return <Alert severity="error">{t(error)}</Alert>;
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+    <Container maxWidth="lg" sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <BackButton />
       <Typography variant="h4" component="h1" gutterBottom sx={{ textAlign: 'center' }}>
         {t('courses_management_title')}

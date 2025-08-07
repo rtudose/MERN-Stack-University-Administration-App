@@ -1,6 +1,7 @@
 // src/context/ThemeContext.jsx
 import React, { createContext, useState, useMemo, useContext } from 'react';
 import { createTheme, ThemeProvider as MUIThemeProvider } from '@mui/material/styles';
+import getCustomTheme from '../theme/theme';
 
 const ColorModeContext = createContext({ toggleColorMode: () => {} });
 
@@ -23,16 +24,7 @@ export const ColorModeProvider = ({ children }) => {
     [],
   );
 
-  // Create the MUI theme based on the current mode
-  const theme = useMemo(
-    () =>
-      createTheme({
-        palette: {
-          mode,
-        },
-      }),
-    [mode],
-  );
+  const theme = useMemo(() => getCustomTheme(mode), [mode]);
 
   return (
     <ColorModeContext.Provider value={colorMode}>

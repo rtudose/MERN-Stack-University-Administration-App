@@ -1,9 +1,8 @@
-// src/pages/Rooms.jsx
+// src/pages/Rooms.jsx (Polished Version)
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getAllRooms, createRoom, updateRoom, deleteRoom } from '../services/roomService';
 import BackButton from '../components/BackButton';
-
 import {
   Container, Box, Typography, TextField, Button, Alert, Paper, Grid, Stack,
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow, IconButton,
@@ -57,12 +56,16 @@ function Rooms() {
   const resetForm = () => {
     setIsEditing(false);
     setCurrentRoomId(null);
+    setFormMessage('');
+    setMessageType('');
     setFormData({ name: '', capacity: '', location: '', equipment: [], isAvailableForExternal: true, status: 'available' });
   };
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
+    // Use `checked` for Switch, and `value` for all other inputs
+    const inputValue = type === 'checkbox' ? checked : value;
+    setFormData(prev => ({ ...prev, [name]: inputValue }));
   };
 
   const handleSubmit = async (e) => {
@@ -88,12 +91,15 @@ function Rooms() {
         await createRoom(payload);
         setFormMessage(t('room_added_success', { roomName: payload.name }));
       }
-      setMessageType('success'); resetForm(); fetchRooms();
+      setMessageType('success');
+      resetForm();
+      fetchRooms();
     } catch (err) {
       let finalErrorMsg;
       if (err.response?.data?.msg) { finalErrorMsg = getTranslatedBackendError(err.response.data.msg); }
       if (!finalErrorMsg) { finalErrorMsg = t(isEditing ? 'update_room_generic_error' : 'add_room_generic_error'); }
-      setFormMessage(finalErrorMsg); setMessageType('error');
+      setFormMessage(finalErrorMsg);
+      setMessageType('error');
     }
   };
 
@@ -130,11 +136,12 @@ function Rooms() {
   if (error) return <Alert severity="error">{error}</Alert>;
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+    <Container maxWidth="lg" sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <BackButton />
       <Typography variant="h4" component="h1" gutterBottom sx={{ textAlign: 'center' }}>
         {t('rooms_management_title')}
       </Typography>
+      {formMessage && <Alert severity={messageType || 'info'} sx={{ mb: 2 }} onClose={() => setFormMessage('')}>{formMessage}</Alert>}
 
       <Paper sx={{ p: { xs: 2, md: 3 }, mb: 4 }}>
         <Typography variant="h5" component="h2" gutterBottom>
@@ -142,15 +149,14 @@ function Rooms() {
         </Typography>
         <Box component="form" onSubmit={handleSubmit} noValidate>
           <Grid container spacing={2}>
-            <Grid item xs={12} sm={4}><TextField fullWidth required name="name" label={t('room_name_label')} value={formData.name} onChange={handleInputChange} /></Grid>
-            <Grid item xs={12} sm={4}><TextField fullWidth required name="capacity" label={t('room_capacity_label')} value={formData.capacity} onChange={handleInputChange} type="number" inputProps={{ min: 1, step: 1 }} /></Grid>
-            <Grid item xs={12} sm={4}><TextField fullWidth required name="location" label={t('room_location_label')} value={formData.location} onChange={handleInputChange} /></Grid>
+            <Grid item xs={12} md={4}><TextField fullWidth required name="name" label={t('room_name_label')} value={formData.name} onChange={handleInputChange} /></Grid>
+            <Grid item xs={12} md={4}><TextField fullWidth required name="capacity" label={t('room_capacity_label')} value={formData.capacity} onChange={handleInputChange} type="number" inputProps={{ min: 1, step: 1 }} /></Grid>
+            <Grid item xs={12} md={4}><TextField fullWidth required name="location" label={t('room_location_label')} value={formData.location} onChange={handleInputChange} /></Grid>
             
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12} md={6}>
               <FormControl fullWidth>
-                <InputLabel id="equipment-select-label">{t('equipment_label')}</InputLabel>
+                <InputLabel>{t('equipment_label')}</InputLabel>
                 <Select
-                  labelId="equipment-select-label"
                   name="equipment"
                   multiple
                   value={formData.equipment}
@@ -172,10 +178,10 @@ function Rooms() {
               </FormControl>
             </Grid>
             
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12} md={6}>
               <FormControl fullWidth>
-                <InputLabel id="status-select-label">{t('status_label')}</InputLabel>
-                <Select labelId="status-select-label" name="status" value={formData.status} label={t('status_label')} onChange={handleInputChange}>
+                <InputLabel>{t('status_label')}</InputLabel>
+                <Select name="status" value={formData.status} label={t('status_label')} onChange={handleInputChange}>
                   <MenuItem value="available">{t('status_available')}</MenuItem>
                   <MenuItem value="under_maintenance">{t('status_under_maintenance')}</MenuItem>
                   <MenuItem value="unavailable">{t('status_unavailable')}</MenuItem>
@@ -192,16 +198,14 @@ function Rooms() {
           </Grid>
           <Stack direction="row" spacing={2} sx={{ mt: 3 }}>
             <Button type="submit" variant="contained">{isEditing ? t('update_room_button') : t('add_room_button')}</Button>
-            {isEditing && (<Button variant="outlined" onClick={() => { resetForm(); setFormMessage(''); }}>{t('cancel_button')}</Button>)}
+            {isEditing && (<Button variant="outlined" onClick={resetForm}>{t('cancel_button')}</Button>)}
           </Stack>
         </Box>
-        {formMessage && <Alert severity={messageType} sx={{ mt: 2 }}>{formMessage}</Alert>}
       </Paper>
       
-      <Paper sx={{p: 2}}>
-        <Typography variant="h5" component="h2" gutterBottom>{t('available_rooms')}</Typography>
+      <Paper>
         <TableContainer>
-          <Table>
+          <Table stickyHeader>
               <TableHead>
                   <TableRow>
                       <TableCell>{t('room_name_label')}</TableCell>
@@ -214,7 +218,7 @@ function Rooms() {
               </TableHead>
               <TableBody>
                   {rooms.map((room) => (
-                      <TableRow key={room._id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                      <TableRow hover key={room._id}>
                           <TableCell>{room.name}</TableCell>
                           <TableCell>{t(`status_${room.status}`)}</TableCell>
                           <TableCell>{t(room.isAvailableForExternal ? 'boolean_yes' : 'boolean_no')}</TableCell>
