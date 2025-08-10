@@ -66,6 +66,15 @@ const Users = () => {
     fetchUsers();
   }, [fetchUsers]);
 
+  // Disable page scroll while on this page; only the table will scroll
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, []);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     if (['yearOfStudy', 'specialization', 'group'].includes(name)) {
@@ -172,7 +181,9 @@ const Users = () => {
         pt: 2, pb: 4, 
         display: 'flex', 
         flexDirection: 'column', 
-        height: 'calc(100vh - 96px)'
+        height: 'calc(100vh - 96px)', 
+        overflow: 'hidden',
+        minHeight: 0,
       }}
     >
       {/* --- Top Section (Form, Title, etc.) --- */}
@@ -231,41 +242,56 @@ const Users = () => {
       </Box>
       
       {/* --- Bottom Section (Table) --- */}
-      <Paper sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', p: 2 }}>
+      <Paper sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', overflow: 'visible', p: 2, minHeight: 0 }}>
         <Typography variant="h5" component="h2" gutterBottom>
           {t('existing_users_title')}
         </Typography>
-        <TableContainer sx={{ flexGrow: 1 }}>
-          <Table stickyHeader>
-            <TableHead>
-              <TableRow>
-                <TableCell sortDirection={orderBy === 'username' ? order : false}><TableSortLabel active={orderBy === 'username'} direction={order} onClick={() => handleRequestSort('username')}>{t('username_label')}</TableSortLabel></TableCell>
-                <TableCell sortDirection={orderBy === 'email' ? order : false}><TableSortLabel active={orderBy === 'email'} direction={order} onClick={() => handleRequestSort('email')}>{t('email_label')}</TableSortLabel></TableCell>
-                <TableCell sortDirection={orderBy === 'role' ? order : false}><TableSortLabel active={orderBy === 'role'} direction={order} onClick={() => handleRequestSort('role')}>{t('role_label')}</TableSortLabel></TableCell>
-                <TableCell sortDirection={orderBy === 'yearOfStudy' ? order : false}><TableSortLabel active={orderBy === 'yearOfStudy'} direction={order} onClick={() => handleRequestSort('yearOfStudy')}>{t('course_year_label')}</TableSortLabel></TableCell>
-                <TableCell>{t('course_specialization_label')}</TableCell>
-                <TableCell>{t('user_group_label')}</TableCell>
-                <TableCell align="center">{t('actions_label')}</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {sortedUsers.map((user) => (
-                <TableRow hover key={user._id}>
-                  <TableCell>{user.username}</TableCell>
-                  <TableCell>{user.email}</TableCell>
-                  <TableCell>{t(`role_label_${user.role}`)}</TableCell>
-                  <TableCell>{user.studentDetails?.yearOfStudy || 'N/A'}</TableCell>
-                  <TableCell>{user.studentDetails?.specialization || 'N/A'}</TableCell>
-                  <TableCell>{user.studentDetails?.group || 'N/A'}</TableCell>
-                  <TableCell align="center">
-                    <IconButton onClick={() => handleEditClick(user)} color="primary"><EditIcon /></IconButton>
-                    <IconButton onClick={() => handleDeleteClick(user._id)} color="error"><DeleteIcon /></IconButton>
-                  </TableCell>
+        {/* Reserve a few pixels on the right; draw real border and offset scrollbar slightly outside */}
+        <Box sx={{ flex: '1 1 0', position: 'relative', pr: 0, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+          <Box sx={{
+            flex: '1 1 0',
+            position: 'relative',
+            overflow: 'visible',
+            minHeight: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            border: '2px solid',
+            borderColor: 'divider',
+            borderRadius: '26px',
+          }}>
+          <TableContainer sx={{ flex: '1 1 0%', minHeight: 0, height: '100%', maxHeight: '100%', display: 'block', overflowY: 'auto', overflowX: 'hidden', width: 'calc(100% + 8px)', marginRight: '-8px', pr: 0, border: 'none' }}>
+            <Table stickyHeader>
+              <TableHead>
+                <TableRow>
+                  <TableCell sortDirection={orderBy === 'username' ? order : false}><TableSortLabel active={orderBy === 'username'} direction={order} onClick={() => handleRequestSort('username')}>{t('username_label')}</TableSortLabel></TableCell>
+                  <TableCell sortDirection={orderBy === 'email' ? order : false}><TableSortLabel active={orderBy === 'email'} direction={order} onClick={() => handleRequestSort('email')}>{t('email_label')}</TableSortLabel></TableCell>
+                  <TableCell sortDirection={orderBy === 'role' ? order : false}><TableSortLabel active={orderBy === 'role'} direction={order} onClick={() => handleRequestSort('role')}>{t('role_label')}</TableSortLabel></TableCell>
+                  <TableCell sortDirection={orderBy === 'yearOfStudy' ? order : false}><TableSortLabel active={orderBy === 'yearOfStudy'} direction={order} onClick={() => handleRequestSort('yearOfStudy')}>{t('course_year_label')}</TableSortLabel></TableCell>
+                  <TableCell>{t('course_specialization_label')}</TableCell>
+                  <TableCell>{t('user_group_label')}</TableCell>
+                  <TableCell align="center">{t('actions_label')}</TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+              </TableHead>
+              <TableBody>
+                {sortedUsers.map((user) => (
+                  <TableRow hover key={user._id}>
+                    <TableCell>{user.username}</TableCell>
+                    <TableCell>{user.email}</TableCell>
+                    <TableCell>{t(`role_label_${user.role}`)}</TableCell>
+                    <TableCell>{user.studentDetails?.yearOfStudy || 'N/A'}</TableCell>
+                    <TableCell>{user.studentDetails?.specialization || 'N/A'}</TableCell>
+                    <TableCell>{user.studentDetails?.group || 'N/A'}</TableCell>
+                    <TableCell align="center">
+                      <IconButton onClick={() => handleEditClick(user)} color="primary"><EditIcon /></IconButton>
+                      <IconButton onClick={() => handleDeleteClick(user._id)} color="error"><DeleteIcon /></IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Box>
+      </Box>
       </Paper>
     </Container>
   );
