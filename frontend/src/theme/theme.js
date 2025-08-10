@@ -52,6 +52,7 @@ const getCustomTheme = (mode) => createTheme({
         styleOverrides: {
             root: ({ theme }) => ({
                 borderRadius: theme.shape.borderRadius,
+                border: 'none',
             }),
         },
     },
@@ -84,16 +85,6 @@ const getCustomTheme = (mode) => createTheme({
         }),
       }
     },
-    /*MuiTableRow: {
-        styleOverrides: {
-            root: {
-                // Remove the border ONLY from the last row to prevent a double border
-                '&:last-child td, &:last-child th': {
-                    border: 0,
-                },
-            },
-        },
-    },*/
   },
 });
 
