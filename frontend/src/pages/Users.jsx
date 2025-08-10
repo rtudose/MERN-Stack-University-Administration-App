@@ -166,15 +166,24 @@ const Users = () => {
   if (error) return <Alert severity="error">{error}</Alert>;
 
   return (
-    <Container maxWidth="lg" sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <Box>
+    <Container 
+      maxWidth="lg" 
+      sx={{ 
+        pt: 2, pb: 4, 
+        display: 'flex', 
+        flexDirection: 'column', 
+        height: 'calc(100vh - 96px)'
+      }}
+    >
+      {/* --- Top Section (Form, Title, etc.) --- */}
+      <Box sx={{ flexShrink: 0 }}>
         <BackButton />
         <Typography variant="h4" component="h1" gutterBottom sx={{ textAlign: 'center' }}>
           {t('users_management_title')}
         </Typography>
         {formMessage.text && <Alert severity={formMessage.type} sx={{ mb: 2 }} onClose={() => setFormMessage({ text: '', type: '' })}>{t(formMessage.text)}</Alert>}
         
-        <Paper sx={{ p: { xs: 2, md: 3 }, mb: 4 }}>
+        <Paper sx={{ p: { xs: 2, md: 3 }, mb: 2 }}>
           <Typography variant="h5" component="h2" gutterBottom>
             {isEditing ? t('edit_user_title') : t('add_new_user_title')}
           </Typography>
@@ -194,7 +203,6 @@ const Users = () => {
                   </Select>
                 </FormControl>
               </Grid>
-
               {formData.role === 'student' && (
                 <>
                   <Grid item xs={12} md={4}>
@@ -222,11 +230,12 @@ const Users = () => {
         </Paper>
       </Box>
       
-      <Paper sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-        <Typography variant="h5" component="h2" gutterBottom sx={{ p: 2, pb: 0 }}>
+      {/* --- Bottom Section (Table) --- */}
+      <Paper sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', p: 2 }}>
+        <Typography variant="h5" component="h2" gutterBottom>
           {t('existing_users_title')}
         </Typography>
-        <TableContainer sx={{ overflow: 'auto' }}>
+        <TableContainer sx={{ flexGrow: 1 }}>
           <Table stickyHeader>
             <TableHead>
               <TableRow>

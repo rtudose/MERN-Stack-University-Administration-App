@@ -18,7 +18,7 @@ const getCustomTheme = (mode) => createTheme({
   },
 
   shape: {
-    borderRadius: 26, // A slightly less extreme, more professional radius
+    borderRadius: 26,
   },
 
   typography: {
@@ -51,11 +51,49 @@ const getCustomTheme = (mode) => createTheme({
     MuiTableContainer: {
         styleOverrides: {
             root: ({ theme }) => ({
-                // This makes the table corners rounded to match the container
                 borderRadius: theme.shape.borderRadius,
             }),
         },
     },
+    MuiTableBody: {
+      styleOverrides: {
+          root: {
+              // Target the last row specifically within the table body
+              '& tr:last-child td, & tr:last-child th': {
+                  border: 0,
+              },
+          },
+      },
+  },
+    MuiTableCell: {
+      styleOverrides: {
+        head: ({ theme }) => ({
+          // Ensure header cells have the correct background and color
+          backgroundColor: theme.palette.mode === 'dark' ? theme.palette.grey[1800] : theme.palette.grey[300],
+          color: theme.palette.text.primary,
+          fontWeight: 'bold',
+        }),
+        // Apply rounded corners to the first and last header cells
+        stickyHeader: ({ theme }) => ({
+            '&:first-of-type': {
+                borderTopLeftRadius: theme.shape.borderRadius,
+            },
+            '&:last-of-type': {
+                borderTopRightRadius: theme.shape.borderRadius,
+            },
+        }),
+      }
+    },
+    /*MuiTableRow: {
+        styleOverrides: {
+            root: {
+                // Remove the border ONLY from the last row to prevent a double border
+                '&:last-child td, &:last-child th': {
+                    border: 0,
+                },
+            },
+        },
+    },*/
   },
 });
 
