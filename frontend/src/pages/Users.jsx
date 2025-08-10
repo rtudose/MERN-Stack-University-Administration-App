@@ -259,7 +259,7 @@ const Users = () => {
             borderColor: 'divider',
             borderRadius: '26px',
           }}>
-          <TableContainer sx={{ flex: '1 1 0%', minHeight: 0, height: '100%', maxHeight: '100%', display: 'block', overflowY: 'auto', overflowX: 'hidden', width: 'calc(100% + 8px)', marginRight: '-8px', pr: 0, border: 'none' }}>
+          <TableContainer sx={{ flex: '1 1 0%', minHeight: 0, height: '100%', maxHeight: '100%', display: 'block', overflowY: 'auto', overflowX: 'hidden', width: 'calc(100% + 12px)', marginRight: '-12px', pr: 0.5, border: 'none' }}>
             <Table stickyHeader>
               <TableHead>
                 <TableRow>
