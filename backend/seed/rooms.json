@@ -8,6 +8,126 @@
     "status": "available"
   },
   {
+    "name": "Sala B202",
+    "capacity": 50,
+    "location": "Corp B, Etaj 2",
+    "equipment": ["Projector", "Whiteboard"],
+    "isAvailableForExternal": true,
+    "status": "available"
+  },
+  {
+    "name": "Sala B203",
+    "capacity": 50,
+    "location": "Corp B, Etaj 2",
+    "equipment": ["Projector", "Whiteboard"],
+    "isAvailableForExternal": true,
+    "status": "available"
+  },
+  {
+    "name": "Sala B204",
+    "capacity": 50,
+    "location": "Corp B, Etaj 2",
+    "equipment": ["Projector", "Whiteboard"],
+    "isAvailableForExternal": true,
+    "status": "available"
+  },
+  {
+    "name": "Sala B205",
+    "capacity": 50,
+    "location": "Corp B, Etaj 2",
+    "equipment": ["Projector", "Whiteboard"],
+    "isAvailableForExternal": true,
+    "status": "available"
+  },
+  {
+    "name": "Sala B206",
+    "capacity": 50,
+    "location": "Corp B, Etaj 2",
+    "equipment": ["Projector", "Whiteboard"],
+    "isAvailableForExternal": true,
+    "status": "available"
+  },
+  {
+    "name": "Sala B207",
+    "capacity": 50,
+    "location": "Corp B, Etaj 2",
+    "equipment": ["Projector", "Whiteboard"],
+    "isAvailableForExternal": true,
+    "status": "available"
+  },
+  {
+    "name": "Sala B208",
+    "capacity": 50,
+    "location": "Corp B, Etaj 2",
+    "equipment": ["Projector", "Whiteboard"],
+    "isAvailableForExternal": true,
+    "status": "available"
+  },
+  {
+    "name": "Sala B209",
+    "capacity": 50,
+    "location": "Corp B, Etaj 2",
+    "equipment": ["Projector", "Whiteboard"],
+    "isAvailableForExternal": true,
+    "status": "available"
+  },
+  {
+    "name": "Sala B210",
+    "capacity": 50,
+    "location": "Corp B, Etaj 2",
+    "equipment": ["Projector", "Whiteboard"],
+    "isAvailableForExternal": true,
+    "status": "available"
+  },
+  {
+    "name": "Sala B211",
+    "capacity": 50,
+    "location": "Corp B, Etaj 2",
+    "equipment": ["Projector", "Whiteboard"],
+    "isAvailableForExternal": true,
+    "status": "available"
+  },
+  {
+    "name": "Sala B212",
+    "capacity": 50,
+    "location": "Corp B, Etaj 2",
+    "equipment": ["Projector", "Whiteboard"],
+    "isAvailableForExternal": true,
+    "status": "available"
+  },
+  {
+    "name": "Sala B213",
+    "capacity": 50,
+    "location": "Corp B, Etaj 2",
+    "equipment": ["Projector", "Whiteboard"],
+    "isAvailableForExternal": true,
+    "status": "available"
+  },
+  {
+    "name": "Sala B214",
+    "capacity": 50,
+    "location": "Corp B, Etaj 2",
+    "equipment": ["Projector", "Whiteboard"],
+    "isAvailableForExternal": true,
+    "status": "available"
+  },
+  {
+    "name": "Sala B215",
+    "capacity": 50,
+    "location": "Corp B, Etaj 2",
+    "equipment": ["Projector", "Whiteboard"],
+    "isAvailableForExternal": true,
+    "status": "available"
+  },
+  {
+    "name": "Sala B216",
+    "capacity": 50,
+    "location": "Corp B, Etaj 2",
+    "equipment": ["Projector", "Whiteboard"],
+    "isAvailableForExternal": true,
+    "status": "available"
+  },
+  {
     "name": "Laborator A105",
     "capacity": 25,
     "location": "Corp A, Etaj 1",

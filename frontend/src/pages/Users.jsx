@@ -168,7 +168,24 @@ const Users = () => {
   };
   
   const sortedUsers = useMemo(() => {
-      return users.slice().sort(getComparator(order, orderBy));
+    const roleOrder = { admin: 1, teacher: 2, external_representative: 3, student: 4 };
+
+    const getSortValue = (item, property) => {
+        switch (property) {
+            case 'yearOfStudy': return item.studentDetails?.yearOfStudy || 0;
+            case 'specialization': return item.studentDetails?.specialization || '';
+            case 'group': return item.studentDetails?.group || '';
+            case 'role': return roleOrder[item.role] || 99;
+            default: return item[property] || '';
+        }
+    };
+    return [...users].sort((a, b) => {
+        const valA = getSortValue(a, orderBy);
+        const valB = getSortValue(b, orderBy);
+        if (valA < valB) return order === 'asc' ? -1 : 1;
+        if (valA > valB) return order === 'asc' ? 1 : -1;
+        return 0;
+    });
   }, [users, order, orderBy]);
 
   if (loading) return <div>{t('loading_users')}</div>;
@@ -263,13 +280,13 @@ const Users = () => {
             <Table stickyHeader>
               <TableHead>
                 <TableRow>
-                  <TableCell sortDirection={orderBy === 'username' ? order : false}><TableSortLabel active={orderBy === 'username'} direction={order} onClick={() => handleRequestSort('username')}>{t('username_label')}</TableSortLabel></TableCell>
-                  <TableCell sortDirection={orderBy === 'email' ? order : false}><TableSortLabel active={orderBy === 'email'} direction={order} onClick={() => handleRequestSort('email')}>{t('email_label')}</TableSortLabel></TableCell>
-                  <TableCell sortDirection={orderBy === 'role' ? order : false}><TableSortLabel active={orderBy === 'role'} direction={order} onClick={() => handleRequestSort('role')}>{t('role_label')}</TableSortLabel></TableCell>
-                  <TableCell sortDirection={orderBy === 'yearOfStudy' ? order : false}><TableSortLabel active={orderBy === 'yearOfStudy'} direction={order} onClick={() => handleRequestSort('yearOfStudy')}>{t('course_year_label')}</TableSortLabel></TableCell>
-                  <TableCell>{t('course_specialization_label')}</TableCell>
-                  <TableCell>{t('user_group_label')}</TableCell>
-                  <TableCell align="center">{t('actions_label')}</TableCell>
+                <TableCell sortDirection={orderBy === 'username' ? order : false}><TableSortLabel active={orderBy === 'username'} direction={order} onClick={() => handleRequestSort('username')}>{t('username_label')}</TableSortLabel></TableCell>
+                <TableCell sortDirection={orderBy === 'email' ? order : false}><TableSortLabel active={orderBy === 'email'} direction={order} onClick={() => handleRequestSort('email')}>{t('email_label')}</TableSortLabel></TableCell>
+                <TableCell sortDirection={orderBy === 'role' ? order : false}><TableSortLabel active={orderBy === 'role'} direction={order} onClick={() => handleRequestSort('role')}>{t('role_label')}</TableSortLabel></TableCell>
+                <TableCell sortDirection={orderBy === 'yearOfStudy' ? order : false}><TableSortLabel active={orderBy === 'yearOfStudy'} direction={order} onClick={() => handleRequestSort('yearOfStudy')}>{t('course_year_label')}</TableSortLabel></TableCell>
+                <TableCell sortDirection={orderBy === 'specialization' ? order : false}><TableSortLabel active={orderBy === 'specialization'} direction={order} onClick={() => handleRequestSort('specialization')}>{t('course_specialization_label')}</TableSortLabel></TableCell>
+                <TableCell sortDirection={orderBy === 'group' ? order : false}><TableSortLabel active={orderBy === 'group'} direction={order} onClick={() => handleRequestSort('group')}>{t('user_group_label')}</TableSortLabel></TableCell>
+                <TableCell align="center">{t('actions_label')}</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
