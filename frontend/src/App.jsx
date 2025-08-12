@@ -70,6 +70,7 @@ function App() {
                   <Route path="/courses-management" element={<CoursesManagement />} />
                   <Route path="/reservations-management" element={<ReservationsManagement />} />
                   <Route path="/schedule-management" element={<ScheduleManagement />} />
+                  <Route path="/appointments-management" element={<AppointmentsManagement />} />
                 </Route>
               </Routes>
             </Box>

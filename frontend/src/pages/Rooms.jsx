@@ -1,5 +1,5 @@
 // src/pages/Rooms.jsx (Polished Version)
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef, useLayoutEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getAllRooms, createRoom, updateRoom, deleteRoom } from '../services/roomService';
 import BackButton from '../components/BackButton';
@@ -11,6 +11,8 @@ import {
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import { useTheme, lighten } from '@mui/material/styles';
+import { useExternalScrollbarSync } from '../theme';
 
 const equipmentOptionKeys = [
   'Projector', 'Whiteboard', 'Conference_Phone', 'Video_Conferencing', 'Smartboard'
@@ -28,7 +30,7 @@ function getComparator(order, orderBy) {
 }
 
 function Rooms() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -43,6 +45,38 @@ function Rooms() {
 
   const [order, setOrder] = useState('asc');
   const [orderBy, setOrderBy] = useState('name');
+  
+  // Track vertical overflow and provide proxy sync using shared hook
+  const roomsScrollRef = useRef(null);
+  const {
+    nativeRef: hookSetRoomsScrollNode,
+    proxyRef: hookSetRoomsProxyNode,
+    hasOverflow: roomsHasVOverflow,
+    ghostHeight: roomsProxyGhostHeight,
+    effectiveScrollbarWidth: roomsScrollbarEffective,
+    forceAlign,
+  } = useExternalScrollbarSync({ deps: [rooms.length, order, orderBy, i18n.language] });
+  const setRoomsScrollNode = useCallback((node) => { roomsScrollRef.current = node; hookSetRoomsScrollNode(node); }, [hookSetRoomsScrollNode]);
+  const setRoomsProxyNode = useCallback((node) => { hookSetRoomsProxyNode(node); }, [hookSetRoomsProxyNode]);
+  const SCROLLBAR_EXTRA = 4;
+  const OUTER_GAP = 6;
+  const proxyWidth = roomsScrollbarEffective + SCROLLBAR_EXTRA;
+  const theme = useTheme();
+  const primary = theme.palette.primary.main;
+  const thumbColor = primary;
+  const thumbHover = lighten(primary, 0.1);
+  const thumbActive = lighten(primary, 0.2);
+  const trackColor = theme.palette.mode === 'dark' ? 'rgba(0,0,0,0.35)' : 'transparent';
+  const DEBUG_SCROLL_ROOMS = false; // enable for diagnostics
+
+  // After data mutations/sort/language changes, force-align once
+  useEffect(() => { forceAlign(); }, [forceAlign, rooms.length, order, orderBy, i18n.language]);
+
+  // (measurement handled by the reusable hook)
+
+  // Overflow tracking is handled by useExternalScrollbarSync
+
+  // Overflow re-evaluation is handled by useExternalScrollbarSync (deps already include data, sort, language)
   
   const getTranslatedBackendError = (msg) => {
     switch (msg) {
@@ -66,6 +100,21 @@ function Rooms() {
   }, [t]);
 
   useEffect(() => { fetchRooms(); }, [fetchRooms]);
+
+  useEffect(() => {
+    const previousHtmlOverflow = document.documentElement.style.overflow;
+    const previousOverflow = document.body.style.overflow;
+    const mainEl = document.querySelector('main');
+    const prevMainOverflow = mainEl ? mainEl.style.overflow : undefined;
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+    if (mainEl) mainEl.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.documentElement.style.overflow = previousHtmlOverflow;
+      if (mainEl && typeof prevMainOverflow !== 'undefined') mainEl.style.overflow = prevMainOverflow;
+    };
+  }, []);
 
   const resetForm = () => {
     setIsEditing(false);
@@ -160,11 +209,23 @@ function Rooms() {
   if (error) return <Alert severity="error">{error}</Alert>;
 
   return (
-    <Container maxWidth="lg" sx={{ pt: 2, pb: 4, display: 'flex', flexDirection: 'column', height: 'calc(100vh - 96px)' }}>
+    <Container maxWidth="lg" sx={{ pt: 2, pb: 4, display: 'flex', flexDirection: 'column', height: 'calc(100vh - 112px)', overflow: 'visible', minHeight: 0 }}>
+      
       <Box sx={{ flexShrink: 0 }}>
         <BackButton />
         <Typography variant="h4" component="h1" gutterBottom sx={{ textAlign: 'center' }}>{t('rooms_management_title')}</Typography>
-        {formMessage.text && <Alert severity={formMessage.type} sx={{ mb: 2 }} onClose={() => setFormMessage({ text: '', type: '' })}>{t(formMessage.text, { roomName: formData.name })}</Alert>}
+        {formMessage && (
+          <Alert
+            severity={messageType}
+            sx={{ mb: 2 }}
+            onClose={() => {
+              setFormMessage('');
+              setMessageType('');
+            }}
+          >
+            {formMessage}
+          </Alert>
+        )}
         
         <Paper sx={{ p: { xs: 2, md: 3 }, mb: 2 }}>
           <Typography variant="h5" component="h2" gutterBottom>{isEditing ? t('edit_room_title') : t('add_new_room_title')}</Typography>
@@ -198,37 +259,146 @@ function Rooms() {
         </Paper>
       </Box>
       
-      <Paper sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', p: 2 }}>
+      <Paper sx={{ flexGrow: roomsHasVOverflow ? 1 : 0, display: 'flex', flexDirection: 'column', overflow: 'visible', p: 2, minHeight: 0, backgroundColor: 'transparent' }}>
         <Typography variant="h5" component="h2" gutterBottom>{t('available_rooms')}</Typography>
-        <TableContainer sx={{ flexGrow: 1 }}>
-          <Table stickyHeader>
-              <TableHead>
-                  <TableRow>
-                      <TableCell sortDirection={orderBy === 'name' ? order : false}><TableSortLabel active={orderBy === 'name'} direction={order} onClick={() => handleRequestSort('name')}>{t('room_name_label')}</TableSortLabel></TableCell>
-                      <TableCell sortDirection={orderBy === 'status' ? order : false}><TableSortLabel active={orderBy === 'status'} direction={order} onClick={() => handleRequestSort('status')}>{t('status_label')}</TableSortLabel></TableCell>
-                      <TableCell sortDirection={orderBy === 'isAvailableForExternal' ? order : false}><TableSortLabel active={orderBy === 'isAvailableForExternal'} direction={order} onClick={() => handleRequestSort('isAvailableForExternal')}>{t('available_for_external_label')}</TableSortLabel></TableCell>
-                      <TableCell align="right" sortDirection={orderBy === 'capacity' ? order : false}><TableSortLabel active={orderBy === 'capacity'} direction={order} onClick={() => handleRequestSort('capacity')}>{t('room_capacity_label')}</TableSortLabel></TableCell>
+        <Box sx={{ flex: roomsHasVOverflow ? '1 1 0' : '0 0 auto', position: 'relative', pr: 0, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+          <Box sx={{
+            flex: roomsHasVOverflow ? '1 1 0' : '0 0 auto',
+            position: 'relative',
+            overflow: 'visible',
+            minHeight: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            maxHeight: '100%',
+            border: '2px solid',
+            borderColor: 'divider',
+            borderRadius: '26px',
+            backgroundColor: 'background.paper',
+          }}>
+            <TableContainer
+              key={`rooms-scroll-${i18n.language}`}
+              ref={setRoomsScrollNode}
+              sx={{
+                flex: roomsHasVOverflow ? '1 1 0%' : '0 1 auto',
+                minHeight: 0,
+                height: roomsHasVOverflow ? '100%' : 'auto',
+                maxHeight: roomsHasVOverflow ? '100%' : 'none',
+                display: 'block',
+                position: 'relative',
+                overflowY: 'auto',
+                overflowX: 'hidden',
+                width: '100%',
+                // Hide native scrollbar; external proxy will be rendered outside the frame
+                scrollbarWidth: 'none',
+                msOverflowStyle: 'none',
+                '&::-webkit-scrollbar': { width: 0, height: 0 },
+                boxSizing: 'content-box',
+                pl: 0,
+                backgroundColor: 'transparent',
+                border: 'none'
+              }}
+            >
+              <Table stickyHeader sx={{ backgroundColor: 'transparent', width: '100%', tableLayout: 'fixed', borderCollapse: 'separate', borderSpacing: 0 }}>
+                <TableHead sx={{
+                  '& th, & th.MuiTableCell-head': {
+                    position: 'sticky',
+                    top: 0,
+                    zIndex: 2,
+                    backgroundColor: 'background.paper',
+                    backgroundClip: 'padding-box'
+                  },
+                  '& th:first-of-type': { borderTopLeftRadius: '26px' },
+                  '& th:last-of-type': { borderTopRightRadius: '26px' }
+                }}>
+                    <TableRow>
+                      <TableCell sortDirection={orderBy === 'name' ? order : false}>
+                        <TableSortLabel active={orderBy === 'name'} direction={order} onClick={() => handleRequestSort('name')}>
+                          {t('room_name_label')}
+                        </TableSortLabel>
+                      </TableCell>
+                      <TableCell sortDirection={orderBy === 'status' ? order : false}>
+                        <TableSortLabel active={orderBy === 'status'} direction={order} onClick={() => handleRequestSort('status')}>
+                          {t('status_label')}
+                        </TableSortLabel>
+                      </TableCell>
+                      <TableCell sortDirection={orderBy === 'isAvailableForExternal' ? order : false}>
+                        <TableSortLabel active={orderBy === 'isAvailableForExternal'} direction={order} onClick={() => handleRequestSort('isAvailableForExternal')}>
+                          {t('available_for_external_label')}
+                        </TableSortLabel>
+                      </TableCell>
+                      <TableCell align="right" sortDirection={orderBy === 'capacity' ? order : false}>
+                        <TableSortLabel active={orderBy === 'capacity'} direction={order} onClick={() => handleRequestSort('capacity')}>
+                          {t('room_capacity_label')}
+                        </TableSortLabel>
+                      </TableCell>
                       <TableCell>{t('equipment_label')}</TableCell>
                       <TableCell align="center">{t('actions_label')}</TableCell>
-                  </TableRow>
-              </TableHead>
-              <TableBody>
-                  {sortedRooms.map((room) => (
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {sortedRooms.map((room) => (
                       <TableRow hover key={room._id}>
-                          <TableCell>{room.name}</TableCell>
-                          <TableCell>{t(`status_${room.status}`)}</TableCell>
-                          <TableCell>{t(room.isAvailableForExternal ? 'boolean_yes' : 'boolean_no')}</TableCell>
-                          <TableCell align="right">{room.capacity}</TableCell>
-                          <TableCell>{room.equipment.map(key => t(`equipment_${key}`)).join(', ')}</TableCell>
-                          <TableCell align="center">
-                              <IconButton onClick={() => handleEditClick(room)} color="primary"><EditIcon /></IconButton>
-                              <IconButton onClick={() => handleDeleteClick(room._id)} color="error"><DeleteIcon /></IconButton>
-                          </TableCell>
+                        <TableCell>{room.name}</TableCell>
+                        <TableCell>{t(`status_${room.status}`)}</TableCell>
+                        <TableCell>{t(room.isAvailableForExternal ? 'boolean_yes' : 'boolean_no')}</TableCell>
+                        <TableCell align="right">{room.capacity}</TableCell>
+                        <TableCell>{room.equipment.map(key => t(`equipment_${key}`)).join(', ')}</TableCell>
+                        <TableCell align="center">
+                          <IconButton onClick={() => handleEditClick(room)} color="primary"><EditIcon /></IconButton>
+                          <IconButton onClick={() => handleDeleteClick(room._id)} color="error"><DeleteIcon /></IconButton>
+                        </TableCell>
                       </TableRow>
-                  ))}
-              </TableBody>
-          </Table>
-        </TableContainer>
+                    ))}
+                  </TableBody>
+                </Table>
+            </TableContainer>
+            {/* Proxy scrollbar fully outside the frame, synced with the real scroller */}
+            {roomsHasVOverflow && (
+              <Box
+                key={`rooms-proxy-${i18n.language}`}
+                ref={setRoomsProxyNode}
+                sx={{
+                  position: 'absolute',
+                  top: 0,
+                  bottom: 0,
+                  right: `calc(-${proxyWidth}px - ${OUTER_GAP}px)`,
+                  width: `${proxyWidth}px`,
+                  overflowY: 'auto',
+                  overflowX: 'hidden',
+                  backgroundColor: 'transparent',
+                  zIndex: 2,
+                  scrollbarWidth: 'thin',
+                  scrollbarColor: `${thumbColor} ${trackColor}`,
+                  '&::-webkit-scrollbar': { width: `${proxyWidth}px` },
+                  '&::-webkit-scrollbar-thumb': {
+                    backgroundColor: thumbColor,
+                    borderRadius: '8px',
+                    border: '2px solid transparent',
+                    backgroundClip: 'padding-box',
+                    minHeight: '32px'
+                  },
+                  '&::-webkit-scrollbar-track': { backgroundColor: trackColor },
+                  '&:hover::-webkit-scrollbar-thumb': { backgroundColor: thumbHover },
+                  '&:active::-webkit-scrollbar-thumb': { backgroundColor: thumbActive },
+                  pointerEvents: 'auto',
+                  willChange: 'scroll-position'
+                }}
+              >
+                {/* ghost div to create the appropriate scroll range */}
+                <Box sx={{ width: 1, height: `${roomsProxyGhostHeight}px` }} />
+              </Box>
+            )}
+            {DEBUG_SCROLL_ROOMS && (
+              <Box sx={{ position: 'absolute', bottom: 8, right: 8, p: 1, borderRadius: 1, bgcolor: 'rgba(0,0,0,0.5)', color: '#fff', fontSize: 12, zIndex: 3 }}>
+                <div>hasOverflow: {String(roomsHasVOverflow)}</div>
+                <div>effectiveScrollbarWidth: {String(roomsScrollbarEffective)}</div>
+                <div>ghostHeight: {roomsProxyGhostHeight}</div>
+                <div>proxy right: {roomsHasVOverflow ? `calc(-${proxyWidth}px - ${OUTER_GAP}px)` : 'n/a'}</div>
+                <div>proxy width: {roomsHasVOverflow ? `${proxyWidth}px` : 'n/a'}</div>
+              </Box>
+            )}
+          </Box>
+        </Box>
       </Paper>
     </Container>
   );

@@ -47,13 +47,14 @@ const getCustomTheme = (mode) => createTheme({
         },
       },
     },
-    // THE FIX: Ensure TableContainer matches the Paper's border radius
+    // Avoid double rounding seams: TableContainer should be flat; outer frame handles radius
     MuiTableContainer: {
         styleOverrides: {
-            root: ({ theme }) => ({
-                borderRadius: theme.shape.borderRadius,
+            root: {
+                borderRadius: 0,
                 border: 'none',
-            }),
+                backgroundColor: 'transparent',
+            },
         },
     },
     MuiTableBody: {

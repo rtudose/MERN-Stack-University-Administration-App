@@ -1,15 +1,18 @@
 // src/pages/Users.jsx (Polished Version)
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef, useLayoutEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getAllUsers, createUser, updateUser, deleteUser } from '../services/userService';
 import BackButton from '../components/BackButton';
 import {
   Container, Box, Typography, TextField, Button, Alert, Paper, Grid, Stack,
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow, IconButton,
-  Select, MenuItem, FormControl, InputLabel, TableSortLabel
+  Select, MenuItem, FormControl, InputLabel, TableSortLabel, Dialog, DialogActions,
+  DialogContent, DialogContentText, DialogTitle
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import { useTheme, alpha, lighten } from '@mui/material/styles';
+import { useExternalScrollbarSync } from '../theme';
 
 // Helper for sorting
 function descendingComparator(a, b, orderBy) {
@@ -31,7 +34,13 @@ function getComparator(order, orderBy) {
 
 
 const Users = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const theme = useTheme();
+  const primary = theme.palette.primary.main;
+  const thumbColor = primary;
+  const thumbHover = lighten(primary, 0.1);
+  const thumbActive = lighten(primary, 0.2);
+  const trackColor = theme.palette.mode === 'dark' ? 'rgba(0,0,0,0.35)' : 'transparent';
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -47,6 +56,73 @@ const Users = () => {
   
   const [order, setOrder] = useState('asc');
   const [orderBy, setOrderBy] = useState('username');
+
+  // State for the delete confirmation modal
+  const [openDeleteModal, setOpenDeleteModal] = useState(false);
+  const [userToDelete, setUserToDelete] = useState(null);
+
+  // Column widths to avoid content overlap and keep a clean layout
+  const COLS = useMemo(() => ({
+    username: '22%',
+    email: '30%',
+    role: '12%',
+    year: '8%',
+    spec: '16%',
+    group: '6%',
+    actions: '6%'
+  }), []);
+  const cellTruncateSx = { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' };
+
+  // Track overflow and sync via reusable hook
+  const usersScrollRef = useRef(null);
+  const {
+    nativeRef: hookSetUsersScrollNode,
+    proxyRef: hookSetUsersProxyNode,
+    frameRef: hookSetUsersFrameNode,
+    hasOverflow: usersHasVOverflow,
+    ghostHeight,
+    effectiveScrollbarWidth: usersScrollbarEffective,
+    forceAlign,
+    recalculate,
+    metrics,
+  } = useExternalScrollbarSync({ deps: [users.length, order, orderBy, i18n.language] });
+  const setUsersScrollNode = useCallback((node) => { usersScrollRef.current = node; hookSetUsersScrollNode(node); }, [hookSetUsersScrollNode]);
+  const setProxyScrollNode = useCallback((node) => { hookSetUsersProxyNode(node); }, [hookSetUsersProxyNode]);
+  const setUsersFrameNode = useCallback((node) => { hookSetUsersFrameNode(node); }, [hookSetUsersFrameNode]);
+  const OUTER_GAP = 6; // 2px frame + 4px visual gap
+  const PROXY_EXTRA = 4; // add a few px to make the proxy thumb easier to see/grab
+  const proxyWidth = usersScrollbarEffective + PROXY_EXTRA;
+
+  // Measurement handled by useExternalScrollbarSync
+
+  // Overflow tracking handled by useExternalScrollbarSync
+
+  // Overflow re-evaluation handled by useExternalScrollbarSync (deps include data/sort/lang)
+
+  // Two-way sync handled by useExternalScrollbarSync
+
+  // rAF fallback handled by useExternalScrollbarSync
+
+  // Ghost height creation handled by useExternalScrollbarSync
+
+  // After data mutations/sort/language changes, force-align once
+  useEffect(() => { forceAlign(); }, [forceAlign, users.length, order, orderBy, i18n.language]);
+
+  // Ensure layout is re-measured after data and sorting/language changes (e.g., after deletions)
+  useEffect(() => {
+    recalculate();
+    const id = requestAnimationFrame(() => recalculate());
+    return () => cancelAnimationFrame(id);
+  }, [recalculate, users.length, order, orderBy, i18n.language]);
+
+  // Native scrollbar measurement handled by useExternalScrollbarSync
+
+  // When role toggles, the form above expands/collapses; force a recalculation immediately and on next frame
+  useEffect(() => {
+    recalculate();
+    const id = requestAnimationFrame(() => recalculate());
+    return () => cancelAnimationFrame(id);
+  }, [formData.role, recalculate]);
 
   const fetchUsers = useCallback(async () => {
     try {
@@ -66,12 +142,19 @@ const Users = () => {
     fetchUsers();
   }, [fetchUsers]);
 
-  // Disable page scroll while on this page; only the table will scroll
+  // Disable app/page scroll: lock <html>, <body>, and the app's <main> container
   useEffect(() => {
-    const previousOverflow = document.body.style.overflow;
+    const prevHtmlOverflow = document.documentElement.style.overflow;
+    const prevBodyOverflow = document.body.style.overflow;
+    const mainEl = document.querySelector('main');
+    const prevMainOverflow = mainEl ? mainEl.style.overflow : undefined;
+    document.documentElement.style.overflow = 'hidden';
     document.body.style.overflow = 'hidden';
+    if (mainEl) mainEl.style.overflow = 'hidden';
     return () => {
-      document.body.style.overflow = previousOverflow;
+      document.documentElement.style.overflow = prevHtmlOverflow;
+      document.body.style.overflow = prevBodyOverflow;
+      if (mainEl && typeof prevMainOverflow !== 'undefined') mainEl.style.overflow = prevMainOverflow;
     };
   }, []);
 
@@ -148,10 +231,20 @@ const Users = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleDeleteClick = async (userId) => {
-    if (window.confirm(t('delete_user_confirm'))) {
+  const handleDeleteClick = (user) => {
+    setUserToDelete(user);
+    setOpenDeleteModal(true);
+  };
+
+  const handleCloseDeleteModal = () => {
+    setOpenDeleteModal(false);
+    setUserToDelete(null);
+  };
+  
+  const handleConfirmDelete = async () => {
+    if (userToDelete) {
       try {
-        await deleteUser(userId);
+        await deleteUser(userToDelete._id);
         setFormMessage({ text: t('user_deleted_success'), type: 'success' });
         fetchUsers();
       } catch (err) {
@@ -159,6 +252,7 @@ const Users = () => {
         setFormMessage({ text: errorText, type: 'error' });
       }
     }
+    handleCloseDeleteModal();
   };
 
   const handleRequestSort = (property) => {
@@ -198,8 +292,8 @@ const Users = () => {
         pt: 2, pb: 4, 
         display: 'flex', 
         flexDirection: 'column', 
-        height: 'calc(100vh - 96px)', 
-        overflow: 'hidden',
+        height: 'calc(100vh - 112px)', 
+        overflow: 'visible',
         minHeight: 0,
       }}
     >
@@ -259,14 +353,14 @@ const Users = () => {
       </Box>
       
       {/* --- Bottom Section (Table) --- */}
-      <Paper sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', overflow: 'visible', p: 2, minHeight: 0 }}>
+      <Paper sx={{ flexGrow: 0, display: 'flex', flexDirection: 'column', overflow: 'visible', p: 2, minHeight: 0, backgroundColor: 'transparent' }}>
         <Typography variant="h5" component="h2" gutterBottom>
           {t('existing_users_title')}
         </Typography>
-        {/* Reserve a few pixels on the right; draw real border and offset scrollbar slightly outside */}
-        <Box sx={{ flex: '1 1 0', position: 'relative', pr: 0, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-          <Box sx={{
-            flex: '1 1 0',
+        {/* Do not reserve extra space in wrapper; handle gutter entirely on the scroll container */}
+        <Box ref={setUsersFrameNode} data-users-boundary sx={{ flex: '0 0 auto', position: 'relative', pr: 0, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+          <Box data-users-frame sx={{
+            flex: '0 0 auto',
             position: 'relative',
             overflow: 'visible',
             minHeight: 0,
@@ -275,42 +369,152 @@ const Users = () => {
             border: '2px solid',
             borderColor: 'divider',
             borderRadius: '26px',
+            backgroundColor: 'background.paper'
           }}>
-          <TableContainer sx={{ flex: '1 1 0%', minHeight: 0, height: '100%', maxHeight: '100%', display: 'block', overflowY: 'auto', overflowX: 'hidden', width: 'calc(100% + 12px)', marginRight: '-12px', pr: 0.5, border: 'none' }}>
-            <Table stickyHeader>
-              <TableHead>
+          {/* Wrapper should not reduce content width */}
+          <Box sx={{ flex: '0 0 auto', minHeight: 0, height: 'auto', display: 'flex', flexDirection: 'column', overflow: 'visible', pr: 0 }}>
+          <TableContainer
+            key={`users-scroll-${i18n.language}`}
+            ref={setUsersScrollNode}
+            data-users-scroll
+            sx={{
+              flex: '0 1 auto',
+              minHeight: 0,
+              height: 'auto',
+              display: 'block',
+              position: 'relative',
+              right: 0,
+              overflowY: 'auto',
+              overflowX: 'hidden',
+              overflowAnchor: 'none',
+              contain: 'layout paint',
+              width: '100%',
+              // Hide the native scrollbar; we'll render a synced proxy outside the frame
+              scrollbarWidth: 'none', // Firefox
+              msOverflowStyle: 'none', // IE/Edge
+              '&::-webkit-scrollbar': { width: 0, height: 0 }, // WebKit
+              boxSizing: 'content-box',
+              pl: 0,
+              backgroundColor: 'transparent',
+              border: 'none'
+            }}
+          >
+            <Table stickyHeader sx={{ backgroundColor: 'transparent', width: '100%', tableLayout: 'fixed', borderCollapse: 'separate', borderSpacing: 0 }}>
+              <TableHead sx={{
+                '& th, & th.MuiTableCell-head': {
+                  position: 'sticky',
+                  top: 0,
+                  zIndex: 2,
+                  backgroundColor: 'black.200',
+                  backgroundClip: 'padding-box'
+                },
+                '& th:first-of-type': { borderTopLeftRadius: '26px' },
+                '& th:last-of-type': { borderTopRightRadius: '26px' }
+              }}>
                 <TableRow>
-                <TableCell sortDirection={orderBy === 'username' ? order : false}><TableSortLabel active={orderBy === 'username'} direction={order} onClick={() => handleRequestSort('username')}>{t('username_label')}</TableSortLabel></TableCell>
-                <TableCell sortDirection={orderBy === 'email' ? order : false}><TableSortLabel active={orderBy === 'email'} direction={order} onClick={() => handleRequestSort('email')}>{t('email_label')}</TableSortLabel></TableCell>
-                <TableCell sortDirection={orderBy === 'role' ? order : false}><TableSortLabel active={orderBy === 'role'} direction={order} onClick={() => handleRequestSort('role')}>{t('role_label')}</TableSortLabel></TableCell>
-                <TableCell sortDirection={orderBy === 'yearOfStudy' ? order : false}><TableSortLabel active={orderBy === 'yearOfStudy'} direction={order} onClick={() => handleRequestSort('yearOfStudy')}>{t('course_year_label')}</TableSortLabel></TableCell>
-                <TableCell sortDirection={orderBy === 'specialization' ? order : false}><TableSortLabel active={orderBy === 'specialization'} direction={order} onClick={() => handleRequestSort('specialization')}>{t('course_specialization_label')}</TableSortLabel></TableCell>
-                <TableCell sortDirection={orderBy === 'group' ? order : false}><TableSortLabel active={orderBy === 'group'} direction={order} onClick={() => handleRequestSort('group')}>{t('user_group_label')}</TableSortLabel></TableCell>
-                <TableCell align="center">{t('actions_label')}</TableCell>
+                <TableCell sx={{ width: COLS.username }} sortDirection={orderBy === 'username' ? order : false}><TableSortLabel active={orderBy === 'username'} direction={order} onClick={() => handleRequestSort('username')}>{t('username_label')}</TableSortLabel></TableCell>
+                <TableCell sx={{ width: COLS.email }} sortDirection={orderBy === 'email' ? order : false}><TableSortLabel active={orderBy === 'email'} direction={order} onClick={() => handleRequestSort('email')}>{t('email_label')}</TableSortLabel></TableCell>
+                <TableCell sx={{ width: COLS.role }} sortDirection={orderBy === 'role' ? order : false}><TableSortLabel active={orderBy === 'role'} direction={order} onClick={() => handleRequestSort('role')}>{t('role_label')}</TableSortLabel></TableCell>
+                <TableCell sx={{ width: COLS.year }} sortDirection={orderBy === 'yearOfStudy' ? order : false}><TableSortLabel active={orderBy === 'yearOfStudy'} direction={order} onClick={() => handleRequestSort('yearOfStudy')}>{t('course_year_label')}</TableSortLabel></TableCell>
+                <TableCell sx={{ width: COLS.spec }} sortDirection={orderBy === 'specialization' ? order : false}><TableSortLabel active={orderBy === 'specialization'} direction={order} onClick={() => handleRequestSort('specialization')}>{t('course_specialization_label')}</TableSortLabel></TableCell>
+                <TableCell sx={{ width: COLS.group }} sortDirection={orderBy === 'group' ? order : false}><TableSortLabel active={orderBy === 'group'} direction={order} onClick={() => handleRequestSort('group')}>{t('user_group_label')}</TableSortLabel></TableCell>
+                <TableCell sx={{ width: COLS.actions }} align="center">{t('actions_label')}</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {sortedUsers.map((user) => (
-                  <TableRow hover key={user._id}>
-                    <TableCell>{user.username}</TableCell>
-                    <TableCell>{user.email}</TableCell>
-                    <TableCell>{t(`role_label_${user.role}`)}</TableCell>
-                    <TableCell>{user.studentDetails?.yearOfStudy || 'N/A'}</TableCell>
-                    <TableCell>{user.studentDetails?.specialization || 'N/A'}</TableCell>
-                    <TableCell>{user.studentDetails?.group || 'N/A'}</TableCell>
-                    <TableCell align="center">
+                  <TableRow key={user._id}>
+                    <TableCell sx={{ width: COLS.username }}>
+                      <Box sx={{ ...cellTruncateSx, display: 'block', maxWidth: '100%' }}>{user.username}</Box>
+                    </TableCell>
+                    <TableCell sx={{ width: COLS.email }}>
+                      <Box sx={{ ...cellTruncateSx, display: 'block', maxWidth: '100%' }}>{user.email}</Box>
+                    </TableCell>
+                    <TableCell sx={{ width: COLS.role }}>{t(`role_label_${user.role}`)}</TableCell>
+                    <TableCell sx={{ width: COLS.year }}>{user.studentDetails?.yearOfStudy || 'N/A'}</TableCell>
+                    <TableCell sx={{ width: COLS.spec }}>{user.studentDetails?.specialization || 'N/A'}</TableCell>
+                    <TableCell sx={{ width: COLS.group }}>{user.studentDetails?.group || 'N/A'}</TableCell>
+                    <TableCell sx={{ width: COLS.actions }} align="center">
                       <IconButton onClick={() => handleEditClick(user)} color="primary"><EditIcon /></IconButton>
-                      <IconButton onClick={() => handleDeleteClick(user._id)} color="error"><DeleteIcon /></IconButton>
+                      <IconButton onClick={() => handleDeleteClick(user)} color="error"><DeleteIcon /></IconButton>
                     </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
           </TableContainer>
+          {/* Proxy scrollbar fully outside the frame, synced with the real scroller */}
+          {usersHasVOverflow && (
+            <Box
+              key={`users-proxy-${i18n.language}`}
+              ref={setProxyScrollNode}
+              data-users-scroll-proxy
+              sx={{
+                position: 'absolute',
+                top: 0,
+                bottom: 0,
+                // Position so that the left edge of the scrollbar sits gap (4px) outside the frame border (2px)
+                right: `calc(-${proxyWidth}px - ${OUTER_GAP}px)`,
+                width: `${proxyWidth}px`,
+                overflowY: 'auto',
+                overflowX: 'hidden',
+                backgroundColor: 'transparent',
+                // ensure it's above the frame background but below header content
+                zIndex: 2,
+                // Visible scrollbar styling (Chrome, Firefox)
+                scrollbarWidth: 'thin',
+                scrollbarColor: `${thumbColor} ${trackColor}`,
+                '&::-webkit-scrollbar': { width: `${proxyWidth}px` },
+                '&::-webkit-scrollbar-thumb': {
+                  backgroundColor: thumbColor,
+                  borderRadius: '8px',
+                  border: '2px solid transparent',
+                  backgroundClip: 'padding-box',
+                  minHeight: '32px'
+                },
+                '&::-webkit-scrollbar-track': {
+                  backgroundColor: trackColor
+                },
+                '&:hover::-webkit-scrollbar-thumb': { backgroundColor: thumbHover },
+                '&:active::-webkit-scrollbar-thumb': { backgroundColor: thumbActive },
+                pointerEvents: 'auto',
+                willChange: 'scroll-position'
+              }}
+            >
+              {/* ghost div to create the appropriate scroll range */}
+              <Box sx={{ width: 1, height: `${ghostHeight}px` }} />
+            </Box>
+          )}
+          {/* Debug overlay */}
+          {process.env.NODE_ENV !== 'production' && metrics && (
+            <Box sx={{ position: 'absolute', bottom: 8, left: 8, p: 1, borderRadius: 1, fontSize: 12, bgcolor: 'rgba(0,0,0,0.6)', color: '#fff', pointerEvents: 'none' }}>
+              has:{String(usersHasVOverflow)} | el:{Math.round(metrics.elScroll)} | avail:{Math.round(metrics.availableClient)} | cap:{Math.round(metrics.capPx || 0)}
+            </Box>
+          )}
+          </Box>
         </Box>
       </Box>
-      </Paper>
-    </Container>
+    </Paper>
+    {/* Delete Confirmation Modal */}
+    <Dialog
+        open={openDeleteModal}
+        onClose={handleCloseDeleteModal}
+      >
+        <DialogTitle>{t('delete_user_modal_title')}</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            {t('delete_user_modal_content', { username: userToDelete?.username || '' })}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDeleteModal}>{t('cancel_button')}</Button>
+          <Button onClick={handleConfirmDelete} color="error" variant="contained">
+            {t('confirm_delete_button')}
+          </Button>
+        </DialogActions>
+      </Dialog>
+    
+  </Container>
   );
 };
 

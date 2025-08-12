@@ -93,6 +93,9 @@ const resources = {
       "username_exists_error": "A user with this username already exists.",
       "cannot_remove_last_admin": "Cannot remove the last administrator.",
       "cannot_delete_self": "You cannot delete your own account.",
+      "delete_user_modal_title": "Confirm Deletion",
+      "delete_user_modal_content": "Are you sure you want to permanently delete the user '{{username}}'? This action cannot be undone.",
+      "confirm_delete_button": "Delete",
 
       // Course Management Page
       "courses_management_title": "Course Management",
@@ -394,6 +397,9 @@ const resources = {
       "username_exists_error": "Un utilizator cu acest nume de utilizator există deja.",
       "cannot_remove_last_admin": "Nu se poate elimina ultimul administrator.",
       "cannot_delete_self": "Nu vă puteți șterge propriul cont.",
+      "delete_user_modal_title": "Confirmare Ștergere",
+      "delete_user_modal_content": "Sunteți sigur că doriți să ștergeți permanent utilizatorul '{{username}}'? Această acțiune este ireversibilă.",
+      "confirm_delete_button": "Șterge",
 
       // Course Management Page
       "courses_management_title": "Administrare Cursuri",
