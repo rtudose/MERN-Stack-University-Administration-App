@@ -12,7 +12,7 @@ import {
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useTheme, lighten } from '@mui/material/styles';
-import { useExternalScrollbarSync } from '../theme';
+import { useExternalScrollbarSync } from '../hooks/useExternalScrollbarSync';
 
 const equipmentOptionKeys = [
   'Projector', 'Whiteboard', 'Conference_Phone', 'Video_Conferencing', 'Smartboard'

@@ -12,7 +12,7 @@ import {
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useTheme, alpha, lighten } from '@mui/material/styles';
-import { useExternalScrollbarSync } from '../theme';
+import { useExternalScrollbarSync } from '../hooks/useExternalScrollbarSync';
 
 // Helper for sorting
 function descendingComparator(a, b, orderBy) {
@@ -52,12 +52,10 @@ const Users = () => {
     username: '', email: '', password: '', role: 'student',
     studentDetails: { yearOfStudy: 1, specialization: '', group: '' }
   };
-  const [formData, setFormData] = useState(initialState);
   
+  const [formData, setFormData] = useState(initialState);
   const [order, setOrder] = useState('asc');
   const [orderBy, setOrderBy] = useState('username');
-
-  // State for the delete confirmation modal
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
 

@@ -1,6 +1,6 @@
 // src/theme/index.js
 import { useRef, useEffect, useLayoutEffect, useState, useCallback } from 'react';
-import getCustomTheme from './theme';
+import getCustomTheme from '../theme/theme';
 
 /**
  * Reusable hook to sync an external proxy scrollbar with a native scroll container.
