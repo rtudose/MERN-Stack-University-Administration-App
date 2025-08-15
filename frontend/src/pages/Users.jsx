@@ -72,7 +72,6 @@ const Users = () => {
   const resetForm = () => {
     setIsEditing(false);
     setCurrentUserId(null);
-//    setFormMessage({ text: '', type: '' });
     setFormData(initialState);
   };
   

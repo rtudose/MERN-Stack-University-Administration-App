@@ -60,6 +60,13 @@ const resources = {
       "room_name": "Room Name",
       "room_capacity": "Capacity",
       "room_location": "Location",
+      "rooms_by_status": "Rooms by Status",
+      "status_available": "Available",
+      "status_under_maintenance": "Under Maintenance",
+      "status_unavailable": "Unavailable",
+      "loading_stats_data": "Loading stats data...",
+      "hide_stats": "Hide Room Statistics",
+      "show_stats": "Show Room Statistics",
 
       // User Management Page
       "users_management_title": "User Management",
@@ -369,6 +376,13 @@ const resources = {
       "room_name": "Nume Sală",
       "room_capacity": "Capacitate",
       "room_location": "Locație",
+      "rooms_by_status": "Săli după Status",
+      "status_available": "Disponibilă",
+      "status_under_maintenance": "În Mentenanță",
+      "status_unavailable": "Indisponibilă",
+      "loading_stats_data": "Se încarcă statisticile...",
+      "hide_stats": "Ascunde Statistici Săli",
+      "show_stats": "Arată Statistici Săli",
 
       // User Management Page
       "users_management_title": "Administrare Utilizatori",

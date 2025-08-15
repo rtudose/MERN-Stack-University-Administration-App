@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const fs = require('fs');
 const path = require('path');
+const { faker } = require('@faker-js/faker');
 
 dotenv.config({ path: path.join(__dirname, '..', '.env') });
 
@@ -17,6 +18,34 @@ mongoose.connect(process.env.MONGO_URI, {});
 const users = JSON.parse(fs.readFileSync(path.join(__dirname, 'users.json'), 'utf-8'));
 const rooms = JSON.parse(fs.readFileSync(path.join(__dirname, 'rooms.json'), 'utf-8'));
 const courses = JSON.parse(fs.readFileSync(path.join(__dirname, 'courses.json'), 'utf-8'));
+
+const generateUsers = () => {
+  const users = [];
+  const numberOfUsers = 50;
+
+  for (let i = 0; i < numberOfUsers; i++) {
+    const role = faker.helpers.arrayElement(['student']);
+    
+    const user = {
+      username: faker.internet.userName(),
+      email: faker.internet.email(),
+      password: 'password123',
+      role: role,
+      createdAt: faker.date.between({from: '2015-09-15', to: Date.now()}),
+    };
+
+    if (role === 'student') {
+      user.studentDetails = {
+        yearOfStudy: faker.helpers.arrayElement([1, 2, 3, 4]),
+        specialization: faker.helpers.arrayElement(['General', 'Informatica', 'MON']),
+        group: faker.helpers.arrayElement(['A', 'B', 'C', 'D']),
+      };
+    }
+    
+    users.push(user);
+  }
+  return users;
+};
 
 const importData = async () => {
   try {
@@ -33,6 +62,10 @@ const importData = async () => {
     const createdCourses = await Course.create(courses);
 
     console.log('Primary data imported.');
+
+    console.log('Generating fake users');
+    const fakeUsers = generateUsers();
+    await User.insertMany(fakeUsers);
 
     // --- Programmatically build a realistic schedule ---
     console.log('Building schedule from blueprint...');
