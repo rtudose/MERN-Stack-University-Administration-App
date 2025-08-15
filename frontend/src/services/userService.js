@@ -17,4 +17,12 @@ const deleteUser = (id) => {
   return api.delete(`/api/users/${id}`);
 };
 
-export { getAllUsers, createUser, updateUser, deleteUser };
+const getPaginatedUsers = ({ page, limit, sortBy, order }) => {
+  return api.get(`/api/users/paginated?page=${page}&limit=${limit}&sortBy=${sortBy}&order=${order}`);
+};
+
+const getStudentRegistrationStats = () => {
+  return api.get('/api/users/stats/student-registrations');
+};
+
+export { getAllUsers, createUser, updateUser, deleteUser, getPaginatedUsers, getStudentRegistrationStats };

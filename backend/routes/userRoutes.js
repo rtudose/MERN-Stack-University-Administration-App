@@ -1,113 +1,23 @@
 // backend/routes/userRoutes.js
 const express = require('express');
 const router = express.Router();
-const User = require('../models/User');
+const userController = require('../controllers/userController');
 const auth = require('../middleware/auth');
 const authorize = require('../middleware/authorize');
 
 const adminOnly = [auth, authorize(['admin'])];
 
-router.get('/', adminOnly, async (req, res) => {
-    try {
-        const users = await User.find().select('-password');
-        res.json(users);
-    } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server Error');
-    }
-});
 
-router.post('/', adminOnly, async (req, res) => {
-    const { username, email, password, role, studentDetails } = req.body;
-    try {
-        const userPayload = { username, email, password, role };
-        if (role === 'student' && studentDetails) {
-            userPayload.studentDetails = studentDetails;
-        }
-        const user = new User(userPayload);
-        await user.save();
-        const userResponse = user.toObject();
-        delete userResponse.password;
-        res.status(201).json(userResponse);
-    } catch (err) {
-        if (err.code === 11000) {
-            const field = Object.keys(err.keyValue)[0];
-            return res.status(400).json({ msg: `User with this ${field} already exists` });
-        }
-        if (err.name === 'ValidationError') {
-            const message = Object.values(err.errors).map(val => val.message).join(', ');
-            return res.status(400).json({ msg: message });
-        }
-        console.error(err.message);
-        res.status(500).send('Server Error');
-    }
-});
+router.get('/', adminOnly, userController.getAllUsers);
 
-router.put('/:id', adminOnly, async (req, res) => {
-    const { username, email, role, studentDetails } = req.body;
-    
-    const userFields = {};
-    if (username) userFields.username = username;
-    if (email) userFields.email = email;
-    if (role) userFields.role = role;
-    if (studentDetails) userFields.studentDetails = studentDetails;
+router.get('/paginated', adminOnly, userController.getPaginatedUsers);
 
-    try {
-        let user = await User.findById(req.params.id);
-        if (!user) { return res.status(404).json({ msg: 'User not found' }); }
+router.get('/stats/student-registrations', adminOnly, userController.getStudentRegistrationStats);
 
-        if (user.role === 'admin' && role && role !== 'admin') {
-            const adminCount = await User.countDocuments({ role: 'admin' });
-            if (adminCount <= 1) {
-                return res.status(400).json({ msg: 'Cannot remove the last administrator' });
-            }
-        }
-        
-        const updateOperation = { $set: userFields };
-        if (role && role !== 'student') {
-            updateOperation.$unset = { studentDetails: 1 };
-        }
-        
-        const updatedUser = await User.findByIdAndUpdate(
-            req.params.id,
-            updateOperation,
-            { new: true, runValidators: true }
-        ).select('-password');
-        
-        res.json(updatedUser);
-    } catch (err) {
-        if (err.code === 11000) {
-            const field = Object.keys(err.keyValue)[0];
-            return res.status(400).json({ msg: `User with this ${field} already exists` });
-        }
-        if (err.name === 'ValidationError') {
-            const message = Object.values(err.errors).map(val => val.message).join(', ');
-            return res.status(400).json({ msg: message });
-        }
-        console.error(err.message);
-        res.status(500).send('Server Error');
-    }
-});
+router.post('/', adminOnly, userController.createUser);
 
-router.delete('/:id', adminOnly, async (req, res) => {
-    try {
-        const user = await User.findById(req.params.id);
-        if (!user) { return res.status(404).json({ msg: 'User not found' }); }
-        if (user._id.toString() === req.user.id) {
-            return res.status(400).json({ msg: 'You cannot delete your own account' });
-        }
-        if (user.role === 'admin') {
-            const adminCount = await User.countDocuments({ role: 'admin' });
-            if (adminCount <= 1) {
-                return res.status(400).json({ msg: 'Cannot delete the last administrator' });
-            }
-        }
-        await User.findByIdAndDelete(req.params.id);
-        res.json({ msg: 'User removed' });
-    } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server Error');
-    }
-});
+router.put('/:id', adminOnly, userController.updateUser);
+
+router.delete('/:id', adminOnly, userController.deleteUser);
 
 module.exports = router;

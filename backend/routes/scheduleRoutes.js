@@ -239,7 +239,7 @@ router.put('/:id', adminOnly, async (req, res) => {
         }
         
         // 4. Student Group Overlap
-        const { yearOfStudy, specialization } = existingCourse;
+        const { yearOfStudy, specialization } = finalCourseDoc;
         const cohortCourses = await Course.find({ yearOfStudy, specialization }).select('_id');
         const cohortScheduleEntries = await ScheduleEntry.find({ course: { $in: cohortCourses }, ...commonQuery });
 
@@ -301,7 +301,7 @@ router.get('/:id', async (req, res) => {
       .populate('room', ['name', 'capacity', 'location']);
 
     if (!scheduleEntry) {
-      return res.status(44).json({ msg: 'Schedule entry not found' });
+      return res.status(404).json({ msg: 'Schedule entry not found' });
     }
     res.json(scheduleEntry);
   } catch (err) {

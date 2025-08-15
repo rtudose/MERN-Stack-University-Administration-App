@@ -96,6 +96,11 @@ const resources = {
       "delete_user_modal_title": "Confirm Deletion",
       "delete_user_modal_content": "Are you sure you want to permanently delete the user '{{username}}'? This action cannot be undone.",
       "confirm_delete_button": "Delete",
+      "student_registration_evolution": "Student number registration evolution",
+      "year_label": "Year",
+      "number_of_students_label": "Number of Students",
+      "hide_student_stats": "Hide Student Stats",
+      "show_student_stats": "Show Student Stats",
 
       // Course Management Page
       "courses_management_title": "Course Management",
@@ -400,6 +405,11 @@ const resources = {
       "delete_user_modal_title": "Confirmare Ștergere",
       "delete_user_modal_content": "Sunteți sigur că doriți să ștergeți permanent utilizatorul '{{username}}'? Această acțiune este ireversibilă.",
       "confirm_delete_button": "Șterge",
+      "student_registration_evolution": "Evoluție număr studenți înmatriculați pe an",
+      "year_label": "An",
+      "number_of_students_label": "Număr de Studeni",
+      "hide_student_stats": "Ascunde statistici studenți",
+      "show_student_stats": "Arată statistici studenți",
 
       // Course Management Page
       "courses_management_title": "Administrare Cursuri",

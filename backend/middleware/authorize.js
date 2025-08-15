@@ -1,4 +1,4 @@
-// middleware/authorize.js (Corrected with .trim())
+// middleware/authorize.js
 module.exports = function(roles = []) {
   if (typeof roles === 'string') {
     roles = [roles];

@@ -1,50 +1,28 @@
-// src/pages/Users.jsx (Polished Version)
-import React, { useState, useEffect, useCallback, useMemo, useRef, useLayoutEffect } from 'react';
+// src/pages/Users.jsx
+import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { getAllUsers, createUser, updateUser, deleteUser } from '../services/userService';
+import { getPaginatedUsers, createUser, updateUser, deleteUser, getStudentRegistrationStats } from '../services/userService';
 import BackButton from '../components/BackButton';
+import StudentRegistrationChart from '../components/charts/StudentRegistrationChart';
 import {
   Container, Box, Typography, TextField, Button, Alert, Paper, Grid, Stack,
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow, IconButton,
   Select, MenuItem, FormControl, InputLabel, TableSortLabel, Dialog, DialogActions,
-  DialogContent, DialogContentText, DialogTitle
+  DialogContent, DialogContentText, DialogTitle, Pagination
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { useTheme, alpha, lighten } from '@mui/material/styles';
-import { useExternalScrollbarSync } from '../hooks/useExternalScrollbarSync';
-
-// Helper for sorting
-function descendingComparator(a, b, orderBy) {
-  let valA = a[orderBy];
-  let valB = b[orderBy];
-  if (orderBy === 'yearOfStudy') valA = a.studentDetails?.yearOfStudy;
-  if (orderBy === 'yearOfStudy') valB = b.studentDetails?.yearOfStudy;
-
-  if (valB < valA) { return -1; }
-  if (valB > valA) { return 1; }
-  return 0;
-}
-
-function getComparator(order, orderBy) {
-  return order === 'desc'
-    ? (a, b) => descendingComparator(a, b, orderBy)
-    : (a, b) => -descendingComparator(a, b, orderBy);
-}
-
 
 const Users = () => {
-  const { t, i18n } = useTranslation();
-  const theme = useTheme();
-  const primary = theme.palette.primary.main;
-  const thumbColor = primary;
-  const thumbHover = lighten(primary, 0.1);
-  const thumbActive = lighten(primary, 0.2);
-  const trackColor = theme.palette.mode === 'dark' ? 'rgba(0,0,0,0.35)' : 'transparent';
+  const { t } = useTranslation();
   const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [formMessage, setFormMessage] = useState({ text: '', type: '' });
+
+  // 2. New state for pagination details, with a default limit
+  const [pagination, setPagination] = useState({ page: 1, limit: 10, totalPages: 1 });
+  const [order, setOrder] = useState('asc');
+  const [orderBy, setOrderBy] = useState('username');
 
   const [isEditing, setIsEditing] = useState(false);
   const [currentUserId, setCurrentUserId] = useState(null);
@@ -52,109 +30,35 @@ const Users = () => {
     username: '', email: '', password: '', role: 'student',
     studentDetails: { yearOfStudy: 1, specialization: '', group: '' }
   };
-  
   const [formData, setFormData] = useState(initialState);
-  const [order, setOrder] = useState('asc');
-  const [orderBy, setOrderBy] = useState('username');
+
+  const [showStats, setShowStats] = useState(false);
+
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
 
-  // Column widths to avoid content overlap and keep a clean layout
-  const COLS = useMemo(() => ({
-    username: '22%',
-    email: '30%',
-    role: '12%',
-    year: '8%',
-    spec: '16%',
-    group: '6%',
-    actions: '6%'
-  }), []);
-  const cellTruncateSx = { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' };
-
-  // Track overflow and sync via reusable hook
-  const usersScrollRef = useRef(null);
-  const {
-    nativeRef: hookSetUsersScrollNode,
-    proxyRef: hookSetUsersProxyNode,
-    frameRef: hookSetUsersFrameNode,
-    hasOverflow: usersHasVOverflow,
-    ghostHeight,
-    effectiveScrollbarWidth: usersScrollbarEffective,
-    forceAlign,
-    recalculate,
-    metrics,
-  } = useExternalScrollbarSync({ deps: [users.length, order, orderBy, i18n.language] });
-  const setUsersScrollNode = useCallback((node) => { usersScrollRef.current = node; hookSetUsersScrollNode(node); }, [hookSetUsersScrollNode]);
-  const setProxyScrollNode = useCallback((node) => { hookSetUsersProxyNode(node); }, [hookSetUsersProxyNode]);
-  const setUsersFrameNode = useCallback((node) => { hookSetUsersFrameNode(node); }, [hookSetUsersFrameNode]);
-  const OUTER_GAP = 6; // 2px frame + 4px visual gap
-  const PROXY_EXTRA = 4; // add a few px to make the proxy thumb easier to see/grab
-  const proxyWidth = usersScrollbarEffective + PROXY_EXTRA;
-
-  // Measurement handled by useExternalScrollbarSync
-
-  // Overflow tracking handled by useExternalScrollbarSync
-
-  // Overflow re-evaluation handled by useExternalScrollbarSync (deps include data/sort/lang)
-
-  // Two-way sync handled by useExternalScrollbarSync
-
-  // rAF fallback handled by useExternalScrollbarSync
-
-  // Ghost height creation handled by useExternalScrollbarSync
-
-  // After data mutations/sort/language changes, force-align once
-  useEffect(() => { forceAlign(); }, [forceAlign, users.length, order, orderBy, i18n.language]);
-
-  // Ensure layout is re-measured after data and sorting/language changes (e.g., after deletions)
-  useEffect(() => {
-    recalculate();
-    const id = requestAnimationFrame(() => recalculate());
-    return () => cancelAnimationFrame(id);
-  }, [recalculate, users.length, order, orderBy, i18n.language]);
-
-  // Native scrollbar measurement handled by useExternalScrollbarSync
-
-  // When role toggles, the form above expands/collapses; force a recalculation immediately and on next frame
-  useEffect(() => {
-    recalculate();
-    const id = requestAnimationFrame(() => recalculate());
-    return () => cancelAnimationFrame(id);
-  }, [formData.role, recalculate]);
-
+  // 3. fetchUsers is now wrapped in useCallback to be a stable dependency for useEffect
   const fetchUsers = useCallback(async () => {
     try {
-      setLoading(true);
-      const response = await getAllUsers();
-      setUsers(response.data);
+      const response = await getPaginatedUsers({
+        page: pagination.page,
+        limit: pagination.limit,
+        sortBy: orderBy,
+        order: order,
+      });
+      setUsers(response.data.data);
+      setPagination(prev => ({ ...prev, totalPages: response.data.pagination.totalPages }));
       setError(null);
     } catch (err) {
       console.error('Failed to fetch users:', err);
       setError(t('fetch_users_error'));
-    } finally {
-      setLoading(false);
     }
-  }, [t]);
+  }, [pagination.page, pagination.limit, orderBy, order, t]);
 
+  // 4. useEffect now runs whenever sort or pagination state changes
   useEffect(() => {
     fetchUsers();
   }, [fetchUsers]);
-
-  // Disable app/page scroll: lock <html>, <body>, and the app's <main> container
-  useEffect(() => {
-    const prevHtmlOverflow = document.documentElement.style.overflow;
-    const prevBodyOverflow = document.body.style.overflow;
-    const mainEl = document.querySelector('main');
-    const prevMainOverflow = mainEl ? mainEl.style.overflow : undefined;
-    document.documentElement.style.overflow = 'hidden';
-    document.body.style.overflow = 'hidden';
-    if (mainEl) mainEl.style.overflow = 'hidden';
-    return () => {
-      document.documentElement.style.overflow = prevHtmlOverflow;
-      document.body.style.overflow = prevBodyOverflow;
-      if (mainEl && typeof prevMainOverflow !== 'undefined') mainEl.style.overflow = prevMainOverflow;
-    };
-  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -168,7 +72,7 @@ const Users = () => {
   const resetForm = () => {
     setIsEditing(false);
     setCurrentUserId(null);
-    setFormMessage({ text: '', type: '' });
+//    setFormMessage({ text: '', type: '' });
     setFormData(initialState);
   };
   
@@ -188,11 +92,11 @@ const Users = () => {
     e.preventDefault();
     setFormMessage({ text: '', type: '' });
     if (!formData.email.trim() || !formData.username.trim() || (!isEditing && !formData.password)) {
-        setFormMessage({ text: t('form_error_all_fields'), type: 'error' });
+        setFormMessage({ text: 'form_error_all_fields', type: 'error' });
         return;
     }
     if (formData.role === 'student' && (!formData.studentDetails.specialization.trim() || !formData.studentDetails.group.trim())) {
-        setFormMessage({ text: t('form_error_all_fields'), type: 'error' });
+        setFormMessage({ text: 'form_error_all_fields', type: 'error' });
         return;
     }
 
@@ -205,13 +109,13 @@ const Users = () => {
       if (isEditing) {
         const { username, email, role, studentDetails } = payload;
         await updateUser(currentUserId, { username, email, role, studentDetails });
-        setFormMessage({ text: t('user_updated_success'), type: 'success' });
+        setFormMessage({ text: 'user_updated_success', type: 'success' });
       } else {
         await createUser(payload);
-        setFormMessage({ text: t('user_created_success'), type: 'success' });
+        setFormMessage({ text: 'user_created_success', type: 'success' });
       }
       resetForm();
-      fetchUsers();
+      fetchUsers(); // Refresh the table with the latest data
     } catch (err) {
       const errorText = err.response?.data?.msg ? getTranslatedError(err.response.data.msg) : t('generic_error');
       setFormMessage({ text: errorText, type: 'error' });
@@ -243,7 +147,7 @@ const Users = () => {
     if (userToDelete) {
       try {
         await deleteUser(userToDelete._id);
-        setFormMessage({ text: t('user_deleted_success'), type: 'success' });
+        setFormMessage({ text: 'user_deleted_success', type: 'success' });
         fetchUsers();
       } catch (err) {
         const errorText = err.response?.data?.msg ? getTranslatedError(err.response.data.msg) : t('delete_user_error');
@@ -253,49 +157,27 @@ const Users = () => {
     handleCloseDeleteModal();
   };
 
+  // 5. This handler now just updates state, triggering the useEffect to refetch
   const handleRequestSort = (property) => {
     const isAsc = orderBy === property && order === 'asc';
     setOrder(isAsc ? 'desc' : 'asc');
     setOrderBy(property);
+    setPagination(prev => ({ ...prev, page: 1 })); // Go back to first page on sort
   };
   
-  const sortedUsers = useMemo(() => {
-    const roleOrder = { admin: 1, teacher: 2, external_representative: 3, student: 4 };
+  // 6. New handler for page changes
+  const handlePageChange = (event, value) => {
+    setPagination(prev => ({ ...prev, page: value }));
+  };
 
-    const getSortValue = (item, property) => {
-        switch (property) {
-            case 'yearOfStudy': return item.studentDetails?.yearOfStudy || 0;
-            case 'specialization': return item.studentDetails?.specialization || '';
-            case 'group': return item.studentDetails?.group || '';
-            case 'role': return roleOrder[item.role] || 99;
-            default: return item[property] || '';
-        }
-    };
-    return [...users].sort((a, b) => {
-        const valA = getSortValue(a, orderBy);
-        const valB = getSortValue(b, orderBy);
-        if (valA < valB) return order === 'asc' ? -1 : 1;
-        if (valA > valB) return order === 'asc' ? 1 : -1;
-        return 0;
-    });
-  }, [users, order, orderBy]);
-
-  if (loading) return <div>{t('loading_users')}</div>;
+  // The loading state is removed; the table will just show the last fetched data
   if (error) return <Alert severity="error">{error}</Alert>;
 
   return (
     <Container 
-      maxWidth="lg" 
-      sx={{ 
-        pt: 2, pb: 4, 
-        display: 'flex', 
-        flexDirection: 'column', 
-        height: 'calc(100vh - 112px)', 
-        overflow: 'visible',
-        minHeight: 0,
-      }}
+      maxWidth="xl" 
+      sx={{ pt: 2, pb: 4, display: 'flex', flexDirection: 'column' }}
     >
-      {/* --- Top Section (Form, Title, etc.) --- */}
       <Box sx={{ flexShrink: 0 }}>
         <BackButton />
         <Typography variant="h4" component="h1" gutterBottom sx={{ textAlign: 'center' }}>
@@ -303,6 +185,16 @@ const Users = () => {
         </Typography>
         {formMessage.text && <Alert severity={formMessage.type} sx={{ mb: 2 }} onClose={() => setFormMessage({ text: '', type: '' })}>{t(formMessage.text)}</Alert>}
         
+        <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+            <Button
+                variant="outlined"
+                onClick={() => setShowStats(prev => !prev)} // 3. The button to toggle the state
+            >
+                {showStats ? t('hide_student_stats') : t('show_student_stats')}
+            </Button>
+        </Box>
+
+        {/* The Form Paper remains the same */}
         <Paper sx={{ p: { xs: 2, md: 3 }, mb: 2 }}>
           <Typography variant="h5" component="h2" gutterBottom>
             {isEditing ? t('edit_user_title') : t('add_new_user_title')}
@@ -350,154 +242,88 @@ const Users = () => {
         </Paper>
       </Box>
       
-      {/* --- Bottom Section (Table) --- */}
-      <Paper sx={{ flexGrow: 0, display: 'flex', flexDirection: 'column', overflow: 'visible', p: 2, minHeight: 0, backgroundColor: 'transparent' }}>
+      {showStats && <StudentRegistrationChart />}
+
+      <Paper sx={{ p: 2, mt: 2 }}>
         <Typography variant="h5" component="h2" gutterBottom>
           {t('existing_users_title')}
         </Typography>
-        {/* Do not reserve extra space in wrapper; handle gutter entirely on the scroll container */}
-        <Box ref={setUsersFrameNode} data-users-boundary sx={{ flex: '0 0 auto', position: 'relative', pr: 0, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-          <Box data-users-frame sx={{
-            flex: '0 0 auto',
-            position: 'relative',
-            overflow: 'visible',
-            minHeight: 0,
-            display: 'flex',
-            flexDirection: 'column',
-            border: '2px solid',
-            borderColor: 'divider',
-            borderRadius: '26px',
-            backgroundColor: 'background.paper'
-          }}>
-          {/* Wrapper should not reduce content width */}
-          <Box sx={{ flex: '0 0 auto', minHeight: 0, height: 'auto', display: 'flex', flexDirection: 'column', overflow: 'visible', pr: 0 }}>
-          <TableContainer
-            key={`users-scroll-${i18n.language}`}
-            ref={setUsersScrollNode}
-            data-users-scroll
-            sx={{
-              flex: '0 1 auto',
-              minHeight: 0,
-              height: 'auto',
-              display: 'block',
-              position: 'relative',
-              right: 0,
-              overflowY: 'auto',
-              overflowX: 'hidden',
-              overflowAnchor: 'none',
-              contain: 'layout paint',
-              width: '100%',
-              // Hide the native scrollbar; we'll render a synced proxy outside the frame
-              scrollbarWidth: 'none', // Firefox
-              msOverflowStyle: 'none', // IE/Edge
-              '&::-webkit-scrollbar': { width: 0, height: 0 }, // WebKit
-              boxSizing: 'content-box',
-              pl: 0,
-              backgroundColor: 'transparent',
-              border: 'none'
-            }}
-          >
-            <Table stickyHeader sx={{ backgroundColor: 'transparent', width: '100%', tableLayout: 'fixed', borderCollapse: 'separate', borderSpacing: 0 }}>
-              <TableHead sx={{
-                '& th, & th.MuiTableCell-head': {
-                  position: 'sticky',
-                  top: 0,
-                  zIndex: 2,
-                  backgroundColor: 'black.200',
-                  backgroundClip: 'padding-box'
-                },
-                '& th:first-of-type': { borderTopLeftRadius: '26px' },
-                '& th:last-of-type': { borderTopRightRadius: '26px' }
-              }}>
-                <TableRow>
-                <TableCell sx={{ width: COLS.username }} sortDirection={orderBy === 'username' ? order : false}><TableSortLabel active={orderBy === 'username'} direction={order} onClick={() => handleRequestSort('username')}>{t('username_label')}</TableSortLabel></TableCell>
-                <TableCell sx={{ width: COLS.email }} sortDirection={orderBy === 'email' ? order : false}><TableSortLabel active={orderBy === 'email'} direction={order} onClick={() => handleRequestSort('email')}>{t('email_label')}</TableSortLabel></TableCell>
-                <TableCell sx={{ width: COLS.role }} sortDirection={orderBy === 'role' ? order : false}><TableSortLabel active={orderBy === 'role'} direction={order} onClick={() => handleRequestSort('role')}>{t('role_label')}</TableSortLabel></TableCell>
-                <TableCell sx={{ width: COLS.year }} sortDirection={orderBy === 'yearOfStudy' ? order : false}><TableSortLabel active={orderBy === 'yearOfStudy'} direction={order} onClick={() => handleRequestSort('yearOfStudy')}>{t('course_year_label')}</TableSortLabel></TableCell>
-                <TableCell sx={{ width: COLS.spec }} sortDirection={orderBy === 'specialization' ? order : false}><TableSortLabel active={orderBy === 'specialization'} direction={order} onClick={() => handleRequestSort('specialization')}>{t('course_specialization_label')}</TableSortLabel></TableCell>
-                <TableCell sx={{ width: COLS.group }} sortDirection={orderBy === 'group' ? order : false}><TableSortLabel active={orderBy === 'group'} direction={order} onClick={() => handleRequestSort('group')}>{t('user_group_label')}</TableSortLabel></TableCell>
-                <TableCell sx={{ width: COLS.actions }} align="center">{t('actions_label')}</TableCell>
+        <TableContainer>
+          <Table stickyHeader>
+            <TableHead>
+              <TableRow>
+                 {/* TableSortLabel now uses the updated handler */}
+                <TableCell sortDirection={orderBy === 'username' ? order : false}>
+                  <TableSortLabel active={orderBy === 'username'} direction={order} onClick={() => handleRequestSort('username')}>
+                    {t('username_label')}
+                  </TableSortLabel>
+
+                </TableCell>
+                <TableCell sortDirection={orderBy === 'email' ? order : false}>
+                  <TableSortLabel active={orderBy === 'email'} direction={order} onClick={() => handleRequestSort('email')}>
+                    {t('email_label')}
+                  </TableSortLabel>
+                </TableCell>
+
+                <TableCell sortDirection={orderBy === 'role' ? order : false}>
+                  <TableSortLabel active={orderBy === 'role'} direction={order} onClick={() => handleRequestSort('role')}>
+                    {t('role_label')}
+                  </TableSortLabel>
+                </TableCell>
+
+                <TableCell sortDirection={orderBy === 'studentDetails.yearOfStudy' ? order : false}>
+                  <TableSortLabel active={orderBy === 'studentDetails.yearOfStudy'} direction={order} onClick={() => handleRequestSort('studentDetails.yearOfStudy')}>
+                    {t('course_year_label')}
+                  </TableSortLabel>
+                </TableCell>
+
+                <TableCell sortDirection={orderBy === 'studentDetails.specialization' ? order : false}>
+                  <TableSortLabel active={orderBy === 'studentDetails.specialization'} direction={order} onClick={() => handleRequestSort('studentDetails.specialization')}>
+                      {t('course_specialization_label')}
+                  </TableSortLabel>
+                </TableCell>
+                
+                <TableCell sortDirection={orderBy === 'studentDetails.group' ? order : false}>
+                  <TableSortLabel active={orderBy === 'studentDetails.group'} direction={order} onClick={() => handleRequestSort('studentDetails.group')}>
+                      {t('user_group_label')}
+                  </TableSortLabel>
+                </TableCell>
+
+                <TableCell align="center">{t('actions_label')}</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {/* 7. The complex useMemo for sorting is gone. We map directly over 'users'. */}
+              {users.map((user) => (
+                <TableRow hover key={user._id}>
+                  <TableCell>{user.username}</TableCell>
+                  <TableCell>{user.email}</TableCell>
+                  <TableCell>{t(`role_label_${user.role}`)}</TableCell>
+                  <TableCell >{user.studentDetails?.yearOfStudy || 'N/A'}</TableCell>
+                  <TableCell>{user.studentDetails?.specialization || 'N/A'}</TableCell>
+                  <TableCell>{user.studentDetails?.group || 'N/A'}</TableCell>
+                  <TableCell align="center">
+                    <IconButton onClick={() => handleEditClick(user)} color="primary"><EditIcon /></IconButton>
+                    <IconButton onClick={() => handleDeleteClick(user)} color="error"><DeleteIcon /></IconButton>
+                  </TableCell>
                 </TableRow>
-              </TableHead>
-              <TableBody>
-                {sortedUsers.map((user) => (
-                  <TableRow key={user._id}>
-                    <TableCell sx={{ width: COLS.username }}>
-                      <Box sx={{ ...cellTruncateSx, display: 'block', maxWidth: '100%' }}>{user.username}</Box>
-                    </TableCell>
-                    <TableCell sx={{ width: COLS.email }}>
-                      <Box sx={{ ...cellTruncateSx, display: 'block', maxWidth: '100%' }}>{user.email}</Box>
-                    </TableCell>
-                    <TableCell sx={{ width: COLS.role }}>{t(`role_label_${user.role}`)}</TableCell>
-                    <TableCell sx={{ width: COLS.year }}>{user.studentDetails?.yearOfStudy || 'N/A'}</TableCell>
-                    <TableCell sx={{ width: COLS.spec }}>{user.studentDetails?.specialization || 'N/A'}</TableCell>
-                    <TableCell sx={{ width: COLS.group }}>{user.studentDetails?.group || 'N/A'}</TableCell>
-                    <TableCell sx={{ width: COLS.actions }} align="center">
-                      <IconButton onClick={() => handleEditClick(user)} color="primary"><EditIcon /></IconButton>
-                      <IconButton onClick={() => handleDeleteClick(user)} color="error"><DeleteIcon /></IconButton>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-          {/* Proxy scrollbar fully outside the frame, synced with the real scroller */}
-          {usersHasVOverflow && (
-            <Box
-              key={`users-proxy-${i18n.language}`}
-              ref={setProxyScrollNode}
-              data-users-scroll-proxy
-              sx={{
-                position: 'absolute',
-                top: 0,
-                bottom: 0,
-                // Position so that the left edge of the scrollbar sits gap (4px) outside the frame border (2px)
-                right: `calc(-${proxyWidth}px - ${OUTER_GAP}px)`,
-                width: `${proxyWidth}px`,
-                overflowY: 'auto',
-                overflowX: 'hidden',
-                backgroundColor: 'transparent',
-                // ensure it's above the frame background but below header content
-                zIndex: 2,
-                // Visible scrollbar styling (Chrome, Firefox)
-                scrollbarWidth: 'thin',
-                scrollbarColor: `${thumbColor} ${trackColor}`,
-                '&::-webkit-scrollbar': { width: `${proxyWidth}px` },
-                '&::-webkit-scrollbar-thumb': {
-                  backgroundColor: thumbColor,
-                  borderRadius: '8px',
-                  border: '2px solid transparent',
-                  backgroundClip: 'padding-box',
-                  minHeight: '32px'
-                },
-                '&::-webkit-scrollbar-track': {
-                  backgroundColor: trackColor
-                },
-                '&:hover::-webkit-scrollbar-thumb': { backgroundColor: thumbHover },
-                '&:active::-webkit-scrollbar-thumb': { backgroundColor: thumbActive },
-                pointerEvents: 'auto',
-                willChange: 'scroll-position'
-              }}
-            >
-              {/* ghost div to create the appropriate scroll range */}
-              <Box sx={{ width: 1, height: `${ghostHeight}px` }} />
-            </Box>
-          )}
-          {/* Debug overlay */}
-          {process.env.NODE_ENV !== 'production' && metrics && (
-            <Box sx={{ position: 'absolute', bottom: 8, left: 8, p: 1, borderRadius: 1, fontSize: 12, bgcolor: 'rgba(0,0,0,0.6)', color: '#fff', pointerEvents: 'none' }}>
-              has:{String(usersHasVOverflow)} | el:{Math.round(metrics.elScroll)} | avail:{Math.round(metrics.availableClient)} | cap:{Math.round(metrics.capPx || 0)}
-            </Box>
-          )}
-          </Box>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+        {/* 8. Add the Pagination component */}
+        <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
+            <Pagination
+                count={pagination.totalPages}
+                page={pagination.page}
+                onChange={handlePageChange}
+                color="primary"
+            />
         </Box>
-      </Box>
-    </Paper>
-    {/* Delete Confirmation Modal */}
-    <Dialog
-        open={openDeleteModal}
-        onClose={handleCloseDeleteModal}
-      >
+      </Paper>
+      
+      {/* The Delete Dialog remains the same */}
+      <Dialog open={openDeleteModal} onClose={handleCloseDeleteModal}>
         <DialogTitle>{t('delete_user_modal_title')}</DialogTitle>
         <DialogContent>
           <DialogContentText>
@@ -511,8 +337,7 @@ const Users = () => {
           </Button>
         </DialogActions>
       </Dialog>
-    
-  </Container>
+    </Container>
   );
 };
 
