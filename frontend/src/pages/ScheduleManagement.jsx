@@ -1,14 +1,14 @@
 // src/pages/ScheduleManagement.jsx (Final and Complete)
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { getAllScheduleEntries, createScheduleEntry, deleteScheduleEntry, updateScheduleEntry } from '../services/scheduleService';
-import { getAllCourses } from '../services/courseService';
-import { getAllRooms } from '../services/roomService';
+import { createScheduleEntry, deleteScheduleEntry, updateScheduleEntry, getPaginatedSchedule } from '../services/scheduleService';
+import PaginatedTable from '../components/common/PaginatedTable';
+import CourseAutocomplete from '../components/common/CourseAutocomplete';
+import RoomAutocomplete from '../components/common/RoomAutocomplete';
 import BackButton from '../components/BackButton';
 import {
-  Container, Typography, Paper, Table, TableBody, TableCell, TableContainer,
-  TableHead, TableRow, IconButton, Alert, Box, Grid, FormControl,
-  InputLabel, Select, MenuItem, TextField, Button, Stack, Chip, TableSortLabel
+  Container, Typography, Paper, IconButton, Alert, Box, Grid, FormControl,
+  InputLabel, Select, MenuItem, TextField, Button, Stack
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -20,18 +20,12 @@ const activityTypeKeys = ['Lecture', 'Lab', 'Seminar', 'Practice'];
 
 const ScheduleManagement = () => {
   const { t } = useTranslation();
-  const [schedule, setSchedule] = useState([]);
-  const [courses, setCourses] = useState([]);
-  const [rooms, setRooms] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [formMessage, setFormMessage] = useState({ text: '', type: '', details: null });
+  const [formMessage, setFormMessage] = useState({ key: '', options: {}, type: 'success' });
+  const [selectedCourse, setSelectedCourse] = useState(null);
   const [selectedCourseDetails, setSelectedCourseDetails] = useState(null);
+  const [selectedRoom, setSelectedRoom] = useState(null);
   const [selectedRoomDetails, setSelectedRoomDetails] = useState(null);
-
-  const [order, setOrder] = useState('asc');
-  const [orderBy, setOrderBy] = useState('dayOfWeek');
-  
+  const [refreshKey, setRefreshKey] = useState(0);
   const [isEditing, setIsEditing] = useState(false);
   const [currentEntryId, setCurrentEntryId] = useState(null);
 
@@ -40,23 +34,6 @@ const ScheduleManagement = () => {
     type: activityTypeKeys[0], group: '', academicYear: academicYears[0], semester: semesterKeys[0]
   };
   const [formData, setFormData] = useState(initialState);
-
-  const fetchData = useCallback(async () => {
-    try {
-      setLoading(true);
-      const [scheduleRes, coursesRes, roomsRes] = await Promise.all([ getAllScheduleEntries(), getAllCourses(), getAllRooms() ]);
-      setSchedule(scheduleRes.data);
-      setCourses(coursesRes.data);
-      setRooms(roomsRes.data);
-      setError(null);
-    } catch (err) {
-      setError('fetch_schedule_error');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => { fetchData(); }, [fetchData]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -72,6 +49,15 @@ const ScheduleManagement = () => {
     }
   };
   
+  const handleCourseSelect = (course) => {
+    setSelectedCourse(course);
+    setFormData(prev => ({ ...prev, course: course ? course._id : '', semester: course ? course.semester : 1 }));
+  };
+  const handleRoomSelect = (room) => {
+    setSelectedRoom(room);
+    setFormData(prev => ({ ...prev, room: room ? room._id : '' }));
+  };
+
   const resetForm = () => {
       setIsEditing(false);
       setCurrentEntryId(null);
@@ -90,17 +76,17 @@ const ScheduleManagement = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setFormMessage({ text: '', type: '' });
+    setFormMessage({ key: '', type: '' });
     try {
       if (isEditing) {
         await updateScheduleEntry(currentEntryId, formData);
-        setFormMessage({ text: 'schedule_entry_updated_success', type: 'success' });
+        setFormMessage({ key: 'schedule_entry_updated_success', type: 'success' });
       } else {
         await createScheduleEntry(formData);
-        setFormMessage({ text: 'schedule_entry_created_success', type: 'success' });
+        setFormMessage({ key: 'schedule_entry_created_success', type: 'success' });
       }
       resetForm();
-      fetchData();
+      setRefreshKey(k => k + 1);
     } catch (err) {
       const errorData = err.response?.data;
       if (['PROFESSOR_OVERLAP', 'ROOM_OVERLAP', 'COURSE_OVERLAP', 'STUDENT_GROUP_OVERLAP'].includes(errorData?.msg)) {
@@ -108,10 +94,10 @@ const ScheduleManagement = () => {
         if (errorData.msg === 'STUDENT_GROUP_OVERLAP' && errorData.details?.type) {
           errorKey = `student_group_overlap_error_${errorData.details.type}`;
         }
-        setFormMessage({ text: errorKey, type: 'error', details: errorData.details });
+        setFormMessage({ key: errorKey, type: 'error', details: errorData.details });
       } else {
         const errorText = getTranslatedError(errorData?.msg);
-        setFormMessage({ text: errorText, type: 'error', details: null });
+        setFormMessage({ key: errorText, type: 'error', details: null });
       }
     }
   };
@@ -120,16 +106,16 @@ const ScheduleManagement = () => {
     if (window.confirm(t('delete_schedule_entry_confirm'))) {
         try {
             await deleteScheduleEntry(id);
-            setFormMessage({ text: 'schedule_entry_deleted_success', type: 'success' });
-            fetchData();
+            setFormMessage({ key: 'schedule_entry_deleted_success', type: 'success' });
+            setRefreshKey(k => k + 1);
         } catch (err) {
-            setFormMessage({ text: 'generic_error', type: 'error' });
+            setFormMessage({ key: 'generic_error', type: 'error' });
         }
     }
   };
 
   const handleEditClick = (entry) => {
-    setFormMessage({ text: '', type: '' });
+    setFormMessage({ key: '', type: '' });
     setIsEditing(true);
     setCurrentEntryId(entry._id);
     setSelectedCourseDetails(entry.course);
@@ -148,37 +134,25 @@ const ScheduleManagement = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
   
-  const handleRequestSort = (property) => {
-    const isAsc = orderBy === property && order === 'asc';
-    setOrder(isAsc ? 'desc' : 'asc');
-    setOrderBy(property);
-  };
-  
-  const sortedSchedule = useMemo(() => {
-    if (!orderBy) return schedule;
-    const dayOrder = { 'Monday': 1, 'Tuesday': 2, 'Wednesday': 3, 'Thursday': 4, 'Friday': 5 };
-    const typeOrder = { 'Lecture': 1, 'Seminar': 2, 'Lab': 3, 'Practice': 4 };
-    const getSortValue = (item, property) => {
-      switch (property) {
-        case 'course.name': return item.course?.name || '';
-        case 'room.name': return item.room?.name || '';
-        case 'course.yearOfStudy': return item.course?.yearOfStudy || 0;
-        case 'dayOfWeek': return dayOrder[item.dayOfWeek] || 99;
-        case 'type': return typeOrder[item.type] || 99;
-        default: return item[property] || '';
-      }
-    };
-    return [...schedule].sort((a, b) => {
-      const valA = getSortValue(a, orderBy);
-      const valB = getSortValue(b, orderBy);
-      if (valA < valB) return order === 'asc' ? -1 : 1;
-      if (valA > valB) return order === 'asc' ? 1 : -1;
-      return 0;
-    });
-  }, [schedule, order, orderBy]);
-
-  if (loading) return <div>{t('loading')}</div>;
-  if (error) return <Alert severity="error">{t(error)}</Alert>;
+  const scheduleColumns = [
+    { id: 'course.name', label: 'course_label', sortable: true, renderCell: (row) => (
+      <Box>
+        <Typography variant="body2" sx={{ fontWeight: 'bold' }}>{row.course?.name || 'N/A'}</Typography>
+        <Typography variant="caption" color="text.secondary">{row.course?.code || ''}</Typography>
+      </Box>
+    )},
+    { id: 'type', label: 'type_label', sortable: true, renderCell: (row) => t(`type_${row.type}`) },
+    { id: 'room.name', label: 'room_label', sortable: true, renderCell: (row) => row.room?.name || 'N/A' },
+    { id: 'dayOfWeek', label: 'day_of_week_label', sortable: true, renderCell: (row) => t(`day_${row.dayOfWeek}`) },
+    { id: 'startTime', label: 'time_slot_label', sortable: true, renderCell: (row) => `${row.startTime} - ${row.endTime}` },
+    { id: 'group', label: 'group_label', sortable: true, renderCell: (row) => row.group || t('all_groups') },
+    { id: 'actions', label: 'actions_label', align: 'center', renderCell: (row) => (
+      <>
+        <IconButton color="primary" onClick={() => handleEditClick(row)}><EditIcon /></IconButton>
+        <IconButton color="error" onClick={() => handleDelete(row._id)}><DeleteIcon /></IconButton>
+      </>
+    )}
+  ];
 
   return (
     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
@@ -190,7 +164,7 @@ const ScheduleManagement = () => {
         <Alert 
           severity={formMessage.type} 
           sx={{ mb: 2 }} 
-          onClose={() => setFormMessage({ text: '', type: '' })}
+          onClose={() => setFormMessage({ key: '', type: '' })}
         >
           {t(formMessage.text, { 
             ...formMessage.details, 
@@ -205,8 +179,8 @@ const ScheduleManagement = () => {
         </Typography>
         <Box component="form" onSubmit={handleSubmit} noValidate>
           <Grid container spacing={2}>
-            <Grid item xs={12} md={6}><FormControl fullWidth required><InputLabel>{t('course_label')}</InputLabel><Select name="course" value={formData.course} label={t('course_label')} onChange={handleInputChange}>{courses.map(c => <MenuItem key={c._id} value={c._id}>{`${c.name} (${c.code})`}</MenuItem>)}</Select></FormControl></Grid>
-            <Grid item xs={12} md={6}><FormControl fullWidth required><InputLabel>{t('room_label')}</InputLabel><Select name="room" value={formData.room} label={t('room_label')} onChange={handleInputChange}>{rooms.map(r => <MenuItem key={r._id} value={r._id}>{r.name}</MenuItem>)}</Select></FormControl></Grid>
+          <Grid item xs={12} md={6}><CourseAutocomplete value={selectedCourse} onChange={handleCourseSelect} /></Grid>
+          <Grid item xs={12} md={6}><RoomAutocomplete value={selectedRoom} onChange={handleRoomSelect} /></Grid>
             {(selectedCourseDetails || selectedRoomDetails) && (
               <Grid item xs={12}>
                 <Paper variant="outlined" sx={{ p: 2, bgcolor: 'action.hover' }}>
@@ -260,48 +234,12 @@ const ScheduleManagement = () => {
         </Box>
       </Paper>
       
-      <Paper>
-        <TableContainer>
-          <Table stickyHeader>
-            <TableHead>
-              <TableRow>
-                <TableCell sortDirection={orderBy === 'course.name' ? order : false}><TableSortLabel active={orderBy === 'course.name'} direction={order} onClick={() => handleRequestSort('course.name')}>{t('course_label')}</TableSortLabel></TableCell>
-                <TableCell sortDirection={orderBy === 'type' ? order : false}><TableSortLabel active={orderBy === 'type'} direction={order} onClick={() => handleRequestSort('type')}>{t('type_label')}</TableSortLabel></TableCell>
-                <TableCell sortDirection={orderBy === 'room.name' ? order : false}><TableSortLabel active={orderBy === 'room.name'} direction={order} onClick={() => handleRequestSort('room.name')}>{t('room_label')}</TableSortLabel></TableCell>
-                <TableCell sortDirection={orderBy === 'dayOfWeek' ? order : false}><TableSortLabel active={orderBy === 'dayOfWeek'} direction={order} onClick={() => handleRequestSort('dayOfWeek')}>{t('day_of_week_label')}</TableSortLabel></TableCell>
-                <TableCell sortDirection={orderBy === 'startTime' ? order : false}><TableSortLabel active={orderBy === 'startTime'} direction={order} onClick={() => handleRequestSort('startTime')}>{t('time_slot_label')}</TableSortLabel></TableCell>
-                <TableCell sortDirection={orderBy === 'group' ? order : false}><TableSortLabel active={orderBy === 'group'} direction={order} onClick={() => handleRequestSort('group')}>{t('group_label')}</TableSortLabel></TableCell>
-                <TableCell sortDirection={orderBy === 'course.yearOfStudy' ? order : false}><TableSortLabel active={orderBy === 'course.yearOfStudy'} direction={order} onClick={() => handleRequestSort('course.yearOfStudy')}>{t('course_year_label')}</TableSortLabel></TableCell>
-                <TableCell sortDirection={orderBy === 'semester' ? order : false}><TableSortLabel active={orderBy === 'semester'} direction={order} onClick={() => handleRequestSort('semester')}>{t('course_semester_label')}</TableSortLabel></TableCell>
-                <TableCell sortDirection={orderBy === 'academicYear' ? order : false}><TableSortLabel active={orderBy === 'academicYear'} direction={order} onClick={() => handleRequestSort('academicYear')}>{t('academic_year_label')}</TableSortLabel></TableCell>
-                <TableCell align="center">{t('actions_label')}</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {sortedSchedule.map((entry) => (
-                <TableRow key={entry._id} hover>
-                  <TableCell>
-                    <Typography variant="body2" sx={{ fontWeight: 'bold' }}>{entry.course?.name || 'N/A'}</Typography>
-                    <Typography variant="caption" color="text.secondary">{entry.course?.code || ''}</Typography>
-                  </TableCell>
-                  <TableCell>{t(`type_${entry.type}`)}</TableCell>
-                  <TableCell>{entry.room?.name || 'N/A'}</TableCell>
-                  <TableCell>{t(`day_${entry.dayOfWeek}`)}</TableCell>
-                  <TableCell>{`${entry.startTime} - ${entry.endTime}`}</TableCell>
-                  <TableCell>{entry.group || t('all_groups')}</TableCell>
-                  <TableCell>{entry.course?.yearOfStudy}</TableCell>
-                  <TableCell>{entry.semester}</TableCell>
-                  <TableCell>{entry.academicYear}</TableCell>
-                  <TableCell align="center">
-                    <IconButton color="primary" onClick={() => handleEditClick(entry)}><EditIcon /></IconButton>
-                    <IconButton color="error" onClick={() => handleDelete(entry._id)}><DeleteIcon /></IconButton>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Paper>
+      <PaginatedTable
+        columns={scheduleColumns}
+        fetchDataFunction={getPaginatedSchedule}
+        refreshKey={refreshKey}
+        titleKey="schedule_table_title"
+      />
     </Container>
   );
 };

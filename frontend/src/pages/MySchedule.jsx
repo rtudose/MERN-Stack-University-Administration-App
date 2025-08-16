@@ -2,8 +2,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
-import { getMySchedule } from '../services/scheduleService';
-import { getMyTeacherSchedule } from '../services/scheduleService';
+import { getStudentSchedule } from '../services/scheduleService';
+import { getTeacherSchedule } from '../services/scheduleService';
 import BackButton from '../components/BackButton';
 import ScheduleView from '../components/schedule/ScheduleView'; // Import the new view
 import { Container, Alert } from '@mui/material';
@@ -21,10 +21,10 @@ const MySchedulePage = () => {
       setLoading(true);
       let response;
       if (isStudent) {
-        response = await getMySchedule();
+        response = await getStudentSchedule();
         setTitle(t('my_schedule_title'));
       } else if (isTeacher) {
-        response = await getMyTeacherSchedule();
+        response = await getTeacherSchedule();
         setTitle(t('my_schedule_teacher_title'));
       }
       if (response) {

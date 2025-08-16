@@ -122,10 +122,20 @@ const getRoomStatsByStatus = async (req, res) => {
     }
 };
 
+const searchRooms = async (req, res) => {
+    try {
+        const query = req.query.q || '';
+        if (query.length < 1) return res.json([]);
+        const rooms = await Room.find({ name: { $regex: query, $options: 'i' } }).limit(15);
+        res.json(rooms);
+    } catch (err) { res.status(500).send('Server Error'); }
+};
+
 module.exports = { 
     createRoom,
     getPaginatedRooms,
     updateRoom,
     deleteRoom,
-    getRoomStatsByStatus
+    getRoomStatsByStatus,
+    searchRooms
 };

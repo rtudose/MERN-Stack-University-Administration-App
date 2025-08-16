@@ -18,15 +18,14 @@ const deleteScheduleEntry = (id) => {
   return api.delete(`/api/schedule/${id}`);
 };
 
-// --- STUDENT AND TEACHER FUNCTIONS ---
-
-// For students to get their schedule
-const getMySchedule = () => {
+const getPaginatedSchedule = ({ page, limit, sortBy, order }) => {
+  return api.get(`/api/schedule/paginated?page=${page}&limit=${limit}&sortBy=${sortBy}&order=${order}`);
+};
+const getStudentSchedule = () => {
   return api.get('/api/schedule/my-schedule');
 };
 
-// For teachers to get their schedule
-const getMyTeacherSchedule = () => {
+const getTeacherSchedule = () => {
   return api.get('/api/schedule/my-teacher-schedule');
 };
 
@@ -34,7 +33,8 @@ export {
   getAllScheduleEntries,
   createScheduleEntry,
   deleteScheduleEntry,
-  getMySchedule,
-  getMyTeacherSchedule,
+  getStudentSchedule,
+  getTeacherSchedule,
   updateScheduleEntry,
+  getPaginatedSchedule,
 };

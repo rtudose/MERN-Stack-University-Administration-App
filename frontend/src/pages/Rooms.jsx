@@ -1,14 +1,14 @@
 // src/pages/Rooms.jsx (Polished Version)
-import React, { useState, useEffect, useCallback} from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { createRoom, updateRoom, deleteRoom, getPaginatedRooms } from '../services/roomService';
+import PaginatedTable from '../components/common/PaginatedTable';
 import RoomStatusChart from '../components/charts/RoomStatusChart';
 import BackButton from '../components/BackButton';
 import {
-  Container, Box, Typography, TextField, Button, Alert, Paper, Grid, Stack,
-  Table, TableBody, TableCell, TableContainer, TableHead, TableRow, IconButton,
+  Container, Box, Typography, TextField, Button, Alert, Paper, Grid, Stack, IconButton,
   Select, MenuItem, Checkbox, ListItemText, OutlinedInput, InputLabel, FormControl,
-  FormControlLabel, Switch, Chip, TableSortLabel, Pagination
+  FormControlLabel, Switch, Chip
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -18,44 +18,16 @@ const equipmentOptionKeys = [
 ];
 
 function Rooms() {
-  const { t, i18n } = useTranslation();
-  const [rooms, setRooms] = useState([]);
-  //const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const { t } = useTranslation();
   const [formMessage, setFormMessage] = useState({ key: '', options: {}, type: 'success' });
-  const [pagination, setPagination] = useState({ page: 1, limit: 10, totalPages: 1 });
-  const [showStats, setShowStats] = useState(false);
-
   const [isEditing, setIsEditing] = useState(false);
   const [currentRoomId, setCurrentRoomId] = useState(null);
-
   const initialState = {
     name: '', capacity: '', location: '', equipment: [], isAvailableForExternal: false, status: 'available'
   };
-
   const [formData, setFormData] = useState(initialState);
-
-  const [order, setOrder] = useState('asc');
-  const [orderBy, setOrderBy] = useState('name');
-  
-  const getTranslatedBackendError = (msg) => {
-    switch (msg) {
-      case 'Room with this name already exists': return t('room_exists_error');
-      default: return null;
-    }
-  };
-
-  const fetchRooms = useCallback(async () => {
-    try {
-      const response = await getPaginatedRooms({ page: pagination.page, limit: pagination.limit, sortBy: orderBy, order: order });
-      setRooms(response.data.data);
-      setPagination(prev => ({ ...prev, totalPages: response.data.pagination.totalPages }));
-    } catch (err) {
-      setError(t('rooms_fetch_error'));
-    }
-  }, [pagination.page, pagination.limit, orderBy, order, t]);
-
-  useEffect(() => { fetchRooms(); }, [fetchRooms]);
+  const [showStats, setShowStats] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const resetForm = () => {
     setIsEditing(false);
@@ -103,7 +75,7 @@ function Rooms() {
         });
       }
       resetForm();
-      fetchRooms();
+      setRefreshKey(oldKey => oldKey + 1);
     } catch (err) {
       let finalErrorMsgKey = isEditing ? 'update_room_generic_error' : 'add_room_generic_error';
       if (err.response?.data?.msg === 'Room with this name already exists') {
@@ -133,25 +105,31 @@ function Rooms() {
       try {
         await deleteRoom(roomId);
         setFormMessage({ key: 'room_deleted_success', type: 'success' });
-        fetchRooms();
+        setRefreshKey(oldKey => oldKey + 1);
       } catch (err) {
         setFormMessage({ key: 'delete_room_generic_error', type: 'error' });
       }
     }
   };
 
-  const handleRequestSort = (property) => {
-    const isAsc = orderBy === property && order === 'asc';
-    setOrder(isAsc ? 'desc' : 'asc');
-    setOrderBy(property);
-    setPagination(prev => ({ ...prev, page: 1 }));
-  };
-
-  const handlePageChange = (event, value) => {
-    setPagination(prev => ({ ...prev, page: value }));
-  };
-
-  if (error) return <Alert severity="error">{error}</Alert>;
+  const roomColumns = [
+    { id: 'name', label: 'room_name_label', sortable: true },
+    { id: 'status', label: 'status_label', sortable: true, renderCell: (row) => t(`status_${row.status}`) },
+    { id: 'isAvailableForExternal', label: 'available_for_external_label', sortable: true, renderCell: (row) => t(row.isAvailableForExternal ? 'boolean_yes' : 'boolean_no')},
+    { id: 'capacity', label: 'room_capacity_label', sortable: true, align: 'right' },
+    { id: 'equipment', label: 'equipment_label', sortable: false, renderCell: (row) => row.equipment.map(key => t(`equipment_${key}`)).join(', ') },
+    {
+      id: 'actions',
+      label: 'actions_label',
+      align: 'center',
+      renderCell: (row) => (
+        <>
+          <IconButton onClick={() => handleEditClick(row)} color="primary"><EditIcon /></IconButton>
+          <IconButton onClick={() => handleDeleteClick(row._id)} color="error"><DeleteIcon /></IconButton>
+        </>
+      )
+    }
+  ];
 
   return (
     <Container maxWidth="xl" sx={{ pt: 2, pb: 4 }}>
@@ -181,7 +159,7 @@ function Rooms() {
       </Box>
 
       <Paper sx={{ p: { xs: 2, md: 3 }, mb: 2 }}>
-        <Typography variant="h5" component="h2" gutterBottom>
+        <Typography variant="h5" component="h2" gutterBottom sx={{ textAlign: 'center' }}>
           {isEditing ? t('edit_room_title') : t('add_new_room_title')}
         </Typography>
         <Box component="form" onSubmit={handleSubmit} noValidate>
@@ -219,67 +197,12 @@ function Rooms() {
       {showStats && <RoomStatusChart />}
 
       {/* --- Bottom Section: Table and Pagination --- */}
-      <Paper sx={{ p: 2, mt: 2 }}>
-        <Typography variant="h5" component="h2" gutterBottom>
-          {t('available_rooms')}
-        </Typography>
-        {/* This is the simplified TableContainer. It will show a standard scrollbar when needed. */}
-        <TableContainer>
-          <Table stickyHeader>
-            <TableHead>
-              <TableRow>
-                <TableCell sortDirection={orderBy === 'name' ? order : false}>
-                  <TableSortLabel active={orderBy === 'name'} direction={order} onClick={() => handleRequestSort('name')}>
-                    {t('room_name_label')}
-                  </TableSortLabel>
-                </TableCell>
-                <TableCell sortDirection={orderBy === 'status' ? order : false}>
-                  <TableSortLabel active={orderBy === 'status'} direction={order} onClick={() => handleRequestSort('status')}>
-                    {t('status_label')}
-                  </TableSortLabel>
-                </TableCell>
-                <TableCell sortDirection={orderBy === 'isAvailableForExternal' ? order : false}>
-                  <TableSortLabel active={orderBy === 'isAvailableForExternal'} direction={order} onClick={() => handleRequestSort('isAvailableForExternal')}>
-                    {t('available_for_external_label')}
-                  </TableSortLabel>
-                </TableCell>
-                <TableCell align="right" sortDirection={orderBy === 'capacity' ? order : false}>
-                  <TableSortLabel active={orderBy === 'capacity'} direction={order} onClick={() => handleRequestSort('capacity')}>
-                    {t('room_capacity_label')}
-                  </TableSortLabel>
-                </TableCell>
-                <TableCell>{t('equipment_label')}</TableCell>
-                <TableCell align="center">{t('actions_label')}</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {rooms.map((room) => (
-                <TableRow hover key={room._id}>
-                  <TableCell>{room.name}</TableCell>
-                  <TableCell>{t(`status_${room.status}`)}</TableCell>
-                  <TableCell>{t(room.isAvailableForExternal ? 'boolean_yes' : 'boolean_no')}</TableCell>
-                  <TableCell align="right">{room.capacity}</TableCell>
-                  <TableCell>{room.equipment.map(key => t(`equipment_${key}`)).join(', ')}</TableCell>
-                  <TableCell align="center">
-                    <IconButton onClick={() => handleEditClick(room)} color="primary"><EditIcon /></IconButton>
-                    <IconButton onClick={() => handleDeleteClick(room._id)} color="error"><DeleteIcon /></IconButton>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-
-        {/* --- Pagination Controls --- */}
-        <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
-            <Pagination
-                count={pagination.totalPages}
-                page={pagination.page}
-                onChange={handlePageChange}
-                color="primary"
-            />
-        </Box>
-      </Paper>
+      <PaginatedTable
+        columns={roomColumns}
+        fetchDataFunction={getPaginatedRooms}
+        refreshKey={refreshKey}
+        titleKey="available_rooms"
+      />
     </Container>
   );
 }

@@ -1,11 +1,6 @@
 // src/services/courseService.js
 import api from './api'; // Import the new centralized api client
 
-// For a student and a teacher to get their own courses
-const getMyCourses = () => {
-  return api.get('/api/courses/my-courses');
-};
-
 const getAllCourses = () => {
   return api.get('/api/courses');
 };
@@ -22,4 +17,24 @@ const deleteCourse = (id) => {
   return api.delete(`/api/courses/${id}`);
 };
 
-export { getMyCourses, getAllCourses, createCourse, updateCourse, deleteCourse };
+const getPaginatedCourses = ({ page, limit, sortBy, order }) => {
+  return api.get(`/api/courses/paginated?page=${page}&limit=${limit}&sortBy=${sortBy}&order=${order}`);
+};
+
+const getCourseStatsByYear = () => {
+  return api.get('/api/courses/stats/by-year');
+};
+
+const searchCourses = (query) => {
+  return api.get(`/api/courses/search?q=${query}`);
+};
+
+export {
+  getAllCourses,
+  createCourse,
+  updateCourse,
+  deleteCourse,
+  getPaginatedCourses,
+  getCourseStatsByYear,
+  searchCourses
+};

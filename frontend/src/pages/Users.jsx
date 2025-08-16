@@ -1,64 +1,33 @@
 // src/pages/Users.jsx
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getPaginatedUsers, createUser, updateUser, deleteUser, getStudentRegistrationStats } from '../services/userService';
 import BackButton from '../components/BackButton';
 import StudentRegistrationChart from '../components/charts/StudentRegistrationChart';
+import PaginatedTable from '../components/common/PaginatedTable';
 import {
-  Container, Box, Typography, TextField, Button, Alert, Paper, Grid, Stack,
-  Table, TableBody, TableCell, TableContainer, TableHead, TableRow, IconButton,
-  Select, MenuItem, FormControl, InputLabel, TableSortLabel, Dialog, DialogActions,
-  DialogContent, DialogContentText, DialogTitle, Pagination
+  Container, Box, Typography, TextField, Button, Alert, Paper, Grid, Stack, IconButton,
+  Select, MenuItem, FormControl, InputLabel, Dialog, DialogActions,
+  DialogContent, DialogContentText, DialogTitle
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 
 const Users = () => {
   const { t } = useTranslation();
-  const [users, setUsers] = useState([]);
-  const [error, setError] = useState(null);
   const [formMessage, setFormMessage] = useState({ text: '', type: '' });
-
-  // 2. New state for pagination details, with a default limit
-  const [pagination, setPagination] = useState({ page: 1, limit: 10, totalPages: 1 });
-  const [order, setOrder] = useState('asc');
-  const [orderBy, setOrderBy] = useState('username');
-
   const [isEditing, setIsEditing] = useState(false);
   const [currentUserId, setCurrentUserId] = useState(null);
+  const [showStats, setShowStats] = useState(false);
+  const [openDeleteModal, setOpenDeleteModal] = useState(false);
+  const [userToDelete, setUserToDelete] = useState(null);
+  const [refreshKey, setRefreshKey] = useState(0);
+
   const initialState = {
     username: '', email: '', password: '', role: 'student',
     studentDetails: { yearOfStudy: 1, specialization: '', group: '' }
   };
   const [formData, setFormData] = useState(initialState);
-
-  const [showStats, setShowStats] = useState(false);
-
-  const [openDeleteModal, setOpenDeleteModal] = useState(false);
-  const [userToDelete, setUserToDelete] = useState(null);
-
-  // 3. fetchUsers is now wrapped in useCallback to be a stable dependency for useEffect
-  const fetchUsers = useCallback(async () => {
-    try {
-      const response = await getPaginatedUsers({
-        page: pagination.page,
-        limit: pagination.limit,
-        sortBy: orderBy,
-        order: order,
-      });
-      setUsers(response.data.data);
-      setPagination(prev => ({ ...prev, totalPages: response.data.pagination.totalPages }));
-      setError(null);
-    } catch (err) {
-      console.error('Failed to fetch users:', err);
-      setError(t('fetch_users_error'));
-    }
-  }, [pagination.page, pagination.limit, orderBy, order, t]);
-
-  // 4. useEffect now runs whenever sort or pagination state changes
-  useEffect(() => {
-    fetchUsers();
-  }, [fetchUsers]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -114,7 +83,7 @@ const Users = () => {
         setFormMessage({ text: 'user_created_success', type: 'success' });
       }
       resetForm();
-      fetchUsers(); // Refresh the table with the latest data
+      setRefreshKey(oldKey => oldKey + 1);
     } catch (err) {
       const errorText = err.response?.data?.msg ? getTranslatedError(err.response.data.msg) : t('generic_error');
       setFormMessage({ text: errorText, type: 'error' });
@@ -147,7 +116,7 @@ const Users = () => {
       try {
         await deleteUser(userToDelete._id);
         setFormMessage({ text: 'user_deleted_success', type: 'success' });
-        fetchUsers();
+        setRefreshKey(oldKey => oldKey + 1);
       } catch (err) {
         const errorText = err.response?.data?.msg ? getTranslatedError(err.response.data.msg) : t('delete_user_error');
         setFormMessage({ text: errorText, type: 'error' });
@@ -156,21 +125,25 @@ const Users = () => {
     handleCloseDeleteModal();
   };
 
-  // 5. This handler now just updates state, triggering the useEffect to refetch
-  const handleRequestSort = (property) => {
-    const isAsc = orderBy === property && order === 'asc';
-    setOrder(isAsc ? 'desc' : 'asc');
-    setOrderBy(property);
-    setPagination(prev => ({ ...prev, page: 1 })); // Go back to first page on sort
-  };
-  
-  // 6. New handler for page changes
-  const handlePageChange = (event, value) => {
-    setPagination(prev => ({ ...prev, page: value }));
-  };
-
-  // The loading state is removed; the table will just show the last fetched data
-  if (error) return <Alert severity="error">{error}</Alert>;
+  const userColumns = [
+    { id: 'username', label: 'username_label', sortable: true },
+    { id: 'email', label: 'email_label', sortable: true },
+    { id: 'role', label: 'role_label', sortable: true, renderCell: (row) => t(`role_label_${row.role}`) },
+    { id: 'studentDetails.yearOfStudy', label: 'course_year_label', sortable: true, renderCell: (row) => row.studentDetails?.yearOfStudy || 'N/A' },
+    { id: 'studentDetails.specialization', label: 'course_specialization_label', sortable: true, renderCell: (row) => row.studentDetails?.specialization || 'N/A' },
+    { id: 'studentDetails.group', label: 'user_group_label', sortable: true, renderCell: (row) => row.studentDetails?.group || 'N/A' },
+    {
+      id: 'actions',
+      label: 'actions_label',
+      align: 'center',
+      renderCell: (row) => (
+        <>
+          <IconButton onClick={() => handleEditClick(row)} color="primary"><EditIcon /></IconButton>
+          <IconButton onClick={() => handleDeleteClick(row)} color="error"><DeleteIcon /></IconButton>
+        </>
+      )
+    }
+  ];
 
   return (
     <Container 
@@ -195,7 +168,7 @@ const Users = () => {
 
         {/* The Form Paper remains the same */}
         <Paper sx={{ p: { xs: 2, md: 3 }, mb: 2 }}>
-          <Typography variant="h5" component="h2" gutterBottom>
+          <Typography variant="h5" component="h2" gutterBottom sx={{ textAlign: 'center' }}>
             {isEditing ? t('edit_user_title') : t('add_new_user_title')}
           </Typography>
           <Box component="form" onSubmit={handleSubmit} noValidate>
@@ -243,85 +216,13 @@ const Users = () => {
       
       {showStats && <StudentRegistrationChart />}
 
-      <Paper sx={{ p: 2, mt: 2 }}>
-        <Typography variant="h5" component="h2" gutterBottom>
-          {t('existing_users_title')}
-        </Typography>
-        <TableContainer>
-          <Table stickyHeader>
-            <TableHead>
-              <TableRow>
-                 {/* TableSortLabel now uses the updated handler */}
-                <TableCell sortDirection={orderBy === 'username' ? order : false}>
-                  <TableSortLabel active={orderBy === 'username'} direction={order} onClick={() => handleRequestSort('username')}>
-                    {t('username_label')}
-                  </TableSortLabel>
-
-                </TableCell>
-                <TableCell sortDirection={orderBy === 'email' ? order : false}>
-                  <TableSortLabel active={orderBy === 'email'} direction={order} onClick={() => handleRequestSort('email')}>
-                    {t('email_label')}
-                  </TableSortLabel>
-                </TableCell>
-
-                <TableCell sortDirection={orderBy === 'role' ? order : false}>
-                  <TableSortLabel active={orderBy === 'role'} direction={order} onClick={() => handleRequestSort('role')}>
-                    {t('role_label')}
-                  </TableSortLabel>
-                </TableCell>
-
-                <TableCell sortDirection={orderBy === 'studentDetails.yearOfStudy' ? order : false}>
-                  <TableSortLabel active={orderBy === 'studentDetails.yearOfStudy'} direction={order} onClick={() => handleRequestSort('studentDetails.yearOfStudy')}>
-                    {t('course_year_label')}
-                  </TableSortLabel>
-                </TableCell>
-
-                <TableCell sortDirection={orderBy === 'studentDetails.specialization' ? order : false}>
-                  <TableSortLabel active={orderBy === 'studentDetails.specialization'} direction={order} onClick={() => handleRequestSort('studentDetails.specialization')}>
-                      {t('course_specialization_label')}
-                  </TableSortLabel>
-                </TableCell>
-                
-                <TableCell sortDirection={orderBy === 'studentDetails.group' ? order : false}>
-                  <TableSortLabel active={orderBy === 'studentDetails.group'} direction={order} onClick={() => handleRequestSort('studentDetails.group')}>
-                      {t('user_group_label')}
-                  </TableSortLabel>
-                </TableCell>
-
-                <TableCell align="center">{t('actions_label')}</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {/* 7. The complex useMemo for sorting is gone. We map directly over 'users'. */}
-              {users.map((user) => (
-                <TableRow hover key={user._id}>
-                  <TableCell>{user.username}</TableCell>
-                  <TableCell>{user.email}</TableCell>
-                  <TableCell>{t(`role_label_${user.role}`)}</TableCell>
-                  <TableCell >{user.studentDetails?.yearOfStudy || 'N/A'}</TableCell>
-                  <TableCell>{user.studentDetails?.specialization || 'N/A'}</TableCell>
-                  <TableCell>{user.studentDetails?.group || 'N/A'}</TableCell>
-                  <TableCell align="center">
-                    <IconButton onClick={() => handleEditClick(user)} color="primary"><EditIcon /></IconButton>
-                    <IconButton onClick={() => handleDeleteClick(user)} color="error"><DeleteIcon /></IconButton>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-        {/* 8. Add the Pagination component */}
-        <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
-            <Pagination
-                count={pagination.totalPages}
-                page={pagination.page}
-                onChange={handlePageChange}
-                color="primary"
-            />
-        </Box>
-      </Paper>
+      <PaginatedTable
+        columns={userColumns}
+        fetchDataFunction={getPaginatedUsers}
+        refreshKey={refreshKey}
+        titleKey="existing_users_title"
+      />
       
-      {/* The Delete Dialog remains the same */}
       <Dialog open={openDeleteModal} onClose={handleCloseDeleteModal}>
         <DialogTitle>{t('delete_user_modal_title')}</DialogTitle>
         <DialogContent>

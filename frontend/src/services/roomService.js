@@ -29,4 +29,17 @@ const getRoomStatsByStatus = () => {
   return api.get('/api/rooms/stats/stats');
 };
 
-export { getAllRooms, createRoom, updateRoom, deleteRoom, getPublicRooms, getPaginatedRooms, getRoomStatsByStatus };
+const searchRooms = (query) => {
+  return api.get(`/api/rooms/search?q=${query}`);
+};
+
+export {
+  getAllRooms,
+  createRoom,
+  updateRoom,
+  deleteRoom,
+  getPublicRooms,
+  getPaginatedRooms,
+  getRoomStatsByStatus,
+  searchRooms
+};

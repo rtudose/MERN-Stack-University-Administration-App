@@ -1,7 +1,7 @@
 // src/components/charts/RoomStatusChart.jsx
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { getRoomStatsByStatus } from '../../services/roomService'; // Assuming you have a central api export
+import { getRoomStatsByStatus } from '../../services/roomService';
 import { Paper, Typography, Box } from '@mui/material';
 import { PieChart } from '@mui/x-charts/PieChart';
 

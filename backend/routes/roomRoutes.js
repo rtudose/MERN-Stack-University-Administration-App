@@ -18,4 +18,6 @@ router.put('/:id', adminOnly, roomController.updateRoom);
 
 router.delete('/:id', adminOnly, roomController.deleteRoom);
 
+router.get('/search', auth, roomController.searchRooms);
+
 module.exports = router;

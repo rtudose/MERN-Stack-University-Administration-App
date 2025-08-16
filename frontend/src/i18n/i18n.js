@@ -135,6 +135,9 @@ const resources = {
       "course_credits_min_error": "Credits must be a natural number (a positive whole number).",
       "course_credits_integer_error": "Credits must be a natural number (a positive whole number).",
       "course_form_error_all_fields": "Please ensure all fields are filled out correctly.",
+      "courses_by_year": "Number of Courses per Year",
+      "year_of_study": "Year of Study",
+      "number_of_courses": "Number of Courses",
 
       // Add/Edit Room Form
       "add_new_room_title": "Add New Room",
@@ -204,6 +207,7 @@ const resources = {
       //Schedule Management Page
       "manage_schedule_button": "Manage Schedule",
       "schedule_management_title": "Schedule Management",
+      "schedule_table_title": "Schedule",
       "fetch_schedule_error": "Failed to fetch schedule data.",
       "add_schedule_entry_title": "Add New Schedule Entry",
       "course_label": "Course",
@@ -249,6 +253,8 @@ const resources = {
       "seminar_professor_label": "Seminar Professor",
       "lab_professor_label": "Lab Professor",
       "my_schedule_teacher_title": "My Teaching Schedule",
+      "search_for_a_room": "Search for a room",
+      "search_for_a_course": "Search for a course",
 
       // Appointments Page
       "book_appointment_button": "Book Secretariat Appointment",
@@ -451,6 +457,9 @@ const resources = {
       "course_credits_min_error": "Numărul de credite trebuie să fie un număr natural (un număr întreg pozitiv).",
       "course_credits_integer_error": "Numărul de credite trebuie să fie un număr natural (un număr întreg pozitiv).",
       "course_form_error_all_fields": "Vă rugăm să vă asigurați că toate câmpurile sunt completate corect.",
+      "courses_by_year": "Număr de Cursuri per An",
+      "year_of_study": "Anul de Studiu",
+      "number_of_courses": "Numărul de Cursuri",
 
       // Add/Edit Room Form
       "add_new_room_title": "Adaugă Sală Nouă",
@@ -520,6 +529,7 @@ const resources = {
       //Schedule Management Page
       "manage_schedule_button": "Administrează Orar",
       "schedule_management_title": "Administrare Orar",
+      "schedule_table_title": "Orar",
       "fetch_schedule_error": "Eroare la preluarea orarului.",
       "add_schedule_entry_title": "Adaugă Intrare Nouă în Orar",
       "course_label": "Curs",
@@ -565,6 +575,8 @@ const resources = {
       "seminar_professor_label": "Profesor Seminar",
       "lab_professor_label": "Profesor Laborator",
       "my_schedule_teacher_title": "Orarul Meu (Cadru Didactic)",
+      "search_for_a_room": "Caută o sală",
+      "search_for_a_course": "Caută un curs",
 
       // Appointments Page
       "book_appointment_button": "Programare Secretariat",

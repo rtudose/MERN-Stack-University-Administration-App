@@ -1,11 +1,12 @@
-// src/pages/CoursesManagement.jsx
-import React, { useState, useEffect, useCallback } from 'react';
+// src/pages/CoursesManagement.jsx (Refactored Version)
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { getAllCourses, createCourse, updateCourse, deleteCourse } from '../services/courseService';
+import { getPaginatedCourses, createCourse, updateCourse, deleteCourse, getCourseStatsByYear } from '../services/courseService';
+import PaginatedTable from '../components/common/PaginatedTable';
+import CoursesByYearChart from '../components/charts/CoursesByYearChart';
 import BackButton from '../components/BackButton';
 import {
-  Container, Box, Typography, TextField, Button, Alert, Paper, Grid, Stack,
-  Table, TableBody, TableCell, TableContainer, TableHead, TableRow, IconButton,
+  Container, Box, Typography, TextField, Button, Alert, Paper, Grid, Stack, IconButton,
   Select, MenuItem, InputLabel, FormControl
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
@@ -13,39 +14,25 @@ import DeleteIcon from '@mui/icons-material/Delete';
 
 const CoursesManagement = () => {
   const { t } = useTranslation();
-  const [courses, setCourses] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [formMessage, setFormMessage] = useState({ text: '', type: '' });
-
+  const [formMessage, setFormMessage] = useState({ key: '', options: {}, type: 'success' });
   const [isEditing, setIsEditing] = useState(false);
   const [currentCourseId, setCurrentCourseId] = useState(null);
-  
+  const [showStats, setShowStats] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+
   const initialState = {
     name: '', code: '', description: '', credits: '', department: '',
     yearOfStudy: 1, semester: 1, specialization: 'General',
     professors: { lecture: '', seminar: '', lab: '' }
   };
   const [formData, setFormData] = useState(initialState);
-
-  const fetchCourses = useCallback(async () => {
-    try {
-      setLoading(true);
-      const response = await getAllCourses();
-      setCourses(response.data);
-      setError(null);
-    } catch (err) {
-      console.error("Failed to fetch courses:", err);
-      setError('fetch_courses_error');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchCourses();
-  }, [fetchCourses]);
-
+  
+  const resetForm = () => {
+    setIsEditing(false);
+    setCurrentCourseId(null);
+    setFormData(initialState);
+  };
+  
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     if (['lecture', 'seminar', 'lab'].includes(name)) {
@@ -54,95 +41,100 @@ const CoursesManagement = () => {
         setFormData(prev => ({ ...prev, [name]: value }));
     }
   };
-
-  const resetForm = () => {
-    setIsEditing(false);
-    setCurrentCourseId(null);
-    setFormData(initialState);
-  };
-
-  const getTranslatedError = (msg) => {
-    if (msg.includes('is required')) return 'course_form_error_required';
-    if (msg.includes('is less than minimum allowed value')) return 'course_credits_min_error';
-    if (msg.includes('A course with this code already exists')) return 'course_code_exists_error';
-    if (msg.includes('A course with this name already exists')) return 'course_name_exists_error';
-    return 'generic_error';
-  };
-
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setFormMessage({ text: '', type: '' });
-
-    const { name, code, credits, professors, yearOfStudy, semester, specialization } = formData;
-    if (!name.trim() || !code.trim() || !String(credits).trim() || !professors.lecture.trim() || !yearOfStudy || !semester || !specialization.trim()) {
-      setFormMessage({ text: 'course_form_error_all_fields', type: 'error' });
-      return;
+    setFormMessage({ key: '' });
+  
+    const { name, code, credits, professors } = formData;
+    if (!name.trim() || !code.trim() || !String(credits).trim() || !professors.lecture.trim()) {
+      setFormMessage({ key: 'course_form_error_all_fields', type: 'error' }); return;
     }
     const creditsNumber = Number(credits);
     if (!Number.isInteger(creditsNumber) || creditsNumber < 1) {
-      setFormMessage({ text: 'course_credits_integer_error', type: 'error' });
-      return;
+      setFormMessage({ key: 'course_credits_integer_error', type: 'error' }); return;
     }
     const courseData = { ...formData, credits: creditsNumber };
-
+  
     try {
       if (isEditing) {
         await updateCourse(currentCourseId, courseData);
-        setFormMessage({ text: 'course_updated_success', type: 'success' });
+        setFormMessage({ key: 'course_updated_success', options: { courseName: courseData.name }, type: 'success' });
       } else {
         await createCourse(courseData);
-        setFormMessage({ text: 'course_created_success', type: 'success' });
+        setFormMessage({ key: 'course_created_success', options: { courseName: courseData.name }, type: 'success' });
       }
       resetForm();
-      fetchCourses();
+      setRefreshKey(oldKey => oldKey + 1);
     } catch (err) {
-      const errorKey = err.response?.data?.msg ? getTranslatedError(err.response.data.msg) : 'generic_error';
-      setFormMessage({ text: errorKey, type: 'error' });
+      const msg = err.response?.data?.msg || '';
+      let errorKey = 'generic_error';
+      if (msg.includes('code already exists')) errorKey = 'course_code_exists_error';
+      else if (msg.includes('name already exists')) errorKey = 'course_name_exists_error';
+      setFormMessage({ key: errorKey, type: 'error' });
     }
   };
 
   const handleEditClick = (course) => {
-    setFormMessage({ text: '', type: '' });
+    setFormMessage({ key: '' });
     setIsEditing(true);
     setCurrentCourseId(course._id);
-    setFormData({
-      name: course.name,
-      code: course.code,
-      description: course.description || '',
-      credits: course.credits,
-      department: course.department || '',
-      yearOfStudy: course.yearOfStudy,
-      semester: course.semester,
-      specialization: course.specialization,
-      professors: course.professors || { lecture: '', seminar: '', lab: '' }
-    });
+    setFormData({ ...initialState, ...course });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
-
+  
   const handleDeleteClick = async (courseId) => {
     if (window.confirm(t('delete_course_confirm'))) {
       try {
         await deleteCourse(courseId);
-        setFormMessage({ text: 'course_deleted_success', type: 'success' });
-        fetchCourses();
+        setFormMessage({ key: 'course_deleted_success', type: 'success' });
+        setRefreshKey(oldKey => oldKey + 1);
       } catch (err) {
-        setFormMessage({ text: 'delete_course_error', type: 'error' });
+        setFormMessage({ key: 'delete_course_error', type: 'error' });
       }
     }
   };
 
-  if (loading) return <div>{t('loading_courses')}</div>;
-  if (error) return <Alert severity="error">{t(error)}</Alert>;
+  const courseColumns = [
+    { id: 'code', label: 'course_code_label', sortable: true },
+    { id: 'name', label: 'course_name_label', sortable: true },
+    { id: 'yearOfStudy', label: 'course_year_label', sortable: true },
+    { id: 'semester', label: 'course_semester_label', sortable: true },
+    { id: 'professors.lecture', label: 'lecture_professor_label', sortable: true, renderCell: (row) => row.professors?.lecture || 'N/A' },
+    {
+      id: 'actions',
+      label: 'actions_label',
+      align: 'center',
+      renderCell: (row) => (
+        <>
+          <IconButton onClick={() => handleEditClick(row)} color="primary"><EditIcon /></IconButton>
+          <IconButton onClick={() => handleDeleteClick(row._id)} color="error"><DeleteIcon /></IconButton>
+        </>
+      )
+    }
+  ];
 
   return (
-    <Container maxWidth="lg" sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <Container maxWidth="xl" sx={{ pt: 2, pb: 4 }}>
       <BackButton />
       <Typography variant="h4" component="h1" gutterBottom sx={{ textAlign: 'center' }}>
         {t('courses_management_title')}
       </Typography>
 
+      {formMessage.key && (
+        <Alert severity={formMessage.type} sx={{ mb: 2 }} onClose={() => setFormMessage({ key: '' })}>
+          {t(formMessage.key, formMessage.options)}
+        </Alert>
+      )}
+      
+      <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+        <Button variant="outlined" onClick={() => setShowStats(prev => !prev)}>
+          {showStats ? t('hide_stats') : t('show_stats')}
+        </Button>
+      </Box>
+
       <Paper sx={{ p: { xs: 2, md: 3 }, mb: 4 }}>
-        <Typography variant="h5" component="h2" gutterBottom>
+        <Typography variant="h5" component="h2" gutterBottom sx={{ textAlign: 'center' }}>
           {isEditing ? t('edit_course_title') : t('add_new_course_title')}
         </Typography>
         <Box component="form" onSubmit={handleSubmit} noValidate>
@@ -176,34 +168,14 @@ const CoursesManagement = () => {
         {formMessage.text && <Alert severity={formMessage.type} sx={{ mt: 2 }}>{t(formMessage.text)}</Alert>}
       </Paper>
 
-      <Paper sx={{ p: { xs: 2, md: 3 } }}>
-        <Typography variant="h5" component="h2" gutterBottom>{t('existing_courses_title')}</Typography>
-        <TableContainer>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>{t('course_code_label')}</TableCell>
-                <TableCell>{t('course_name_label')}</TableCell>
-                <TableCell>{t('lecture_professor_label')}</TableCell>
-                <TableCell align="center">{t('actions_label')}</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {courses.map((course) => (
-                <TableRow key={course._id}>
-                  <TableCell>{course.code}</TableCell>
-                  <TableCell>{course.name}</TableCell>
-                  <TableCell>{course.professors?.lecture}</TableCell>
-                  <TableCell align="center">
-                    <IconButton onClick={() => handleEditClick(course)} color="primary"><EditIcon /></IconButton>
-                    <IconButton onClick={() => handleDeleteClick(course._id)} color="error"><DeleteIcon /></IconButton>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Paper>
+      {showStats && <CoursesByYearChart />}
+
+      <PaginatedTable
+        columns={courseColumns}
+        fetchDataFunction={getPaginatedCourses}
+        refreshKey={refreshKey}
+        titleKey="existing_courses_title"
+      />
     </Container>
   );
 };
