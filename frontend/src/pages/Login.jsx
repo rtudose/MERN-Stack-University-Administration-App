@@ -12,6 +12,7 @@ function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
+  const [formMessage, setFormMessage] = useState({ key: '', type: 'success' });
   const [isError, setIsError] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -28,7 +29,6 @@ function Login() {
     }
   }, [isAuthenticated, user, navigate]);
 
-  // NEW: Helper function to map backend errors to translation keys
   const getTranslatedErrorMessage = (backendMsg) => {
     switch (backendMsg) {
       case 'Invalid Credentials':
@@ -57,9 +57,7 @@ function Login() {
 
     try {
       await login(email, password);
-      // The useEffect will handle successful navigation
     } catch (error) {
-      // UPDATED: Use the new error mapping function
       const errorMsg = error.response?.data?.msg 
         ? getTranslatedErrorMessage(error.response.data.msg)
         : t('login_failed_generic');

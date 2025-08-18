@@ -172,11 +172,11 @@ const Users = () => {
             {isEditing ? t('edit_user_title') : t('add_new_user_title')}
           </Typography>
           <Box component="form" onSubmit={handleSubmit} noValidate>
-            <Grid container spacing={2}>
-              <Grid item xs={12} md={6}><TextField fullWidth required name="username" label={t('username_label')} value={formData.username} onChange={handleInputChange} /></Grid>
-              <Grid item xs={12} md={6}><TextField fullWidth required name="email" label={t('email_label')} type="email" value={formData.email} onChange={handleInputChange} /></Grid>
-              {!isEditing && (<Grid item xs={12} md={6}><TextField fullWidth required name="password" label={t('password_label')} type="password" value={formData.password} onChange={handleInputChange} inputProps={{ minLength: 6 }} /></Grid>)}
-              <Grid item xs={12} md={isEditing ? 12 : 6}>
+            <Grid container spacing={2} sx={{ width: '100%' }}>
+              <Grid size={{ xs: 12, md: 6 }}><TextField fullWidth required name="username" label={t('username_label')} value={formData.username} onChange={handleInputChange} /></Grid>
+              <Grid size={{ xs: 12, md: 6 }}><TextField fullWidth required name="email" label={t('email_label')} type="email" value={formData.email} onChange={handleInputChange} /></Grid>
+              {!isEditing && (<Grid size={{ xs: 12, md: 6 }}><TextField fullWidth required name="password" label={t('password_label')} type="password" value={formData.password} onChange={handleInputChange} inputProps={{ minLength: 6 }} /></Grid>)}
+              <Grid size={{ xs: 12, md: isEditing ? 12 : 6 }}>
                 <FormControl fullWidth required>
                   <InputLabel id="role-select-label">{t('role_label')}</InputLabel>
                   <Select labelId="role-select-label" name="role" value={formData.role} label={t('role_label')} onChange={handleInputChange}>
@@ -189,7 +189,7 @@ const Users = () => {
               </Grid>
               {formData.role === 'student' && (
                 <>
-                  <Grid item xs={12} md={4}>
+                  <Grid size={{ xs: 12, md: 4 }}>
                     <FormControl fullWidth required>
                       <InputLabel id="year-select-label">{t('course_year_label')}</InputLabel>
                       <Select labelId="year-select-label" name="yearOfStudy" value={formData.studentDetails.yearOfStudy} label={t('course_year_label')} onChange={handleInputChange}>
@@ -197,10 +197,10 @@ const Users = () => {
                       </Select>
                     </FormControl>
                   </Grid>
-                  <Grid item xs={12} md={4}>
+                  <Grid size={{ xs: 12, md: 4 }}>
                     <TextField fullWidth required name="specialization" label={t('course_specialization_label')} value={formData.studentDetails.specialization} onChange={handleInputChange} />
                   </Grid>
-                  <Grid item xs={12} md={4}>
+                  <Grid size={{ xs: 12, md: 4 }}>
                     <TextField fullWidth required name="group" label={t('user_group_label')} value={formData.studentDetails.group} onChange={handleInputChange} />
                   </Grid>
                 </>

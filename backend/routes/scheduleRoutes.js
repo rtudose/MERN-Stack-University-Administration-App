@@ -21,6 +21,8 @@ router.get('/:id', auth, scheduleController.getScheduleEntryById);
 
 router.put('/:id', adminOnly, scheduleController.updateScheduleEntry);
 
+router.get('/stats/professor-workload', adminOnly, scheduleController.getProfessorWorkloadStats);
+
 router.delete('/:id', adminOnly, scheduleController.deleteScheduleEntry);
 
 module.exports = router;

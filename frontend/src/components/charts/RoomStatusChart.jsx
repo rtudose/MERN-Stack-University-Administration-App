@@ -27,7 +27,7 @@ const RoomStatusChart = () => {
 
     return (
         <Paper sx={{ p: 2, mb: 2 }}>
-            <Typography variant="h5" component="h2" gutterBottom>
+            <Typography variant="h5" component="h2" gutterBottom sx={{ textAlign: 'center' }}>
                 {t('rooms_by_status')}
             </Typography>
             {chartData.length > 0 ? (

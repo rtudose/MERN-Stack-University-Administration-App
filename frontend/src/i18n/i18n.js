@@ -255,6 +255,11 @@ const resources = {
       "my_schedule_teacher_title": "My Teaching Schedule",
       "search_for_a_room": "Search for a room",
       "search_for_a_course": "Search for a course",
+      "show_professor_stats": "Show Professor Stats",
+      "hide_professor_stats": "Hide Professor Stats",
+      "professor_workload": "Number of teaching hours per week",
+      "total_hours": "Total Hours",
+      "professor": "Professor",
 
       // Appointments Page
       "book_appointment_button": "Book Secretariat Appointment",
@@ -577,6 +582,11 @@ const resources = {
       "my_schedule_teacher_title": "Orarul Meu (Cadru Didactic)",
       "search_for_a_room": "Caută o sală",
       "search_for_a_course": "Caută un curs",
+      "show_professor_stats": "Arată Statistici Profesori",
+      "hide_professor_stats": "Ascunde Statistici Profesori",
+      "professor_workload": "Număr de ore de predare per săptămână",
+      "total_hours": "Total Ore",
+      "professor": "Profesor",
 
       // Appointments Page
       "book_appointment_button": "Programare Secretariat",

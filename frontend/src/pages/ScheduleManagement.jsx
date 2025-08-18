@@ -5,6 +5,7 @@ import { createScheduleEntry, deleteScheduleEntry, updateScheduleEntry, getPagin
 import PaginatedTable from '../components/common/PaginatedTable';
 import CourseAutocomplete from '../components/common/CourseAutocomplete';
 import RoomAutocomplete from '../components/common/RoomAutocomplete';
+import ProfessorWorkloadList from '../components/charts/ProfessorWorkloadList';
 import BackButton from '../components/BackButton';
 import {
   Container, Typography, Paper, IconButton, Alert, Box, Grid, FormControl,
@@ -25,6 +26,7 @@ const ScheduleManagement = () => {
   const [selectedCourseDetails, setSelectedCourseDetails] = useState(null);
   const [selectedRoom, setSelectedRoom] = useState(null);
   const [selectedRoomDetails, setSelectedRoomDetails] = useState(null);
+  const [showStats, setShowStats] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const [isEditing, setIsEditing] = useState(false);
   const [currentEntryId, setCurrentEntryId] = useState(null);
@@ -51,16 +53,20 @@ const ScheduleManagement = () => {
   
   const handleCourseSelect = (course) => {
     setSelectedCourse(course);
+    setSelectedCourseDetails(course);
     setFormData(prev => ({ ...prev, course: course ? course._id : '', semester: course ? course.semester : 1 }));
   };
   const handleRoomSelect = (room) => {
     setSelectedRoom(room);
+    setSelectedRoomDetails(room);
     setFormData(prev => ({ ...prev, room: room ? room._id : '' }));
   };
 
   const resetForm = () => {
       setIsEditing(false);
       setCurrentEntryId(null);
+      setSelectedCourse(null);
+      setSelectedRoom(null);
       setSelectedCourseDetails(null);
       setSelectedRoomDetails(null);
       setFormData(initialState);
@@ -77,6 +83,13 @@ const ScheduleManagement = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setFormMessage({ key: '', type: '' });
+
+    const { course, room, dayOfWeek, startTime, endTime, type, academicYear, semester } = formData;
+    if (!course || !room || !dayOfWeek || !startTime || !endTime || !type || !academicYear || !semester) {
+        setFormMessage({ key: 'form_error_all_fields', type: 'error' });
+        return;
+    }
+
     try {
       if (isEditing) {
         await updateScheduleEntry(currentEntryId, formData);
@@ -160,33 +173,44 @@ const ScheduleManagement = () => {
       <Typography variant="h4" component="h1" gutterBottom sx={{ textAlign: 'center' }}>
         {t('schedule_management_title')}
       </Typography>
-      {formMessage.text && 
+      {formMessage.key && 
         <Alert 
           severity={formMessage.type} 
           sx={{ mb: 2 }} 
           onClose={() => setFormMessage({ key: '', type: '' })}
         >
-          {t(formMessage.text, { 
+          {t(formMessage.key, { 
             ...formMessage.details, 
             dayOfWeek: formMessage.details?.dayOfWeek ? t(`day_${formMessage.details.dayOfWeek}`) : ''
           })}
         </Alert>
       }
 
+      <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+        <Button variant="outlined" onClick={() => setShowStats(prev => !prev)}>
+          {showStats ? t('hide_professor_stats') : t('show_professor_stats')}
+        </Button>
+      </Box>
+
       <Paper sx={{ p: 3, mb: 4 }}>
         <Typography variant="h5" component="h2" gutterBottom>
           {isEditing ? t('edit_entry_button') : t('add_schedule_entry_title')}
         </Typography>
         <Box component="form" onSubmit={handleSubmit} noValidate>
-          <Grid container spacing={2}>
-          <Grid item xs={12} md={6}><CourseAutocomplete value={selectedCourse} onChange={handleCourseSelect} /></Grid>
-          <Grid item xs={12} md={6}><RoomAutocomplete value={selectedRoom} onChange={handleRoomSelect} /></Grid>
+          <Grid container spacing={2} sx={{ width: '100%' }}>
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <CourseAutocomplete value={selectedCourse} onChange={handleCourseSelect} />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <RoomAutocomplete value={selectedRoom} onChange={handleRoomSelect} />
+            </Grid>
+
             {(selectedCourseDetails || selectedRoomDetails) && (
-              <Grid item xs={12}>
+              <Grid size={ 12 }>
                 <Paper variant="outlined" sx={{ p: 2, bgcolor: 'action.hover' }}>
-                    <Grid container spacing={2}>
+                    <Grid container spacing={2} sx={{ width: '100%' }}>
                         {selectedCourseDetails && (
-                            <Grid item xs={12} sm={6}>
+                            <Grid size={{ xs: 12, sm: 6 }}>
                                 <Typography variant="subtitle2" gutterBottom>{t('course_details_label')}</Typography>
                                 <Stack direction="row" spacing={3}>
                                     <TextField label={t('course_year_label')} value={selectedCourseDetails.yearOfStudy} InputProps={{ readOnly: true }} variant="standard" />
@@ -195,7 +219,7 @@ const ScheduleManagement = () => {
                             </Grid>
                         )}
                         {selectedRoomDetails && (
-                            <Grid item xs={12} sm={6}>
+                            <Grid size={{ xs: 12, sm: 6 }}>
                                 <Typography variant="subtitle2" gutterBottom>{t('room_details_label')}</Typography>
                                 <Stack direction="row" spacing={3}>
                                     <TextField label={t('room_capacity_label')} value={selectedRoomDetails.capacity} InputProps={{ readOnly: true }} variant="standard" />
@@ -213,13 +237,27 @@ const ScheduleManagement = () => {
                 </Paper>
               </Grid>
             )}
-            <Grid item xs={12} sm={6} md={3}><FormControl fullWidth required><InputLabel>{t('day_of_week_label')}</InputLabel><Select name="dayOfWeek" value={formData.dayOfWeek} label={t('day_of_week_label')} onChange={handleInputChange}>{dayOfWeekKeys.map(d => <MenuItem key={d} value={d}>{t(`day_${d}`)}</MenuItem>)}</Select></FormControl></Grid>
-            <Grid item xs={12} sm={6} md={3}><TextField fullWidth required name="startTime" label={t('start_time_label')} type="time" value={formData.startTime} onChange={handleInputChange} InputLabelProps={{ shrink: true }} /></Grid>
-            <Grid item xs={12} sm={6} md={3}><TextField fullWidth required name="endTime" label={t('end_time_label')} type="time" value={formData.endTime} onChange={handleInputChange} InputLabelProps={{ shrink: true }} /></Grid>
-            <Grid item xs={12} sm={6} md={3}><FormControl fullWidth required><InputLabel>{t('type_label')}</InputLabel><Select name="type" value={formData.type} label={t('type_label')} onChange={handleInputChange}>{activityTypeKeys.map(typeKey => <MenuItem key={typeKey} value={typeKey}>{t(`type_${typeKey}`)}</MenuItem>)}</Select></FormControl></Grid>
-            <Grid item xs={12} sm={4}><TextField fullWidth name="group" label={t('group_label')} value={formData.group} onChange={handleInputChange} helperText={t('group_helper_text')} /></Grid>
-            <Grid item xs={12} sm={4}><FormControl fullWidth required><InputLabel>{t('academic_year_label')}</InputLabel><Select name="academicYear" value={formData.academicYear} label={t('academic_year_label')} onChange={handleInputChange}>{academicYears.map(y => <MenuItem key={y} value={y}>{y}</MenuItem>)}</Select></FormControl></Grid>
-            <Grid item xs={12} sm={4}><FormControl fullWidth required disabled={!!selectedCourseDetails}><InputLabel>{t('semester_label')}</InputLabel><Select name="semester" value={formData.semester} label={t('semester_label')} onChange={handleInputChange}>{semesterKeys.map(s => <MenuItem key={s} value={s}>{t(`semester_${s}`)}</MenuItem>)}</Select></FormControl></Grid>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+              <FormControl fullWidth required><InputLabel>{t('day_of_week_label')}</InputLabel><Select name="dayOfWeek" value={formData.dayOfWeek} label={t('day_of_week_label')} onChange={handleInputChange}>{dayOfWeekKeys.map(d => <MenuItem key={d} value={d}>{t(`day_${d}`)}</MenuItem>)}</Select></FormControl>
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+              <TextField fullWidth required name="startTime" label={t('start_time_label')} type="time" value={formData.startTime} onChange={handleInputChange} InputLabelProps={{ shrink: true }} />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+              <TextField fullWidth required name="endTime" label={t('end_time_label')} type="time" value={formData.endTime} onChange={handleInputChange} InputLabelProps={{ shrink: true }} />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+              <FormControl fullWidth required><InputLabel>{t('type_label')}</InputLabel><Select name="type" value={formData.type} label={t('type_label')} onChange={handleInputChange}>{activityTypeKeys.map(typeKey => <MenuItem key={typeKey} value={typeKey}>{t(`type_${typeKey}`)}</MenuItem>)}</Select></FormControl>
+            </Grid>
+            <Grid size={{ xs: 12, sm: 4 }}>
+              <TextField fullWidth name="group" label={t('group_label')} value={formData.group} onChange={handleInputChange} helperText={t('group_helper_text')} />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 4 }}>
+              <FormControl fullWidth required><InputLabel>{t('academic_year_label')}</InputLabel><Select name="academicYear" value={formData.academicYear} label={t('academic_year_label')} onChange={handleInputChange}>{academicYears.map(y => <MenuItem key={y} value={y}>{y}</MenuItem>)}</Select></FormControl>
+            </Grid>
+            <Grid size={{ xs: 12, sm: 4 }}>
+              <FormControl fullWidth required disabled={!!selectedCourseDetails}><InputLabel>{t('semester_label')}</InputLabel><Select name="semester" value={formData.semester} label={t('semester_label')} onChange={handleInputChange}>{semesterKeys.map(s => <MenuItem key={s} value={s}>{t(`semester_${s}`)}</MenuItem>)}</Select></FormControl>
+            </Grid>
           </Grid>
           <Stack direction="row" spacing={2} sx={{ mt: 3 }}>
             <Button type="submit" variant="contained">
@@ -234,6 +272,8 @@ const ScheduleManagement = () => {
         </Box>
       </Paper>
       
+      {showStats && <ProfessorWorkloadList />}
+
       <PaginatedTable
         columns={scheduleColumns}
         fetchDataFunction={getPaginatedSchedule}

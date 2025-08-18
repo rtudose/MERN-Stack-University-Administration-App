@@ -29,6 +29,10 @@ const getTeacherSchedule = () => {
   return api.get('/api/schedule/my-teacher-schedule');
 };
 
+const getProfessorWorkloadStats = () => {
+  return api.get('/api/schedule/stats/professor-workload');
+};
+
 export {
   getAllScheduleEntries,
   createScheduleEntry,
@@ -37,4 +41,5 @@ export {
   getTeacherSchedule,
   updateScheduleEntry,
   getPaginatedSchedule,
+  getProfessorWorkloadStats,
 };

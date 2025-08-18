@@ -1,10 +1,11 @@
 // src/App.jsx
-import React from 'react';
+import React, { useContext } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
-import { useTranslation } from 'react-i18next';
-import { ColorModeProvider } from './context/ThemeContext';
+import { ColorModeContext, ColorModeProvider } from './context/ThemeContext';
 import { CssBaseline, Box } from '@mui/material';
+import { ThemeProvider } from '@mui/material/styles';
+import { getCustomTheme } from './theme/theme';
 
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -18,19 +19,15 @@ import MyReservations from './pages/MyReservations';
 import MySchedulePage from './pages/MySchedule.jsx';
 import AdminDashboard from './pages/AdminDashboard';
 import ReservationsManagement from './pages/ReservationsManagement';
-import ScheduleManagement from './pages/ScheduleManagement';
+import ScheduleManagement from './pages/ScheduleManagement.jsx';
 import AppointmentsManagement from './pages/AppointmentsManagement';
 // import Register from './pages/Register'; // Uncomment if you have a register page
 import ProtectedRoute from './components/ProtectedRoute';
 import Navbar from './components/Navbar';
 
 
-function App() {
-  const { t } = useTranslation();
-
+function AppContent() {
   return (
-    <ColorModeProvider>
-      <CssBaseline />
       <Router>
         <AuthProvider>
           <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
@@ -77,6 +74,27 @@ function App() {
           </Box>
         </AuthProvider>
       </Router>
+  );
+}
+
+const ThemeWrapper = ({ children }) => {
+  const { mode } = useContext(ColorModeContext);
+  const theme = React.useMemo(() => getCustomTheme(mode), [mode]);
+
+  return (
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      {children}
+    </ThemeProvider>
+  );
+};
+
+function App() {
+  return (
+    <ColorModeProvider>
+      <ThemeWrapper>
+        <AppContent />
+      </ThemeWrapper>
     </ColorModeProvider>
   );
 }

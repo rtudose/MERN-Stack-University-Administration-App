@@ -19,11 +19,11 @@ const StudentRegistrationChart = () => {
             }
         };
         fetchStats();
-    }, []); // Runs once on component mount
+    }, []);
 
     return (
         <Paper sx={{ p: 2, mb: 2 }}>
-            <Typography variant="h5" component="h2" gutterBottom>
+            <Typography variant="h5" component="h2" gutterBottom sx={{ textAlign: 'center' }}>
                 {t('student_registration_evolution')}
             </Typography>
             {statsData.length > 0 ? (

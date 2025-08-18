@@ -1,14 +1,14 @@
 // src/theme/theme.js
 import { createTheme } from '@mui/material/styles';
 
-const getCustomTheme = (mode) => createTheme({
+export const getCustomTheme = (mode) => createTheme({
   palette: {
     mode,
     primary: { main: '#1976d2' },
     secondary: { main: '#ffa000' },
     background: {
-        default: mode === 'dark' ? '#121212' : '#f0f2f5',
-        paper: mode === 'dark' ? '#1e1e1e' : '#ffffff',
+        default: mode === 'dark' ? '#000000' : '#f0f2f5',
+        paper: mode === 'dark' ? '#111111' : '#ffffff',
     },
   },
   shape: {
@@ -21,10 +21,9 @@ const getCustomTheme = (mode) => createTheme({
   components: {
     MuiPaper: {
       styleOverrides: {
-        root: ({ theme }) => ({
+        root: {
           backgroundImage: 'none',
-          border: `1px solid ${theme.palette.divider}`,
-        }),
+        },
       },
     },
     MuiTableContainer: {
@@ -34,30 +33,12 @@ const getCustomTheme = (mode) => createTheme({
             }),
         },
     },
-    /* MuiTableBody: {
-        styleOverrides: {
-            root: {
-                '& tr:last-child td, & tr:last-child th': {
-                    border: 0,
-                },
-            },
-        },
-    },
-    */
     MuiTableCell: {
       styleOverrides: {
         stickyHeader: ({ theme }) => ({
             backgroundColor: theme.palette.mode === 'dark' ? theme.palette.grey[800] : theme.palette.grey[200],
-            '&:first-of-type': {
-                borderTopLeftRadius: theme.shape.borderRadius,
-            },
-            '&:last-of-type': {
-                borderTopRightRadius: theme.shape.borderRadius,
-            },
         }),
       }
     },
   },
 });
-
-export default getCustomTheme;

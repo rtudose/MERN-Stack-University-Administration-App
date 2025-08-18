@@ -306,6 +306,10 @@ const checkOverlap = (existingEntry, newEntry) => {
                 });
                 sortStage = { $sort: { typeOrder: sortOrder, startTime: 1 } };
                 break;
+            case 'startTime':
+                sortStage = { $sort: { startTime: sortOrder } };
+                break;
+                
             default:
                 sortStage = { $sort: { [sortBy]: sortOrder, startTime: 1 } };
         }
@@ -344,6 +348,71 @@ const checkOverlap = (existingEntry, newEntry) => {
     }
 };
 
+const getProfessorWorkloadStats = async (req, res) => {
+    try {
+        const stats = await ScheduleEntry.aggregate([
+            { $lookup: { from: 'courses', localField: 'course', foreignField: '_id', as: 'course' } },
+            { $unwind: '$course' },
+
+            {
+                $addFields: {
+                    durationHours: {
+                        $divide: [
+                            { 
+                                $subtract: [
+                                    { $dateFromString: { dateString: { $concat: ["2025-01-01T", "$endTime", ":00Z"] } } },
+                                    { $dateFromString: { dateString: { $concat: ["2025-01-01T", "$startTime", ":00Z"] } } }
+                                ] 
+                            },
+                            3600000
+                        ]
+                    }
+                }
+            },
+            
+            {
+                $addFields: {
+                    professorName: {
+                        $switch: {
+                            branches: [
+                                { case: { $eq: ['$type', 'Lecture'] }, then: '$course.professors.lecture' },
+                                { case: { $eq: ['$type', 'Seminar'] }, then: '$course.professors.seminar' },
+                                { case: { $eq: ['$type', 'Lab'] }, then: '$course.professors.lab' },
+                            ],
+                            default: null
+                        }
+                    }
+                }
+            },
+            
+            { $match: { professorName: { $ne: null } } },
+
+            {
+                $group: {
+                    _id: '$professorName',
+                    totalHours: { $sum: '$durationHours' }
+                }
+            },
+
+            { $sort: { totalHours: -1 } },
+
+            { $limit: 10 },
+
+            {
+                $project: {
+                    _id: 0,
+                    professor: '$_id',
+                    hours: '$totalHours'
+                }
+            }
+        ]);
+        res.json(stats);
+    } catch (err) {
+        console.error("Error fetching professor workload stats:", err);
+        res.status(500).send('Server Error');
+    }
+};
+
 const deleteScheduleEntry = async (req, res) => {
     try {
         const scheduleEntry = await ScheduleEntry.findByIdAndDelete(req.params.id);
@@ -362,5 +431,6 @@ module.exports = {
     createScheduleEntry,
     updateScheduleEntry,
     getScheduleEntryById,
+    getProfessorWorkloadStats,
     deleteScheduleEntry
 };

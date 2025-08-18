@@ -25,7 +25,7 @@ const CoursesByYearChart = () => {
 
     return (
         <Paper sx={{ p: 2, mb: 2 }}>
-            <Typography variant="h5" component="h2" gutterBottom>
+            <Typography variant="h5" component="h2" gutterBottom sx={{ textAlign: 'center' }}>
                 {t('courses_by_year')}
             </Typography>
             <Box sx={{ height: 300 }}>
