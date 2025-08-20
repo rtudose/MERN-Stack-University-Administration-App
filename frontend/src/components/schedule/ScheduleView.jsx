@@ -27,9 +27,9 @@ const ScheduleView = ({ schedule, title }) => {
       <Typography variant="h4" component="h1" gutterBottom sx={{ textAlign: 'center' }}>
         {title}
       </Typography>
-      <Grid container spacing={2}>
+      <Grid container spacing={2} sx={{ width: '100%' }}>
         {daysOfWeek.map((day) => (
-          <Grid item xs={12} md={6} lg={2.4} key={day}>
+          <Grid size={{ xs: 12, md: 6, lg: 2.4 }} key={day}>
             <Paper sx={{ p: 2, height: '100%' }}>
               <Typography variant="h6" align="center" gutterBottom>{t(`day_${day}`)}</Typography>
               {scheduleByDay[day].length === 0 ? (

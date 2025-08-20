@@ -1,0 +1,286 @@
+// backend/controllers/appointmentController.js
+const Appointment = require('../models/Appointment');
+const User = require('../models/User');
+
+const parseTime = (timeStr) => {
+    const [hours, minutes] = timeStr.split(':').map(Number);
+    return hours * 60 + minutes;
+};
+
+const checkTimeOverlap = (start1, end1, start2, end2) => {
+    const s1 = parseTime(start1);
+    const e1 = parseTime(end1);
+    const s2 = parseTime(start2);
+    const e2 = parseTime(end2);
+    return s2 < e1 && e2 > s1;
+};
+
+
+const getAvailableSlots = async (req, res) => {
+    const { date } = req.query;
+    if (!date) {
+        return res.status(400).json({ msg: 'Date parameter is required.' });
+    }
+
+    try {
+        const queryDate = new Date(date);
+        queryDate.setHours(0, 0, 0, 0);
+
+        const appointmentsForDay = await Appointment.find({
+            date: queryDate,
+            status: { $in: ['pending', 'confirmed', 'completed'] }
+        }).select('startTime endTime');
+
+        const allSlots = [];
+        for (let h = 9; h < 17; h++) {
+            for (let m = 0; m < 60; m += 15) {
+                const slotStart = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+
+                let endHour = h;
+                let endMinute = m + 15;
+
+                if (endMinute === 60) {
+                    endMinute = 0;
+                    endHour += 1;
+                }
+
+                const slotEnd = `${endHour.toString().padStart(2, '0')}:${endMinute.toString().padStart(2, '0')}`;
+
+                allSlots.push({ startTime: slotStart, endTime: slotEnd });
+            }
+        }
+
+        const availableSlots = allSlots.filter(slot => {
+            for (let existingAppt of appointmentsForDay) {
+                if (checkTimeOverlap(existingAppt.startTime, existingAppt.endTime, slot.startTime, slot.endTime)) {
+                    return false;
+                }
+            }
+            return true;
+        });
+
+        res.json(availableSlots);
+
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+};
+
+const createAppointment = async (req, res) => {
+    const { date, startTime, endTime, typeOfRequest, description } = req.body;
+    const studentId = req.user.id;
+
+    try {
+    const student = await User.findById(studentId);
+    if (!student) {
+      return res.status(404).json({ msg: 'Student not found.' });
+    }
+    if (student.role !== 'student' && student.role !== 'admin') {
+        return res.status(403).json({ msg: 'Only students or admins can book appointments.' });
+    }
+    const appointmentDate = new Date(date);
+    appointmentDate.setHours(0, 0, 0, 0);
+
+    const officeStart = parseTime("09:00");
+    const officeEnd = parseTime("17:00");
+
+    const requestedStart = parseTime(startTime);
+    const requestedEnd = parseTime(endTime);
+
+    if (requestedStart < officeStart || requestedEnd > officeEnd) {
+      return res.status(400).json({
+        msg: `Appointment times must be between 09:00 and 17:00.`
+      });
+     }
+
+    const existingStudentAppointments = await Appointment.find({
+        student: studentId,
+        date: appointmentDate,
+        status: { $in: ['pending', 'confirmed'] }
+    });
+
+    for (let appt of existingStudentAppointments) {
+        if (checkTimeOverlap(appt.startTime, appt.endTime, startTime, endTime)) {
+            return res.status(400).json({
+                msg: `You already have an appointment from ${appt.startTime} to ${appt.endTime} on this date.`
+            });
+        }
+    }
+
+    const newAppointment = new Appointment({
+      student: studentId,
+      date: appointmentDate,
+      startTime,
+      endTime,
+      typeOfRequest,
+      description,
+      status: 'pending'
+    });
+
+    await newAppointment.save();
+
+    res.status(201).json({ msg: 'Appointment request submitted successfully. Awaiting confirmation.', appointment: newAppointment });
+
+  } catch (err) {
+    console.error(err.message);
+    if (err.name === 'Error' && err.message.includes('End time must be after start time')) {
+        return res.status(400).json({ msg: err.message });
+    }
+    if (err.kind === 'ObjectId') {
+        return res.status(400).json({ msg: 'Invalid Student ID or data.' });
+    }
+    res.status(500).send('Server Error');
+  }  
+};
+
+const getAppointmentById = async (req, res) => {
+    try {
+        const appointment = await Appointment.findById(req.params.id)
+                                                .populate('student', ['username', 'email']);
+        if (!appointment) {
+          return res.status(404).json({ msg: 'Appointment not found' });
+        }
+    
+        if (req.user.role === 'student' && appointment.student._id.toString() !== req.user.id) {
+            return res.status(403).json({ msg: 'Access denied: You can only view your own appointments.' });
+        }
+    
+        res.json(appointment);
+      } catch (err) {
+        console.error(err.message);
+        if (err.kind === 'ObjectId') {
+          return res.status(400).json({ msg: 'Invalid Appointment ID' });
+        }
+        res.status(500).send('Server Error');
+      }
+};
+
+const updateAppointmentStatus = async (req, res) => {
+    const { status, secretariatNotes } = req.body;
+
+  try {
+    let appointment = await Appointment.findById(req.params.id);
+    if (!appointment) {
+      return res.status(404).json({ msg: 'Appointment not found' });
+    }
+
+    if (!['confirmed', 'completed', 'cancelled'].includes(status)) {
+        return res.status(400).json({ msg: 'Invalid status provided.' });
+    }
+
+    appointment.status = status;
+    if (secretariatNotes) appointment.secretariatNotes = secretariatNotes;
+
+    await appointment.save();
+    // TODO: Send notification emails for status change (future)
+    res.json({ msg: `Appointment status updated to ${status}`, appointment });
+
+  } catch (err) {
+    console.error(err.message);
+    if (err.kind === 'ObjectId') {
+      return res.status(400).json({ msg: 'Invalid Appointment ID' });
+    }
+    res.status(500).send('Server Error');
+  }
+};
+
+const deleteAppointment = async (req, res) => {
+    try {
+        const appointment = await Appointment.findByIdAndDelete(req.params.id);
+        if (!appointment) {
+          return res.status(404).json({ msg: 'Appointment not found' });
+        }
+        res.json({ msg: 'Appointment removed' });
+      } catch (err) {
+        console.error(err.message);
+        if (err.kind === 'ObjectId') {
+          return res.status(400).json({ msg: 'Invalid Appointment ID' });
+        }
+        res.status(500).send('Server Error');
+      }
+};
+
+const getMyAppointments = async (req, res) => {
+    try {
+        const appointments = await Appointment.find({ student: req.user.id })
+            .populate('student', ['username', 'email'])
+            .sort({ date: 1, startTime: 1 });
+        res.json(appointments);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+};
+
+const getPaginatedAppointments = async (req, res) => {
+    try {
+        const { page = 1, limit = 10, sortBy = 'date', order = 'asc' } = req.query;
+        const limitNum = parseInt(limit, 10);
+        const pageNum = parseInt(page, 10);
+        const sortOrder = order === 'asc' ? 1 : -1;
+
+        const sortOptions = {};
+        if (sortBy === 'startTime') {
+            sortOptions.startTime = sortOrder;
+            sortOptions.date = 1;
+        } else {
+            sortOptions[sortBy] = sortOrder;
+            sortOptions.startTime = 1;
+        }
+
+        const pipeline = [
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'student',
+                    foreignField: '_id',
+                    as: 'student'
+                }
+            },
+            
+            { $unwind: { path: '$student', preserveNullAndEmptyArrays: true } },
+
+            { $sort: sortOptions }
+        ];
+
+        const results = await Appointment.aggregate([
+            ...pipeline,
+            {
+                $facet: {
+                    data: [
+                        { $skip: (pageNum - 1) * limitNum },
+                        { $limit: limitNum },
+                    ],
+                    pagination: [{ $count: 'totalItems' }]
+                }
+            }
+        ]);
+
+        const appointments = results[0].data;
+        const totalItems = results[0].pagination[0]?.totalItems || 0;
+
+        res.json({
+            data: appointments,
+            pagination: {
+                currentPage: pageNum,
+                totalPages: Math.ceil(totalItems / limitNum),
+                totalItems,
+                limit: limitNum
+            }
+        });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+};
+
+module.exports = {
+    createAppointment,
+    getAvailableSlots,
+    getAppointmentById,
+    updateAppointmentStatus,
+    deleteAppointment,
+    getMyAppointments,
+    getPaginatedAppointments
+};

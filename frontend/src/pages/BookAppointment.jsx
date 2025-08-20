@@ -1,4 +1,4 @@
-// src/pages/BookAppointment.jsx (Corrected)
+// src/pages/BookAppointment.jsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getAvailableSlots, createAppointment } from '../services/appointmentService';
@@ -49,13 +49,12 @@ const BookAppointment = () => {
   };
 
   const handleBooking = async () => {
-    setMessage({ text: '', type: '' }); // Clear previous messages before new attempt
+    setMessage({ text: '', type: '' });
     if (!selectedSlot) {
       setMessage({ text: 'select_slot_error', type: 'error' });
       return;
     }
 
-    // --- NEW PAST-TENSE VALIDATION ---
     const now = new Date();
     const selectedDateTime = new Date(selectedDate);
     const [startHour, startMinute] = selectedSlot.startTime.split(':').map(Number);
@@ -65,7 +64,6 @@ const BookAppointment = () => {
       setMessage({ text: 'appointment_past_time_error', type: 'error' });
       return;
     }
-    // --- END VALIDATION ---
 
     try {
       const payload = {
@@ -76,7 +74,7 @@ const BookAppointment = () => {
         description: description,
       };
       await createAppointment(payload);
-      setMessage({ text: 'appointment_success', type: 'success' }); // This will now be visible
+      setMessage({ text: 'appointment_success', type: 'success' });
       setSelectedSlot(null);
       fetchSlots(selectedDate);
     } catch (err) {
@@ -92,12 +90,11 @@ const BookAppointment = () => {
         {t('book_appointment_title')}
       </Typography>
       
-      {/* THE FIX: This Alert component now correctly displays all messages */}
       {message.text && <Alert severity={message.type} sx={{ mb: 2 }} onClose={() => setMessage({ text: '', type: '' })}>{t(message.text, { fallback: message.text })}</Alert>}
 
       <Paper sx={{ p: 3 }}>
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={4}>
+        <Grid container spacing={3} sx={{ width: '100%' }}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <Typography variant="h6" gutterBottom>{t('step_1_title')}</Typography>
             <Stack spacing={2}>
               <TextField
@@ -130,15 +127,15 @@ const BookAppointment = () => {
             </Stack>
           </Grid>
 
-          <Grid item xs={12} md={8}>
+          <Grid size={{ xs: 12, md: 8 }}>
             <Typography variant="h6" gutterBottom>{t('step_2_title')}</Typography>
             {loadingSlots ? (
               <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}><CircularProgress /></Box>
             ) : (
               <Box sx={{ maxHeight: 300, overflowY: 'auto', pr: 1 }}>
-                <Grid container spacing={1}>
+                <Grid container spacing={1} sx={{ width: '100%' }}>
                   {availableSlots.length > 0 ? availableSlots.map(slot => (
-                    <Grid item xs={6} sm={4} key={slot.startTime}>
+                    <Grid size={{ xs: 12, sm: 4 }} key={slot.startTime}>
                       <Button
                         fullWidth
                         variant={selectedSlot?.startTime === slot.startTime ? 'contained' : 'outlined'}

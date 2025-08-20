@@ -1,52 +1,36 @@
 // src/pages/AppointmentsManagement.jsx
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { getAllAppointments, updateAppointmentStatus } from '../services/appointmentService';
+import { getPaginatedAppointments, updateAppointmentStatus } from '../services/appointmentService';
 import BackButton from '../components/BackButton';
 import { format } from 'date-fns';
 import {
-  Container, Typography, Paper, Table, TableBody, TableCell,
-  TableContainer, TableHead, TableRow, IconButton, Chip, Stack, Alert,
-  Dialog, DialogTitle, DialogContent, TextField, DialogActions, Button
+  Container, Typography, IconButton, Chip, Stack, Alert,
+  Dialog, DialogTitle, DialogContent, TextField, DialogActions, Button,
+  Tooltip, Box
 } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
 import DoneAllIcon from '@mui/icons-material/DoneAll';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import PaginatedTable from '../components/common/PaginatedTable';
 
 const AppointmentsManagement = () => {
   const { t } = useTranslation();
-  const [appointments, setAppointments] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [message, setMessage] = useState({ text: '', type: '' });
+  const [message, setMessage] = useState({ key: '', type: 'success' });
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentAppointment, setCurrentAppointment] = useState(null);
   const [rejectionNotes, setRejectionNotes] = useState('');
 
-  const fetchAppointments = useCallback(async () => {
-    try {
-      setLoading(true);
-      const response = await getAllAppointments();
-      setAppointments(response.data);
-    } catch (err) {
-      setError('fetch_appointments_error');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchAppointments();
-  }, [fetchAppointments]);
-
   const handleStatusUpdate = async (id, status, notes = '') => {
     try {
       await updateAppointmentStatus(id, { status, secretariatNotes: notes });
-      setMessage({ text: 'appointment_status_updated', type: 'success' });
-      fetchAppointments();
+      setMessage({ key: 'appointment_status_updated', type: 'success' });
+      setRefreshKey(prev => prev + 1);
     } catch (err) {
-      setMessage({ text: 'generic_error', type: 'error' });
+      setMessage({ key: 'generic_error', type: 'error' });
     }
   };
 
@@ -68,18 +52,58 @@ const AppointmentsManagement = () => {
     handleCloseModal();
   };
 
-  const getStatusChip = (status) => {
+  const getStatusChip = (status, notes) => {
     const color = {
       pending: 'warning',
       confirmed: 'success',
       completed: 'primary',
       cancelled: 'default',
     }[status];
-    return <Chip label={t(`appointment_status_${status}`)} color={color} size="small" />;
+
+    if (status === 'cancelled' && notes) {
+      return (
+        <Tooltip title={notes} arrow>
+          <Chip
+            label={
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                {t(`appointment_status_${status}`)}
+                <InfoOutlinedIcon sx={{ fontSize: '1rem' }} />
+              </Box>
+            }
+            color="error"
+            size="small"
+            sx={{ animation: 'subtleBounce 2s infinite ease-in-out' }}
+          />
+        </Tooltip>
+      );
+    }
+    
+    return <Chip label={t(`appointment_status_${status}`)} color={color || 'default'} size="small" />;
   };
 
-  if (loading) return <div>{t('loading_appointments')}</div>;
-  if (error) return <Alert severity="error">{t(error)}</Alert>;
+  const appointmentColumns = [
+    { id: 'status', label: 'status_label', sortable: true, renderCell: (row) => getStatusChip(row.status, row.secretariatNotes) },
+    { id: 'student.username', label: 'student_label', sortable: true, renderCell: (row) => row.student?.username || 'N/A' },
+    { id: 'date', label: 'date_label', sortable: true, renderCell: (row) => format(new Date(row.date), 'dd/MM/yyyy') },
+    { id: 'startTime', label: 'time_slot_label', sortable: true, renderCell: (row) => `${row.startTime} - ${row.endTime}` },
+    { id: 'typeOfRequest', label: 'request_type_label', sortable: true, renderCell: (row) => t(`request_${row.typeOfRequest.replace(/\s/g, '_')}`) },
+    { id: 'description', label: 'purpose_of_appointment_label', sortable: false, renderCell: (row) => row.description || 'N/A' },
+    { id: 'actions', label: 'actions_label', align: 'center', renderCell: (row) => (
+      <>
+        {row.status === 'pending' && (
+          <Stack direction="row" spacing={1} justifyContent="center">
+            <IconButton title={t('confirm_button')} color="success" onClick={() => handleStatusUpdate(row._id, 'confirmed')}><CheckCircleIcon /></IconButton>
+            <IconButton title={t('cancel_button')} color="error" onClick={() => handleOpenRejectionModal(row)}><CancelIcon /></IconButton>
+          </Stack>
+        )}
+        {row.status === 'confirmed' && (
+          <Button variant="outlined" size="small" startIcon={<DoneAllIcon />} onClick={() => handleStatusUpdate(row._id, 'completed')}>
+            {t('mark_completed_button')}
+          </Button>
+        )}
+      </>
+    )}
+  ];
 
   return (
     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
@@ -87,55 +111,14 @@ const AppointmentsManagement = () => {
       <Typography variant="h4" component="h1" gutterBottom sx={{ textAlign: 'center' }}>
         {t('appointments_management_title')}
       </Typography>
-      {message.text && <Alert severity={message.type} sx={{ mb: 2 }} onClose={() => setMessage({ text: '', type: '' })}>{t(message.text)}</Alert>}
+      {message.key && <Alert severity={message.type} sx={{ mb: 2 }} onClose={() => setMessage({ key: '', type: '' })}>{t(message.key)}</Alert>}
 
-      <Paper>
-        <TableContainer>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>{t('status_label')}</TableCell>
-                <TableCell>{t('student_label')}</TableCell>
-                <TableCell>{t('date_label')}</TableCell>
-                <TableCell>{t('time_slot_label')}</TableCell>
-                <TableCell>{t('request_type_label')}</TableCell>
-                <TableCell>{t('description_label')}</TableCell>
-                <TableCell align="center">{t('actions_label')}</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {appointments.map((appt) => (
-                <TableRow key={appt._id}>
-                  <TableCell>{getStatusChip(appt.status)}</TableCell>
-                  <TableCell>{appt.student?.username || 'N/A'}</TableCell>
-                  <TableCell>{format(new Date(appt.date), 'dd/MM/yyyy')}</TableCell>
-                  <TableCell>{`${appt.startTime} - ${appt.endTime}`}</TableCell>
-                  <TableCell>{t(`request_${appt.typeOfRequest.replace(/\s/g, '_')}`)}</TableCell>
-                  <TableCell>{appt.description}</TableCell>
-                  <TableCell align="center">
-                    {appt.status === 'pending' && (
-                      <Stack direction="row" spacing={1} justifyContent="center">
-                        <IconButton title={t('confirm_button')} color="success" onClick={() => handleStatusUpdate(appt._id, 'confirmed')}><CheckCircleIcon /></IconButton>
-                        <IconButton title={t('cancel_button')} color="error" onClick={() => handleOpenRejectionModal(appt)}><CancelIcon /></IconButton>
-                      </Stack>
-                    )}
-                    {appt.status === 'confirmed' && (
-                      <Button
-                        variant="outlined"
-                        size="small"
-                        startIcon={<DoneAllIcon />}
-                        onClick={() => handleStatusUpdate(appt._id, 'completed')}
-                      >
-                        {t('mark_completed_button')}
-                      </Button>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Paper>
+      <PaginatedTable
+        columns={appointmentColumns}
+        fetchDataFunction={getPaginatedAppointments}
+        refreshKey={refreshKey}
+        titleKey="appointments_table_title"
+      />
 
       <Dialog open={isModalOpen} onClose={handleCloseModal}>
         <DialogTitle>{t('rejection_reason_title')}</DialogTitle>

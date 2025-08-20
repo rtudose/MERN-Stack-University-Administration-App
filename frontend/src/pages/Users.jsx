@@ -160,13 +160,12 @@ const Users = () => {
         <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
             <Button
                 variant="outlined"
-                onClick={() => setShowStats(prev => !prev)} // 3. The button to toggle the state
+                onClick={() => setShowStats(prev => !prev)}
             >
                 {showStats ? t('hide_student_stats') : t('show_student_stats')}
             </Button>
         </Box>
 
-        {/* The Form Paper remains the same */}
         <Paper sx={{ p: { xs: 2, md: 3 }, mb: 2 }}>
           <Typography variant="h5" component="h2" gutterBottom sx={{ textAlign: 'center' }}>
             {isEditing ? t('edit_user_title') : t('add_new_user_title')}

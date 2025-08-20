@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { getStudentSchedule } from '../services/scheduleService';
 import { getTeacherSchedule } from '../services/scheduleService';
 import BackButton from '../components/BackButton';
-import ScheduleView from '../components/schedule/ScheduleView'; // Import the new view
+import ScheduleView from '../components/schedule/ScheduleView';
 import { Container, Alert } from '@mui/material';
 
 const MySchedulePage = () => {

@@ -21,7 +21,7 @@ const MyAppointments = () => {
       const response = await getMyAppointments();
       setAppointments(response.data);
     } catch (err) {
-      setError('fetch_appointments_error'); // Reusing a key, but you can create a specific one
+      setError('fetch_appointments_error');
     } finally {
       setLoading(false);
     }
