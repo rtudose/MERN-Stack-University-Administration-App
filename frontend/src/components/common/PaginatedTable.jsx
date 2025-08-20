@@ -75,7 +75,6 @@ const PaginatedTable = ({ columns, fetchDataFunction, refreshKey, titleKey }) =>
               <TableRow hover key={row._id}>
                 {columns.map((col) => (
                   <TableCell key={`${row._id}-${col.id}`} align={col.align || 'left'}>
-                    {/* The magic is here: renderCell handles custom rendering */}
                     {col.renderCell ? col.renderCell(row) : row[col.id]}
                   </TableCell>
                 ))}

@@ -183,6 +183,7 @@ const resources = {
       // Reservations Management Page
       "manage_reservations_button": "Manage Reservations",
       "reservations_management_title": "Reservations Management",
+      "reservations_table_title": "Active Reservations",
       "loading_reservations": "Loading reservations...",
       "fetch_reservations_error": "Failed to fetch reservations.",
       "reserved_by_label": "Reserved By",
@@ -192,6 +193,14 @@ const resources = {
       "status_rejected": "Rejected",
       "status_cancelled": "Cancelled",
       "reservation_status_updated": "Reservation status updated successfully.",
+      "hide_reservation_stats": "Hide Reservation Stats",
+      "show_reservation_stats": "Show Reservation Stats",
+      "reject_reservation_title": "Reject Reservation",
+      "rejection_note_label": "Rejection Note",
+      "rejection_note_helper": "Please provide a reason for rejecting the reservation.",
+      "all_statuses": "All Statuses",
+      "confirm_reject_button": "Confirm Rejection",
+      "filter_by_status": "Filter by Status",
 
       // My Reservations Page
       "my_reservations_button": "My Reservations",
@@ -511,6 +520,7 @@ const resources = {
       "manage_reservations_button": "Administrează Rezervări",
       "reservations_management_title": "Administrare Rezervări",
       "loading_reservations": "Se încarcă rezervările...",
+      "reservations_table_title": "Rezervări Active",
       "fetch_reservations_error": "Eroare la preluarea rezervărilor.",
       "reserved_by_label": "Rezervat de",
       "time_slot_label": "Interval Orar",
@@ -519,6 +529,14 @@ const resources = {
       "status_rejected": "Respinsă",
       "status_cancelled": "Anulată",
       "reservation_status_updated": "Starea rezervării a fost actualizată cu succes.",
+      "hide_reservation_stats": "Ascunde Statistici Rezervări",
+      "show_reservation_stats": "Arată Statistici Rezervări",
+      "filter_by_status": "Filtrare după status",
+      "all_statuses": "Toate Statusurile",
+      "reject_reservation_title": "Respinge Rezervare",
+      "rejection_note_label": "Notiță de Refuzare",
+      "rejection_note_helper": "Vă rog să furnizați o justificare pentru refuzarea rezervării.",
+      "confirm_reject_button": "Confirmă Refuzare",
 
       // My Reservations Page
       "my_reservations_button": "Rezervările Mele",

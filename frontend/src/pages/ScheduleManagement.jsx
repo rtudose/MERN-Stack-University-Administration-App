@@ -193,7 +193,7 @@ const ScheduleManagement = () => {
       </Box>
 
       <Paper sx={{ p: 3, mb: 4 }}>
-        <Typography variant="h5" component="h2" gutterBottom>
+        <Typography variant="h5" component="h2" gutterBottom sx={{ textAlign: 'center' }}>
           {isEditing ? t('edit_entry_button') : t('add_schedule_entry_title')}
         </Typography>
         <Box component="form" onSubmit={handleSubmit} noValidate>

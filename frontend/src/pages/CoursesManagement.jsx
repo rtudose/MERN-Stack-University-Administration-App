@@ -139,25 +139,25 @@ const CoursesManagement = () => {
         </Typography>
         <Box component="form" onSubmit={handleSubmit} noValidate>
           <Grid container spacing={2}>
-            <Grid item xs={12} md={6}><TextField fullWidth required name="name" label={t('course_name_label')} value={formData.name} onChange={handleInputChange} /></Grid>
-            <Grid item xs={12} md={3}><TextField fullWidth required name="code" label={t('course_code_label')} value={formData.code} onChange={handleInputChange} /></Grid>
-            <Grid item xs={12} md={3}><TextField fullWidth required name="credits" label={t('course_credits_label')} value={formData.credits} onChange={handleInputChange} type="number" inputProps={{ min: 1, step: 1 }} /></Grid>
+            <Grid size={{ xs: 12, md: 5 }}><TextField fullWidth required name="name" label={t('course_name_label')} value={formData.name} onChange={handleInputChange} /></Grid>
+            <Grid size={{ xs: 12, md: 5 }}><TextField fullWidth required name="code" label={t('course_code_label')} value={formData.code} onChange={handleInputChange} /></Grid>
+            <Grid size={{ xs: 12, md: 2 }}><TextField fullWidth required name="credits" label={t('course_credits_label')} value={formData.credits} onChange={handleInputChange} type="number" inputProps={{ min: 1, step: 1 }} /></Grid>
             
-            <Grid item xs={12} md={4}>
+            <Grid size={{ xs: 12, md: 4 }}>
               <TextField fullWidth required name="lecture" label={t('lecture_professor_label')} value={formData.professors.lecture} onChange={handleInputChange} />
             </Grid>
-            <Grid item xs={12} md={4}>
+            <Grid size={{ xs: 12, md: 4 }}>
               <TextField fullWidth name="seminar" label={t('seminar_professor_label')} value={formData.professors.seminar} onChange={handleInputChange} />
             </Grid>
-            <Grid item xs={12} md={4}>
+            <Grid size={{ xs: 12, md: 4 }}>
               <TextField fullWidth name="lab" label={t('lab_professor_label')} value={formData.professors.lab} onChange={handleInputChange} />
             </Grid>
 
-            <Grid item xs={12} md={3}><FormControl fullWidth required> <InputLabel>{t('course_year_label')}</InputLabel> <Select name="yearOfStudy" value={formData.yearOfStudy} label={t('course_year_label')} onChange={handleInputChange}> <MenuItem value={1}>1</MenuItem><MenuItem value={2}>2</MenuItem><MenuItem value={3}>3</MenuItem><MenuItem value={4}>4</MenuItem> </Select> </FormControl></Grid>
-            <Grid item xs={12} md={3}><FormControl fullWidth required> <InputLabel>{t('course_semester_label')}</InputLabel> <Select name="semester" value={formData.semester} label={t('course_semester_label')} onChange={handleInputChange}> <MenuItem value={1}>1</MenuItem><MenuItem value={2}>2</MenuItem> </Select> </FormControl></Grid>
-            <Grid item xs={12} md={3}><TextField fullWidth required name="specialization" label={t('course_specialization_label')} value={formData.specialization} onChange={handleInputChange} /></Grid>
-            <Grid item xs={12} md={3}><TextField fullWidth name="department" label={t('course_department_label')} value={formData.department} onChange={handleInputChange} /></Grid>
-            <Grid item xs={12}><TextField fullWidth name="description" label={t('course_description_label')} value={formData.description} onChange={handleInputChange} multiline rows={3} /></Grid>
+            <Grid size={{ xs: 12, md: 3 }}><FormControl fullWidth required> <InputLabel>{t('course_year_label')}</InputLabel> <Select name="yearOfStudy" value={formData.yearOfStudy} label={t('course_year_label')} onChange={handleInputChange}> <MenuItem value={1}>1</MenuItem><MenuItem value={2}>2</MenuItem><MenuItem value={3}>3</MenuItem><MenuItem value={4}>4</MenuItem> </Select> </FormControl></Grid>
+            <Grid size={{ xs: 12, md: 3 }}><FormControl fullWidth required> <InputLabel>{t('course_semester_label')}</InputLabel> <Select name="semester" value={formData.semester} label={t('course_semester_label')} onChange={handleInputChange}> <MenuItem value={1}>1</MenuItem><MenuItem value={2}>2</MenuItem> </Select> </FormControl></Grid>
+            <Grid size={{ xs: 12, md: 3 }}><TextField fullWidth required name="specialization" label={t('course_specialization_label')} value={formData.specialization} onChange={handleInputChange} /></Grid>
+            <Grid size={{ xs: 12, md: 3 }}><TextField fullWidth name="department" label={t('course_department_label')} value={formData.department} onChange={handleInputChange} /></Grid>
+            <Grid size={12}><TextField fullWidth name="description" label={t('course_description_label')} value={formData.description} onChange={handleInputChange} multiline rows={3} /></Grid>
           </Grid>
 
           <Stack direction="row" spacing={2} sx={{ mt: 3 }}>

@@ -1,26 +1,28 @@
 // src/services/reservationService.js
 import api from './api';
 
-// For users to create a reservation
 const createReservation = (reservationData) => {
   return api.post('/api/reservations', reservationData);
 };
 
-// For a user to get their own reservations
 const getMyReservations = () => {
   return api.get('/api/reservations/my-reservations');
 };
 
-// --- ADMIN FUNCTIONS ---
-
-// For admins to get all reservations
-const getAllReservations = () => {
-  return api.get('/api/reservations');
+const getPaginatedReservations = ({ page, limit, sortBy, order, status }) => {
+  return api.get(`/api/reservations/paginated?page=${page}&limit=${limit}&sortBy=${sortBy}&order=${order}&status=${status}`);
 };
 
-// For admins to update a reservation's status
-const updateReservationStatus = (id, status) => {
-  return api.put(`/api/reservations/${id}/status`, { status });
+const updateReservationStatus = (id, status, adminNotes) => {
+  return api.put(`/api/reservations/${id}/status`, { status, adminNotes });
 };
 
-export { createReservation, getAllReservations, updateReservationStatus, getMyReservations };
+const getReservationStatsByStatus = () => {
+  return api.get('/api/reservations/stats/status');
+};
+
+const getAvailableReservationSlots = ({ date, roomId }) => {
+  return api.get(`/api/reservations/available-slots?date=${date}&roomId=${roomId}`);
+};
+
+export { createReservation, getMyReservations, getPaginatedReservations, updateReservationStatus, getReservationStatsByStatus, getAvailableReservationSlots };

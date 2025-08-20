@@ -133,7 +133,6 @@ function Rooms() {
 
   return (
     <Container maxWidth="xl" sx={{ pt: 2, pb: 4 }}>
-      {/* --- Top Section: Title, Form, and Chart Toggle --- */}
       <BackButton />
       <Typography variant="h4" component="h1" gutterBottom sx={{ textAlign: 'center' }}>
         {t('rooms_management_title')}
@@ -164,10 +163,10 @@ function Rooms() {
         </Typography>
         <Box component="form" onSubmit={handleSubmit} noValidate>
           <Grid container spacing={2}>
-            <Grid item xs={12} md={4}><TextField fullWidth required name="name" label={t('room_name_label')} value={formData.name} onChange={handleInputChange} /></Grid>
-            <Grid item xs={12} md={4}><TextField fullWidth required name="capacity" label={t('room_capacity_label')} value={formData.capacity} onChange={handleInputChange} type="number" inputProps={{ min: 1, step: 1 }} /></Grid>
-            <Grid item xs={12} md={4}><TextField fullWidth required name="location" label={t('room_location_label')} value={formData.location} onChange={handleInputChange} /></Grid>
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 4 }}><TextField fullWidth required name="name" label={t('room_name_label')} value={formData.name} onChange={handleInputChange} /></Grid>
+            <Grid size={{ xs: 12, md: 4 }}><TextField fullWidth required name="capacity" label={t('room_capacity_label')} value={formData.capacity} onChange={handleInputChange} type="number" inputProps={{ min: 1, step: 1 }} /></Grid>
+            <Grid size={{ xs: 12, md: 4 }}><TextField fullWidth required name="location" label={t('room_location_label')} value={formData.location} onChange={handleInputChange} /></Grid>
+            <Grid size={{ xs: 12, md: 6 }}>
               <FormControl fullWidth>
                 <InputLabel>{t('equipment_label')}</InputLabel>
                 <Select name="equipment" multiple value={formData.equipment} onChange={handleInputChange} input={<OutlinedInput label={t('equipment_label')} />} renderValue={(selected) => (<Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>{selected.map((value) => <Chip key={value} label={t(`equipment_${value}`)} />)}</Box>)}>
@@ -175,7 +174,7 @@ function Rooms() {
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <FormControl fullWidth>
                 <InputLabel>{t('status_label')}</InputLabel>
                 <Select name="status" value={formData.status} label={t('status_label')} onChange={handleInputChange}>
@@ -185,7 +184,7 @@ function Rooms() {
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12}><FormControlLabel control={<Switch checked={formData.isAvailableForExternal} onChange={handleInputChange} name="isAvailableForExternal" />} label={t('available_for_external_label')} /></Grid>
+            <Grid size = {12}><FormControlLabel control={<Switch checked={formData.isAvailableForExternal} onChange={handleInputChange} name="isAvailableForExternal" />} label={t('available_for_external_label')} /></Grid>
           </Grid>
           <Stack direction="row" spacing={2} sx={{ mt: 3 }}>
             <Button type="submit" variant="contained">{isEditing ? t('update_room_button') : t('add_room_button')}</Button>
@@ -196,7 +195,6 @@ function Rooms() {
 
       {showStats && <RoomStatusChart />}
 
-      {/* --- Bottom Section: Table and Pagination --- */}
       <PaginatedTable
         columns={roomColumns}
         fetchDataFunction={getPaginatedRooms}

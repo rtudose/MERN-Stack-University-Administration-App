@@ -1,51 +1,66 @@
 // src/pages/ReservationsManagement.jsx
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { getAllReservations, updateReservationStatus } from '../services/reservationService';
+import PaginatedTable from '../components/common/PaginatedTable';
+import { getPaginatedReservations, updateReservationStatus } from '../services/reservationService';
 import BackButton from '../components/BackButton';
 import { format } from 'date-fns';
-
-import {
-  Container, Typography, Paper, Table, TableBody, TableCell,
-  TableContainer, TableHead, TableRow, IconButton, Chip, Stack, Alert
-} from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
+import ReservationStatusChart from '../components/charts/ReservationStatusChart';
+import {
+  Container, Typography, IconButton, Chip, Stack, Alert, Box, Button,
+  FormControl, InputLabel, Select, MenuItem, Dialog, DialogTitle,
+  DialogContent, DialogActions, TextField, Tooltip
+} from '@mui/material';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 
 const ReservationsManagement = () => {
   const { t } = useTranslation();
-  const [reservations, setReservations] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [message, setMessage] = useState({ text: '', type: '' });
+  const [message, setMessage] = useState({ key: '', type: 'success' });
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [showStats, setShowStats] = useState(false);
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [rejectModalOpen, setRejectModalOpen] = useState(false);
+  const [rejectionNote, setRejectionNote] = useState('');
+  const [reservationToUpdate, setReservationToUpdate] = useState(null);
 
-  const fetchReservations = useCallback(async () => {
-    try {
-      setLoading(true);
-      const response = await getAllReservations();
-      setReservations(response.data);
-    } catch (err) {
-      setError('fetch_reservations_error');
-    } finally {
-      setLoading(false);
+  const openRejectModal = (reservation) => {
+    setReservationToUpdate(reservation);
+    setRejectModalOpen(true);
+  };
+  const closeRejectModal = () => {
+    setReservationToUpdate(null);
+    setRejectionNote('');
+    setRejectModalOpen(false);
+  };
+  const handleConfirmReject = () => {
+    if (reservationToUpdate) {
+        handleStatusUpdate(reservationToUpdate._id, 'rejected', rejectionNote);
     }
-  }, []);
+    closeRejectModal();
+  };
 
-  useEffect(() => {
-    fetchReservations();
-  }, [fetchReservations]);
-
-  const handleStatusUpdate = async (id, status) => {
+  const handleStatusUpdate = async (id, status, adminNotes = '') => {
     try {
-      await updateReservationStatus(id, status);
-      setMessage({ text: 'reservation_status_updated', type: 'success' });
-      fetchReservations(); // Refresh the list
+      await updateReservationStatus(id, status, adminNotes);
+      setMessage({ key: 'reservation_status_updated', type: 'success' });
+      setRefreshKey(k => k + 1);
     } catch (err) {
-      setMessage({ text: 'generic_error', type: 'error' });
+      setMessage({ key: 'generic_error', type: 'error' });
     }
   };
 
-  const getStatusChip = (status) => {
+  const fetchFilteredData = useCallback((params) => {
+    return getPaginatedReservations({ ...params, status: statusFilter });
+  }, [statusFilter]);
+
+  const handleFilterChange = (event) => {
+    setStatusFilter(event.target.value);
+    setRefreshKey(k => k + 1);
+  };
+
+  const getStatusChip = (status, notes) => {
     const color = {
       pending: 'warning',
       approved: 'success',
@@ -53,11 +68,43 @@ const ReservationsManagement = () => {
       cancelled: 'default',
     }[status];
 
-    return <Chip label={t(`status_${status}`)} color={color} size="small" />;
+    if (status === 'rejected' && notes) {
+      return (
+        <Tooltip title={notes} arrow>
+          <Chip
+            label={
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                {t(`status_${status}`)}
+                <InfoOutlinedIcon sx={{ fontSize: '1rem' }} />
+              </Box>
+            }
+            color="error"
+            size="small"
+            sx={{ animation: 'subtleBounce 2s infinite ease-in-out' }}
+          />
+        </Tooltip>
+      );
+    }
+    
+    return <Chip label={t(`status_${status}`)} color={color || 'default'} size="small" />;
   };
 
-  if (loading) return <div>{t('loading_reservations')}</div>;
-  if (error) return <Alert severity="error">{t(error)}</Alert>;
+  const reservationColumns = [
+    { id: 'status', label: 'status_label', sortable: true, renderCell: (row) => getStatusChip(row.status, row.adminNotes) },
+    { id: 'room.name', label: 'room_name_label', sortable: true, renderCell: (row) => row.room?.name || 'N/A' },
+    { id: 'reservedBy', label: 'reserved_by_label', sortable: true },
+    { id: 'date', label: 'date_label', sortable: true, renderCell: (row) => format(new Date(row.date), 'dd/MM/yyyy') },
+    { id: 'startTime', label: 'time_slot_label', sortable: true, renderCell: (row) => `${row.startTime} - ${row.endTime}` },
+    { id: 'purpose', label: 'purpose_label', sortable: true },
+    { id: 'actions', label: 'actions_label', align: 'center', renderCell: (row) => (
+      row.status === 'pending' && (
+        <Stack direction="row" spacing={1} justifyContent="center">
+          <IconButton color="success" onClick={() => handleStatusUpdate(row._id, 'approved')}><CheckCircleIcon /></IconButton>
+          <IconButton color="error" onClick={() => openRejectModal(row)}><CancelIcon /></IconButton>
+        </Stack>
+      )
+    )}
+  ];
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
@@ -65,49 +112,60 @@ const ReservationsManagement = () => {
       <Typography variant="h4" component="h1" gutterBottom sx={{ textAlign: 'center' }}>
         {t('reservations_management_title')}
       </Typography>
-      {message.text && <Alert severity={message.type} sx={{ mb: 2 }} onClose={() => setMessage({ text: '', type: '' })}>{t(message.text)}</Alert>}
+      {message.key && <Alert severity={message.type} sx={{ mb: 2 }} onClose={() => setMessage({ key: '' })}>{t(message.key)}</Alert>}
 
-      <Paper>
-        <TableContainer>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>{t('status_label')}</TableCell>
-                <TableCell>{t('room_name_label')}</TableCell>
-                <TableCell>{t('reserved_by_label')}</TableCell>
-                <TableCell>{t('date_label')}</TableCell>
-                <TableCell>{t('time_slot_label')}</TableCell>
-                <TableCell>{t('purpose_label')}</TableCell>
-                <TableCell align="center">{t('actions_label')}</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {reservations.map((res) => (
-                <TableRow key={res._id}>
-                  <TableCell>{getStatusChip(res.status)}</TableCell>
-                  <TableCell>{res.room?.name || 'N/A'}</TableCell>
-                  <TableCell>{res.reservedBy}</TableCell>
-                  <TableCell>{format(new Date(res.date), 'dd/MM/yyyy')}</TableCell>
-                  <TableCell>{`${res.startTime} - ${res.endTime}`}</TableCell>
-                  <TableCell>{res.purpose}</TableCell>
-                  <TableCell align="center">
-                    {res.status === 'pending' && (
-                      <Stack direction="row" spacing={1} justifyContent="center">
-                        <IconButton color="success" onClick={() => handleStatusUpdate(res._id, 'approved')}>
-                          <CheckCircleIcon />
-                        </IconButton>
-                        <IconButton color="error" onClick={() => handleStatusUpdate(res._id, 'rejected')}>
-                          <CancelIcon />
-                        </IconButton>
-                      </Stack>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Paper>
+      <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+        <Button variant="outlined" onClick={() => setShowStats(prev => !prev)}>
+          {showStats ? t('hide_reservation_stats') : t('show_reservation_stats')}
+        </Button>
+      </Box>
+
+      <Box sx={{ mb: 2, maxWidth: '200px' }}>
+        <FormControl fullWidth size="small">
+          <InputLabel>{t('filter_by_status')}</InputLabel>
+          <Select
+            value={statusFilter}
+            label={t('filter_by_status')}
+            onChange={handleFilterChange}
+            displayEmpty
+          >
+            <MenuItem value="all">{t('all_statuses')}</MenuItem>
+            <MenuItem value="pending">{t('status_pending')}</MenuItem>
+            <MenuItem value="approved">{t('status_approved')}</MenuItem>
+            <MenuItem value="rejected">{t('status_rejected')}</MenuItem>
+            <MenuItem value="cancelled">{t('status_cancelled')}</MenuItem>
+          </Select>
+        </FormControl>
+      </Box>
+
+      {showStats && <ReservationStatusChart />}
+
+      <PaginatedTable
+        columns={reservationColumns}
+        fetchDataFunction={fetchFilteredData}
+        refreshKey={refreshKey}
+        titleKey="reservations_table_title"
+      />
+      <Dialog open={rejectModalOpen} onClose={closeRejectModal}>
+        <DialogTitle>{t('reject_reservation_title')}</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
+            label={t('rejection_note_label')}
+            type="text"
+            fullWidth
+            variant="standard"
+            value={rejectionNote}
+            onChange={(e) => setRejectionNote(e.target.value)}
+            helperText={t('rejection_note_helper')}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeRejectModal}>{t('cancel_button')}</Button>
+          <Button onClick={handleConfirmReject} color="error">{t('confirm_reject_button')}</Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 };

@@ -7,8 +7,10 @@ import { format } from 'date-fns';
 
 import {
   Container, Typography, Paper, Table, TableBody, TableCell,
-  TableContainer, TableHead, TableRow, Chip, Alert
+  TableContainer, TableHead, TableRow, Chip, Alert, Tooltip,
+  Box
 } from '@mui/material';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 
 const MyReservations = () => {
   const { t } = useTranslation();
@@ -22,7 +24,7 @@ const MyReservations = () => {
       const response = await getMyReservations();
       setReservations(response.data);
     } catch (err) {
-      setError('fetch_reservations_error'); // Can reuse this key
+      setError('fetch_reservations_error');
     } finally {
       setLoading(false);
     }
@@ -32,14 +34,37 @@ const MyReservations = () => {
     fetchReservations();
   }, [fetchReservations]);
 
-  const getStatusChip = (status) => {
+  const getStatusChip = (status, notes) => {
     const color = {
       pending: 'warning',
       approved: 'success',
       rejected: 'error',
       cancelled: 'default',
     }[status];
-    return <Chip label={t(`status_${status}`)} color={color} size="small" />;
+    
+    // Case 1: The reservation is rejected AND has notes
+    if (status === 'rejected' && notes) {
+      return (
+        <Tooltip title={notes} arrow>
+          <Chip
+            label={
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                {t(`status_${status}`)}
+                <InfoOutlinedIcon sx={{ fontSize: '1rem' }} />
+              </Box>
+            }
+            color="error"
+            size="small"
+            sx={{
+              animation: 'subtleBounce 2s infinite ease-in-out',
+            }}
+          />
+        </Tooltip>
+      );
+    }
+    
+    // Case 2: All other statuses (no special animation or icon)
+    return <Chip label={t(`status_${status}`)} color={color || 'default'} size="small" />;
   };
 
   if (loading) return <div>{t('loading_reservations')}</div>;
@@ -52,9 +77,9 @@ const MyReservations = () => {
         {t('my_reservations_title')}
       </Typography>
 
-      <Paper>
+      <Paper sx={{ p: 2 }}>
         <TableContainer>
-          <Table>
+          <Table stickyHeader>
             <TableHead>
               <TableRow>
                 <TableCell>{t('status_label')}</TableCell>
@@ -74,7 +99,7 @@ const MyReservations = () => {
               ) : (
                 reservations.map((res) => (
                   <TableRow key={res._id}>
-                    <TableCell>{getStatusChip(res.status)}</TableCell>
+                    <TableCell>{getStatusChip(res.status, res.adminNotes)}</TableCell>
                     <TableCell>{res.room?.name || 'N/A'}</TableCell>
                     <TableCell>{format(new Date(res.date), 'dd/MM/yyyy')}</TableCell>
                     <TableCell>{`${res.startTime} - ${res.endTime}`}</TableCell>
