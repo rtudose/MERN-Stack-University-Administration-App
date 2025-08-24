@@ -6,6 +6,9 @@ import { ColorModeContext, ColorModeProvider } from './context/ThemeContext';
 import { CssBaseline, Box } from '@mui/material';
 import { ThemeProvider } from '@mui/material/styles';
 import { getCustomTheme } from './theme/theme';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import GlobalStyles from './components/GlobalStyles';
 
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -84,6 +87,7 @@ const ThemeWrapper = ({ children }) => {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
+      <GlobalStyles />
       {children}
     </ThemeProvider>
   );
@@ -91,11 +95,13 @@ const ThemeWrapper = ({ children }) => {
 
 function App() {
   return (
+    <LocalizationProvider dateAdapter={AdapterDateFns}>
     <ColorModeProvider>
       <ThemeWrapper>
         <AppContent />
       </ThemeWrapper>
     </ColorModeProvider>
+    </LocalizationProvider>
   );
 }
 

@@ -123,22 +123,74 @@ const getMyReservations = async (req, res) => {
 
 const getPaginatedReservations = async (req, res) => {
     try {
-        const { page = 1, limit = 10, sortBy = 'date', order = 'desc', status } = req.query;
+        const { page = 1, limit = 10, sortBy = 'status', order = 'asc', status } = req.query;
         const limitNum = parseInt(limit, 10);
         const pageNum = parseInt(page, 10);
+        const sortOrder = order === 'asc' ? 1 : -1;
         
         const filter = {};
         if (status && status !== 'all') {
             filter.status = status;
         }
 
-        const reservations = await RoomReservation.find(filter)
-            .populate('room', 'name location')
-            .sort({ [sortBy]: order })
-            .skip((pageNum - 1) * limitNum)
-            .limit(limitNum);
+        const pipeline = [
+            { $match: filter },
+            {
+                $lookup: {
+                    from: 'rooms',
+                    localField: 'room',
+                    foreignField: '_id',
+                    as: 'room'
+                }
+            },
+            { $unwind: { path: '$room', preserveNullAndEmptyArrays: true } }
+        ];
+
+        let sortStage = {};
+
+        switch (sortBy) {
+            case 'status':
+                pipeline.push({
+                    $addFields: {
+                        statusOrder: {
+                            $switch: {
+                                branches: [
+                                    { case: { $eq: ['$status', 'pending'] }, then: 1 },
+                                    { case: { $eq: ['$status', 'approved'] }, then: 2 },
+                                    { case: { $eq: ['$status', 'rejected'] }, then: 3 },
+                                    { case: { $eq: ['$status', 'cancelled'] }, then: 4 }
+                                ],
+                                default: 99
+                            }
+                        }
+                    }
+                });
+                sortStage = { $sort: { statusOrder: sortOrder, date: -1 } };
+                break;
         
-        const totalItems = await RoomReservation.countDocuments(filter);
+            default:
+                sortStage = { $sort: { [sortBy]: sortOrder } };
+                break;
+        }
+
+        pipeline.push(sortStage);
+
+        const results = await RoomReservation.aggregate([
+            ...pipeline,
+            {
+                $facet: {
+                    data: [
+                        { $skip: (pageNum - 1) * limitNum },
+                        { $limit: limitNum },
+                        { $project: { statusOrder: 0 } }
+                    ],
+                    pagination: [{ $count: 'totalItems' }]
+                }
+            }
+        ]);
+
+        const reservations = results[0].data;
+        const totalItems = results[0].pagination[0]?.totalItems || 0;
 
         res.json({
             data: reservations,

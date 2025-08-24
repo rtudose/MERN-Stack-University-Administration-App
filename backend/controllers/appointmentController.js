@@ -215,19 +215,10 @@ const getMyAppointments = async (req, res) => {
 
 const getPaginatedAppointments = async (req, res) => {
     try {
-        const { page = 1, limit = 10, sortBy = 'date', order = 'asc' } = req.query;
+        const { page = 1, limit = 10, sortBy = 'status', order = 'asc' } = req.query;
         const limitNum = parseInt(limit, 10);
         const pageNum = parseInt(page, 10);
         const sortOrder = order === 'asc' ? 1 : -1;
-
-        const sortOptions = {};
-        if (sortBy === 'startTime') {
-            sortOptions.startTime = sortOrder;
-            sortOptions.date = 1;
-        } else {
-            sortOptions[sortBy] = sortOrder;
-            sortOptions.startTime = 1;
-        }
 
         const pipeline = [
             {
@@ -238,12 +229,42 @@ const getPaginatedAppointments = async (req, res) => {
                     as: 'student'
                 }
             },
-            
             { $unwind: { path: '$student', preserveNullAndEmptyArrays: true } },
-
-            { $sort: sortOptions }
         ];
 
+        let sortStage = {};
+
+        switch (sortBy) {
+            case 'status':
+                pipeline.push({
+                    $addFields: {
+                        statusOrder: {
+                            $switch: {
+                                branches: [
+                                    { case: { $eq: ['$status', 'pending'] }, then: 1 },
+                                    { case: { $eq: ['$status', 'confirmed'] }, then: 2 },
+                                    { case: { $eq: ['$status', 'completed'] }, then: 3 },
+                                    { case: { $eq: ['$status', 'cancelled'] }, then: 4 },
+                                    { case: { $eq: ['$status', 'expired'] }, then: 5 },
+                                ],
+                                default: 99
+                            }
+                        }
+                    }
+                });
+                sortStage = { $sort: { statusOrder: sortOrder, date: 1, startTime: 1 } };
+                break;
+
+            case 'startTime':
+                sortStage = { $sort: { startTime: sortOrder, date: 1 } };
+                break;
+
+            default:
+                sortStage = { $sort: { [sortBy]: sortOrder, startTime: 1 } };
+        }
+
+        pipeline.push(sortStage);
+        
         const results = await Appointment.aggregate([
             ...pipeline,
             {
@@ -251,6 +272,7 @@ const getPaginatedAppointments = async (req, res) => {
                     data: [
                         { $skip: (pageNum - 1) * limitNum },
                         { $limit: limitNum },
+                        { $project: { statusOrder: 0 } }
                     ],
                     pagination: [{ $count: 'totalItems' }]
                 }
@@ -275,6 +297,24 @@ const getPaginatedAppointments = async (req, res) => {
     }
 };
 
+const cancelMyAppointment = async (req, res) => {
+    try {
+        const appointment = await Appointment.findOne({ _id: req.params.id, student: req.user.id });
+        if (!appointment) {
+            return res.status(404).json({ msg: 'Appointment not found or you do not have permission to cancel it.' });
+        }
+        if (appointment.status !== 'pending' && appointment.status !== 'confirmed') {
+            return res.status(400).json({ msg: 'Only pending or confirmed appointments can be cancelled.' });
+        }
+        appointment.status = 'cancelled';
+        await appointment.save();
+        res.json(appointment);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+};
+
 module.exports = {
     createAppointment,
     getAvailableSlots,
@@ -282,5 +322,6 @@ module.exports = {
     updateAppointmentStatus,
     deleteAppointment,
     getMyAppointments,
-    getPaginatedAppointments
+    getPaginatedAppointments,
+    cancelMyAppointment
 };

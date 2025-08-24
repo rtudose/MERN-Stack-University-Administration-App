@@ -5,16 +5,24 @@ import { Button } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useTranslation } from 'react-i18next';
 
-const BackButton = () => {
+const BackButton = ({ to }) => {
   const navigate = useNavigate();
   const { t } = useTranslation();
+
+  const handleClick = () => {
+    if (to) {
+      navigate(to); // Navigate to a specific path if provided
+    } else {
+      navigate(-1); // Otherwise, go back one step in history
+    }
+  };
 
   return (
     <Button
       variant="text"
       startIcon={<ArrowBackIcon />}
-      onClick={() => navigate(-1)} // This programmatically clicks the browser's back button
-      sx={{ mb: 2, alignSelf: 'flex-start' }} // Margin bottom and align to the left
+      onClick={handleClick}
+      sx={{ mb: 2, alignSelf: 'flex-start' }}
     >
       {t('back_button')}
     </Button>

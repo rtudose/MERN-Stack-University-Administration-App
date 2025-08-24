@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { getPublicRooms } from '../services/roomService';
 import { createReservation } from '../services/reservationService';
 import BackButton from '../components/BackButton';
+import { DatePicker, TimePicker } from '@mui/x-date-pickers';
+import { format } from 'date-fns';
 
 import {
   Container, Typography, Grid, Card, CardContent, CardActions, Button,
@@ -15,6 +17,12 @@ import {
 const equipmentOptionKeys = [
   'Projector', 'Whiteboard', 'Conference_Phone', 'Video_Conferencing', 'Smartboard'
 ];
+
+const setTime = (date, hours, minutes) => {
+  const newDate = new Date(date);
+  newDate.setHours(hours, minutes, 0, 0);
+  return newDate;
+};
 
 const BookRoom = () => {
   const { t } = useTranslation();
@@ -30,7 +38,11 @@ const BookRoom = () => {
   
   const today = new Date().toISOString().split('T')[0];
   const [reservationData, setReservationData] = useState({
-    date: today, startTime: '09:00', endTime: '10:00', purpose: '', attendees: 1
+    date: new Date(),
+    startTime: setTime(new Date(), 9, 0),
+    endTime: setTime(new Date(), 10, 0),
+    purpose: '',
+    attendees: 1
   });
   
   const [pageMessage, setPageMessage] = useState({ text: '', type: '' });
@@ -74,7 +86,11 @@ const BookRoom = () => {
     setIsModalOpen(true);
     setModalError('');
     setReservationData({
-        date: today, startTime: '09:00', endTime: '10:00', purpose: '', attendees: 1
+      date: new Date(),
+      startTime: setTime(new Date(), 9, 0),
+      endTime: setTime(new Date(), 10, 0),
+      purpose: '',
+      attendees: 1
     });
   };
 
@@ -88,6 +104,16 @@ const BookRoom = () => {
     setReservationData(prev => ({ ...prev, [name]: value }));
   };
 
+  const handleDateDataChange = (newDate) => {
+    setReservationData(prev => ({ ...prev, date: newDate }));
+  };
+
+  const handleStartTimeChange = (newTime) => {
+    setReservationData(prev => ({ ...prev, startTime: newTime }));
+  };
+  const handleEndTimeChange = (newTime) => {
+    setReservationData(prev => ({ ...prev, endTime: newTime }));
+  };
   const handleReservationSubmit = async () => {
     setModalError('');
 
@@ -108,7 +134,13 @@ const BookRoom = () => {
     }
 
     try {
-      const payload = { ...reservationData, room: selectedRoom._id, attendees: attendeesNumber };
+      const payload = { 
+        ...reservationData, 
+        room: selectedRoom._id,
+        date: format(reservationData.date, 'yyyy-MM-dd'),
+        startTime: format(reservationData.startTime, 'HH:mm'),
+        endTime: format(reservationData.endTime, 'HH:mm')
+      };
       await createReservation(payload);
       setPageMessage({ text: 'reservation_success', type: 'success' });
       handleCloseModal();
@@ -132,8 +164,8 @@ const BookRoom = () => {
 
       <Paper sx={{ p: { xs: 2, md: 3 }, mb: 4 }}>
         <Typography variant="h6" gutterBottom>{t('filter_rooms_title')}</Typography>
-        <Grid container spacing={2}>
-          <Grid item xs={12} sm={6}>
+        <Grid container spacing={2} sx={{ width: '100%' }}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <TextField
               fullWidth
               label={t('filter_by_capacity_label')}
@@ -143,7 +175,7 @@ const BookRoom = () => {
               inputProps={{ min: 1 }}
             />
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid size={{ xs: 12, sm: 6 }}>
             <FormControl fullWidth>
               <InputLabel id="equipment-filter-label">{t('filter_by_equipment_label')}</InputLabel>
               <Select
@@ -170,10 +202,9 @@ const BookRoom = () => {
         </Grid>
       </Paper>
       
-      {/* THE FIX: The content inside the .map() is now correctly included */}
-      <Grid container spacing={3}>
+      <Grid container spacing={3} sx={{ width: '100%' }}>
         {filteredRooms.map((room) => (
-          <Grid item key={room._id} xs={12} sm={6} md={4}>
+          <Grid size={{ xs: 12, sm: 6, md: 4 }} key={room._id}>
             <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
               <CardContent sx={{ flexGrow: 1 }}>
                 <Typography gutterBottom variant="h5" component="h2">{room.name}</Typography>
@@ -198,9 +229,25 @@ const BookRoom = () => {
         <DialogContent>
           {modalError && <Alert severity="error" sx={{ mb: 2 }}>{modalError}</Alert>}
           <Stack spacing={2} sx={{ mt: 1 }}>
-            <TextField name="date" label={t('date_label')} type="date" value={reservationData.date} onChange={handleReservationChange} InputLabelProps={{ shrink: true }} inputProps={{ min: today }} required fullWidth/>
-            <TextField name="startTime" label={t('start_time_label')} type="time" value={reservationData.startTime} onChange={handleReservationChange} InputLabelProps={{ shrink: true }} required fullWidth/>
-            <TextField name="endTime" label={t('end_time_label')} type="time" value={reservationData.endTime} onChange={handleReservationChange} InputLabelProps={{ shrink: true }} required fullWidth/>
+            <DatePicker
+              label={t('date_label')}
+              value={reservationData.date}
+              onChange={handleDateDataChange}
+              minDate={new Date()}
+              disablePast
+            />
+            <TimePicker
+                label={t('start_time_label')}
+                value={reservationData.startTime}
+                onChange={handleStartTimeChange}
+                ampm={false}
+            />
+            <TimePicker
+                label={t('end_time_label')}
+                value={reservationData.endTime}
+                onChange={handleEndTimeChange}
+                ampm={false}
+            />
             <TextField name="purpose" label={t('purpose_label')} value={reservationData.purpose} onChange={handleReservationChange} required fullWidth/>
             <TextField name="attendees" label={t('attendees_label')} type="number" value={reservationData.attendees} onChange={handleReservationChange} inputProps={{ min: 1, step: 1 }} fullWidth/>
           </Stack>

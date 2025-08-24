@@ -11,9 +11,7 @@ function Login() {
   const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [message, setMessage] = useState('');
-  const [formMessage, setFormMessage] = useState({ key: '', type: 'success' });
-  const [isError, setIsError] = useState(false);
+  const [message, setMessage] = useState({ key: '', type: 'info' });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { login, isAuthenticated, user } = useAuth();
@@ -44,13 +42,11 @@ function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setMessage('');
-    setIsError(false);
+    setMessage({ key: '', type: 'info' });
     setIsSubmitting(true);
 
     if (!email || !password) {
-      setMessage(t('login_empty_fields_error'));
-      setIsError(true);
+      setMessage({ key: 'login_empty_fields_error', type: 'error' });
       setIsSubmitting(false);
       return;
     }
@@ -62,8 +58,7 @@ function Login() {
         ? getTranslatedErrorMessage(error.response.data.msg)
         : t('login_failed_generic');
       
-      setMessage(errorMsg);
-      setIsError(true);
+      setMessage({ key: errorMsg, type: 'error' });
     } finally {
       setIsSubmitting(false);
     }
@@ -119,9 +114,9 @@ function Login() {
             {isSubmitting ? <CircularProgress size={24} /> : t('login_button')}
           </Button>
           
-          {message && (
-            <Alert severity={isError ? 'error' : 'success'} sx={{ width: '100%' }}>
-              {message}
+          {message.key && (
+            <Alert severity={message.type} sx={{ width: '100%' }}>
+              {t(message.key)}
             </Alert>
           )}
         </Box>

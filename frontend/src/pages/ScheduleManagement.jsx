@@ -1,8 +1,10 @@
-// src/pages/ScheduleManagement.jsx (Final and Complete)
+// src/pages/ScheduleManagement.jsx
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { createScheduleEntry, deleteScheduleEntry, updateScheduleEntry, getPaginatedSchedule } from '../services/scheduleService';
 import PaginatedTable from '../components/common/PaginatedTable';
+import { format } from 'date-fns';
+import { TimePicker } from '@mui/x-date-pickers/TimePicker';
 import CourseAutocomplete from '../components/common/CourseAutocomplete';
 import RoomAutocomplete from '../components/common/RoomAutocomplete';
 import ProfessorWorkloadList from '../components/charts/ProfessorWorkloadList';
@@ -19,6 +21,16 @@ const academicYears = ['2024-2025', '2025-2026'];
 const semesterKeys = [1, 2];
 const activityTypeKeys = ['Lecture', 'Lab', 'Seminar', 'Practice'];
 
+const setTimeToDate = (hours, minutes) => {
+  const date = new Date();
+  date.setHours(hours, minutes, 0, 0);
+  return date;
+};
+const parseTimeString = (timeStr) => {
+  const [hours, minutes] = timeStr.split(':').map(Number);
+  return setTimeToDate(hours, minutes);
+};
+
 const ScheduleManagement = () => {
   const { t } = useTranslation();
   const [formMessage, setFormMessage] = useState({ key: '', options: {}, type: 'success' });
@@ -32,8 +44,9 @@ const ScheduleManagement = () => {
   const [currentEntryId, setCurrentEntryId] = useState(null);
 
   const initialState = {
-    course: '', room: '', dayOfWeek: dayOfWeekKeys[0], startTime: '08:00', endTime: '10:00',
-    type: activityTypeKeys[0], group: '', academicYear: academicYears[0], semester: semesterKeys[0]
+    course: '', room: '', dayOfWeek: dayOfWeekKeys[0], startTime: setTimeToDate(8, 0), 
+    endTime: setTimeToDate(10, 0), type: activityTypeKeys[0], group: '',
+    academicYear: academicYears[0], semester: semesterKeys[0]
   };
   const [formData, setFormData] = useState(initialState);
 
@@ -90,12 +103,18 @@ const ScheduleManagement = () => {
         return;
     }
 
+    const payload = {
+      ...formData,
+      startTime: format(formData.startTime, 'HH:mm'),
+      endTime: format(formData.endTime, 'HH:mm'),
+    };
+
     try {
       if (isEditing) {
-        await updateScheduleEntry(currentEntryId, formData);
+        await updateScheduleEntry(currentEntryId, payload);
         setFormMessage({ key: 'schedule_entry_updated_success', type: 'success' });
       } else {
-        await createScheduleEntry(formData);
+        await createScheduleEntry(payload);
         setFormMessage({ key: 'schedule_entry_created_success', type: 'success' });
       }
       resetForm();
@@ -127,6 +146,13 @@ const ScheduleManagement = () => {
     }
   };
 
+  const handleStartTimeChange = (newTime) => {
+    setFormData(prev => ({ ...prev, startTime: newTime }));
+  };
+  const handleEndTimeChange = (newTime) => {
+    setFormData(prev => ({ ...prev, endTime: newTime }));
+  };
+
   const handleEditClick = (entry) => {
     setFormMessage({ key: '', type: '' });
     setIsEditing(true);
@@ -137,8 +163,8 @@ const ScheduleManagement = () => {
         course: entry.course._id,
         room: entry.room._id,
         dayOfWeek: entry.dayOfWeek,
-        startTime: entry.startTime,
-        endTime: entry.endTime,
+        startTime: parseTimeString(entry.startTime),
+        endTime: parseTimeString(entry.endTime),
         type: entry.type,
         group: entry.group || '',
         academicYear: entry.academicYear,
@@ -241,10 +267,32 @@ const ScheduleManagement = () => {
               <FormControl fullWidth required><InputLabel>{t('day_of_week_label')}</InputLabel><Select name="dayOfWeek" value={formData.dayOfWeek} label={t('day_of_week_label')} onChange={handleInputChange}>{dayOfWeekKeys.map(d => <MenuItem key={d} value={d}>{t(`day_${d}`)}</MenuItem>)}</Select></FormControl>
             </Grid>
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <TextField fullWidth required name="startTime" label={t('start_time_label')} type="time" value={formData.startTime} onChange={handleInputChange} InputLabelProps={{ shrink: true }} />
+              <TimePicker
+                label={t('start_time_label')}
+                value={formData.startTime}
+                onChange={handleStartTimeChange}
+                ampm={false}
+                slotProps={{
+                  textField: {
+                    fullWidth: true,
+                    required: true
+                  }
+                }}
+              />
             </Grid>
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <TextField fullWidth required name="endTime" label={t('end_time_label')} type="time" value={formData.endTime} onChange={handleInputChange} InputLabelProps={{ shrink: true }} />
+              <TimePicker
+                label={t('end_time_label')}
+                value={formData.endTime}
+                onChange={handleEndTimeChange}
+                ampm={false}
+                slotProps={{
+                  textField: {
+                    fullWidth: true,
+                    required: true
+                  }
+                }}
+              />
             </Grid>
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <FormControl fullWidth required><InputLabel>{t('type_label')}</InputLabel><Select name="type" value={formData.type} label={t('type_label')} onChange={handleInputChange}>{activityTypeKeys.map(typeKey => <MenuItem key={typeKey} value={typeKey}>{t(`type_${typeKey}`)}</MenuItem>)}</Select></FormControl>

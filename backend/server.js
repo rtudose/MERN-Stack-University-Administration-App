@@ -15,6 +15,7 @@ const userRoutes = require('./routes/userRoutes');
 const publicRoutes = require('./routes/publicRoutes');
 const reservationRoutes = require('./routes/reservationRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const appointmentCronJobs = require('./utils/cronJobs');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -52,3 +53,6 @@ app.use('/api/admin', adminRoutes);
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
+// Start the cron jobs
+appointmentCronJobs.start();

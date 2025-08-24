@@ -11,7 +11,7 @@ const createAppointment = (appointmentData) => {
 };
 
 const getMyAppointments = () => {
-   return api.get(`/api/appointments/my-appointments/`);
+   return api.get(`/api/appointments/my-appointments`);
 };
 
 
@@ -21,6 +21,10 @@ const updateAppointmentStatus = (id, statusData) => {
 
 const getPaginatedAppointments = ({ page, limit, sortBy, order }) => {
   return api.get(`/api/appointments/paginated?page=${page}&limit=${limit}&sortBy=${sortBy}&order=${order}`);
+};
+
+const cancelMyAppointment = (id) => {
+  return api.put(`/api/appointments/${id}/cancel-by-user`);
 };
 
 const deleteAppointment = (id) => {
@@ -33,5 +37,6 @@ export {
   getMyAppointments,
   getPaginatedAppointments,
   updateAppointmentStatus,
+  cancelMyAppointment,
   deleteAppointment,
 };

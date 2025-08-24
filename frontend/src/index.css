@@ -15,38 +15,20 @@ html[data-mui-color-scheme="dark"] input[type="time"]::-webkit-calendar-picker-i
   filter: invert(1);
 }
 
-/* --- Custom Scrollbar Styles for a consistent look --- */
-
-/* Target the main content box and all MUI Table Containers */
-main::-webkit-scrollbar,
-.MuiTableContainer-root::-webkit-scrollbar {
-  width: 8px;
-  height: 8px; /* For horizontal scrollbars */
-}
-
-main::-webkit-scrollbar-track,
-.MuiTableContainer-root::-webkit-scrollbar-track {
-  background: transparent; /* Make the track invisible by default */
-}
-
-main::-webkit-scrollbar-thumb,
-.MuiTableContainer-root::-webkit-scrollbar-thumb {
-  background-color: #888;
-  border-radius: 4px;
-  border: 2px solid transparent;
-  background-clip: content-box;
-}
-
-main::-webkit-scrollbar-thumb:hover,
-.MuiTableContainer-root::-webkit-scrollbar-thumb:hover {
-  background-color: #555;
-}
-
 @keyframes subtleBounce {
   0%, 100% {
     transform: translateY(0);
   }
   50% {
     transform: translateY(-3px);
+  }
+}
+
+@keyframes highlightFade {
+  0% {
+    background-color: rgba(255, 160, 0, 0.5); /* Bright orange highlight */
+  }
+  100% {
+    background-color: transparent;
   }
 }

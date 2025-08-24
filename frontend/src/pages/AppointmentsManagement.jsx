@@ -57,7 +57,7 @@ const AppointmentsManagement = () => {
       pending: 'warning',
       confirmed: 'success',
       completed: 'primary',
-      cancelled: 'default',
+      cancelled: 'error',
     }[status];
 
     if (status === 'cancelled' && notes) {
@@ -97,9 +97,14 @@ const AppointmentsManagement = () => {
           </Stack>
         )}
         {row.status === 'confirmed' && (
-          <Button variant="outlined" size="small" startIcon={<DoneAllIcon />} onClick={() => handleStatusUpdate(row._id, 'completed')}>
-            {t('mark_completed_button')}
-          </Button>
+          <Stack direction="row" spacing={1} justifyContent="center">
+            <Button variant="outlined" size="small" startIcon={<DoneAllIcon />} onClick={() => handleStatusUpdate(row._id, 'completed')}>
+              {t('mark_completed_button')}
+            </Button>
+            <Tooltip title={t('cancel_button')}>
+              <IconButton color="error" size="small" onClick={() => handleOpenRejectionModal(row)}><CancelIcon /></IconButton>
+            </Tooltip>
+          </Stack>
         )}
       </>
     )}

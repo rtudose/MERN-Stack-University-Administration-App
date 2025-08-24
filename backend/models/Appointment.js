@@ -16,27 +16,27 @@ const appointmentSchema = new mongoose.Schema({
     required: true,
     match: [/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Please use HH:MM format']
   },
-  endTime: { // Assuming fixed length appointments (e.g., 15 mins)
+  endTime: {
     type: String,
     required: true,
     match: [/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Please use HH:MM format']
   },
-  typeOfRequest: { // e.g., "Adeverinte", "Cereri de bursa", "Reinmatriculare"
+  typeOfRequest: {
     type: String,
     required: true,
     enum: ['Adeverinte', 'Cereri de bursa', 'Reinmatriculare', 'Alte solicitari']
   },
-  description: { // Optional longer description for the request
+  description: {
     type: String,
     required: false,
     trim: true
   },
-  status: { // e.g., 'pending', 'confirmed', 'completed', 'cancelled'
+  status: {
     type: String,
-    enum: ['pending', 'confirmed', 'completed', 'cancelled'],
+    enum: ['pending', 'confirmed', 'completed', 'cancelled', 'expired'],
     default: 'pending'
   },
-  secretariatNotes: { // For secretariat personnel to add notes
+  secretariatNotes: {
     type: String,
     required: false
   },

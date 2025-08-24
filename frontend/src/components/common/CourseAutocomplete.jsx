@@ -43,6 +43,7 @@ const CourseAutocomplete = ({ value, onChange }) => {
       getOptionLabel={(option) => `[${option.code}] ${option.name}`}
       options={options}
       loading={loading}
+      noOptionsText={t('no_options_text')}
       renderInput={(params) => (
         <TextField
           {...params}

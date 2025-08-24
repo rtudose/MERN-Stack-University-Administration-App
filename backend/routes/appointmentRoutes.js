@@ -19,6 +19,8 @@ router.get('/paginated', adminOnly, appointmentController.getPaginatedAppointmen
 
 router.put('/:id/status', adminOnly, appointmentController.updateAppointmentStatus);
 
+router.put('/:id/cancel-by-user', studentOnly, appointmentController.cancelMyAppointment);
+
 router.delete('/:id', adminOnly, appointmentController.deleteAppointment);
 
 module.exports = router;
