@@ -38,7 +38,6 @@ const Navbar = () => {
   return (
     <AppBar position="static" elevation={1}>
       <Toolbar>
-        {/* --- Left Section (1/3 of the space) --- */}
         <Box sx={{ flex: 1, display: 'flex', justifyContent: 'flex-start' }}>
           {user && (
             <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 1 }}>
@@ -48,14 +47,13 @@ const Navbar = () => {
               {userRole === 'student' && (
                 <Button component={RouterLink} to="/my-appointments" color="inherit">{t('my_appointments_title')}</Button>
               )}
-              {userRole === 'external_representative' && (
+              {(userRole === 'external_representative' || userRole === 'teacher') && (
                 <Button component={RouterLink} to="/my-reservations" color="inherit">{t('my_reservations_title')}</Button>
               )}
             </Box>
           )}
         </Box>
 
-        {/* --- Center Section (1/3 of the space) --- */}
         <Box sx={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
             <Link component={RouterLink} to={user ? homePath : '/'} sx={{ color: 'inherit', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 1 }}>
                 <SchoolIcon />
@@ -65,7 +63,6 @@ const Navbar = () => {
             </Link>
         </Box>
 
-        {/* --- Right Section (1/3 of the space) --- */}
         <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 1.5 }}>
           <Button color="inherit" onClick={handleLanguageChange} sx={{ minWidth: 'auto' }}>
             {i18n.language === 'ro' ? 'EN' : 'RO'}

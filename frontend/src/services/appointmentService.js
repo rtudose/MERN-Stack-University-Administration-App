@@ -11,12 +11,12 @@ const createAppointment = (appointmentData) => {
 };
 
 const getMyAppointments = () => {
-   return api.get(`/api/appointments/my-appointments`);
+  return api.get(`/api/appointments/my-appointments`);
 };
 
 
 const updateAppointmentStatus = (id, statusData) => {
-    return api.put(`/api/appointments/${id}/status`, statusData);
+  return api.put(`/api/appointments/${id}/status`, statusData);
 };
 
 const getPaginatedAppointments = ({ page, limit, sortBy, order }) => {
@@ -25,6 +25,10 @@ const getPaginatedAppointments = ({ page, limit, sortBy, order }) => {
 
 const cancelMyAppointment = (id) => {
   return api.put(`/api/appointments/${id}/cancel-by-user`);
+};
+
+const getAppointmentStatsByStatus = () => {
+  return api.get('/api/appointments/stats/status');
 };
 
 const deleteAppointment = (id) => {
@@ -37,6 +41,7 @@ export {
   getMyAppointments,
   getPaginatedAppointments,
   updateAppointmentStatus,
+  getAppointmentStatsByStatus,
   cancelMyAppointment,
   deleteAppointment,
 };

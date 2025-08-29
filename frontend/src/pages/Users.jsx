@@ -18,7 +18,7 @@ const Users = () => {
   const [formMessage, setFormMessage] = useState({ text: '', type: '' });
   const [isEditing, setIsEditing] = useState(false);
   const [currentUserId, setCurrentUserId] = useState(null);
-  const [showStats, setShowStats] = useState(false);
+  const [showStats, setShowStats] = useState(true);
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
   const [refreshKey, setRefreshKey] = useState(0);

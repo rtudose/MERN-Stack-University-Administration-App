@@ -17,7 +17,7 @@ const CoursesManagement = () => {
   const [formMessage, setFormMessage] = useState({ key: '', options: {}, type: 'success' });
   const [isEditing, setIsEditing] = useState(false);
   const [currentCourseId, setCurrentCourseId] = useState(null);
-  const [showStats, setShowStats] = useState(false);
+  const [showStats, setShowStats] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
 
   const initialState = {

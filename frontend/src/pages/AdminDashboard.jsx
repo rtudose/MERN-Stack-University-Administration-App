@@ -15,6 +15,7 @@ import SchoolIcon from '@mui/icons-material/School';
 import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 import ScheduleIcon from '@mui/icons-material/Schedule';
 import FactCheckIcon from '@mui/icons-material/FactCheck';
+import BarChartIcon from '@mui/icons-material/BarChart';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -42,7 +43,8 @@ const AdminDashboard = () => {
     { textKey: 'manage_courses_button', icon: <SchoolIcon />, path: '/courses-management', color: orange[500] },
     { textKey: 'manage_schedule_button', icon: <ScheduleIcon />, path: '/schedule-management', color: purple[500] },
     { textKey: 'manage_reservations_button', icon: <EventAvailableIcon />, path: '/reservations-management', stat: stats?.pendingReservations, badge: true, color: red[500] },
-    { textKey: 'manage_appointments_button', icon: <FactCheckIcon />, path: '/appointments-management', stat: stats?.pendingAppointments, badge: true, color: cyan[500] }
+    { textKey: 'manage_appointments_button', icon: <FactCheckIcon />, path: '/appointments-management', stat: stats?.pendingAppointments, badge: true, color: cyan[500] },
+    { textKey: 'view_statistics_button', icon: <BarChartIcon />, path: '/admin-statistics', color: '#some_color' }
   ];
 
   return (

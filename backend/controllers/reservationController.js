@@ -79,11 +79,10 @@ const getAvailableReservationSlots = async (req, res) => {
         const existingReservations = await RoomReservation.find({
             room: roomId,
             date: queryDate,
-            status: { $in: ['pending', 'approved'] }
+            status: { $in: ['pending', 'confirmed'] }
         }).select('startTime endTime');
 
         const allSlots = [];
-        // Generate potential 1-hour slots from 8 AM to 8 PM (20:00)
         for (let h = 8; h < 20; h++) {
             const slotStart = `${h.toString().padStart(2, '0')}:00`;
             const slotEnd = `${(h + 1).toString().padStart(2, '0')}:00`;
@@ -111,7 +110,7 @@ const getMyReservations = async (req, res) => {
         }
 
         const reservations = await RoomReservation.find({ contactEmail: user.email })
-            .populate('room', 'name location') // Get room name and location
+            .populate('room', 'name location')
             .sort({ date: -1 });
 
         res.json(reservations);
@@ -158,7 +157,8 @@ const getPaginatedReservations = async (req, res) => {
                                     { case: { $eq: ['$status', 'pending'] }, then: 1 },
                                     { case: { $eq: ['$status', 'approved'] }, then: 2 },
                                     { case: { $eq: ['$status', 'rejected'] }, then: 3 },
-                                    { case: { $eq: ['$status', 'cancelled'] }, then: 4 }
+                                    { case: { $eq: ['$status', 'cancelled'] }, then: 4 },
+                                    { case: { $eq: ['$status', 'expired'] }, then: 5 },
                                 ],
                                 default: 99
                             }
@@ -210,7 +210,7 @@ const getPaginatedReservations = async (req, res) => {
 const updateReservationStatus = async (req, res) => {
     const { status, adminNotes } = req.body;
 
-    const allowedStatuses = ['pending', 'approved', 'rejected', 'cancelled'];
+    const allowedStatuses = ['pending', 'approved', 'rejected', 'cancelled', 'expired'];
     if (!allowedStatuses.includes(status)) {
         return res.status(400).json({ msg: 'Invalid status value' });
     }

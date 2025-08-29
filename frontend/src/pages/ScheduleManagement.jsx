@@ -38,7 +38,7 @@ const ScheduleManagement = () => {
   const [selectedCourseDetails, setSelectedCourseDetails] = useState(null);
   const [selectedRoom, setSelectedRoom] = useState(null);
   const [selectedRoomDetails, setSelectedRoomDetails] = useState(null);
-  const [showStats, setShowStats] = useState(false);
+  const [showStats, setShowStats] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
   const [isEditing, setIsEditing] = useState(false);
   const [currentEntryId, setCurrentEntryId] = useState(null);

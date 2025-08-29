@@ -26,7 +26,7 @@ function Rooms() {
     name: '', capacity: '', location: '', equipment: [], isAvailableForExternal: false, status: 'available'
   };
   const [formData, setFormData] = useState(initialState);
-  const [showStats, setShowStats] = useState(false);
+  const [showStats, setShowStats] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
 
   const resetForm = () => {

@@ -1,4 +1,4 @@
-// src/pages/Login.jsx (Corrected with Error Translation)
+// src/pages/Login.jsx
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -30,13 +30,13 @@ function Login() {
   const getTranslatedErrorMessage = (backendMsg) => {
     switch (backendMsg) {
       case 'Invalid Credentials':
-        return t('invalid_credentials_error');
+        return 'invalid_credentials_error';
       case 'User not found':
-        return t('user_not_found_error');
+        return 'user_not_found_error';
       case 'Server Error':
-        return t('server_error');
+        return 'server_error';
       default:
-        return t('login_failed_generic');
+        return 'login_failed_generic';
     }
   };
 
@@ -56,7 +56,7 @@ function Login() {
     } catch (error) {
       const errorMsg = error.response?.data?.msg 
         ? getTranslatedErrorMessage(error.response.data.msg)
-        : t('login_failed_generic');
+        : 'login_failed_generic';
       
       setMessage({ key: errorMsg, type: 'error' });
     } finally {

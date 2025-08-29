@@ -28,7 +28,7 @@ const ReservationStatusChart = () => {
     return (
         <Paper sx={{ p: 2, mb: 2 }}>
             <Typography variant="h5" component="h2" gutterBottom sx={{ textAlign: 'center' }}>
-                {t('rooms_by_status')}
+                {t('rooms_reservations_by_status')}
             </Typography>
             {chartData.length > 0 ? (
                 <Box sx={{ height: 300, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>

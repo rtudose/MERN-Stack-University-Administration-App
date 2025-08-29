@@ -28,7 +28,7 @@ const getAvailableSlots = async (req, res) => {
 
         const appointmentsForDay = await Appointment.find({
             date: queryDate,
-            status: { $in: ['pending', 'confirmed', 'completed'] }
+            status: { $in: ['pending', 'confirmed'] }
         }).select('startTime endTime');
 
         const allSlots = [];
@@ -297,6 +297,19 @@ const getPaginatedAppointments = async (req, res) => {
     }
 };
 
+const getAppointmentStatsByStatus = async (req, res) => {
+    try {
+        const stats = await Appointment.aggregate([
+            { $group: { _id: '$status', count: { $sum: 1 } } },
+            { $project: { _id: 0, label: '$_id', value: '$count' } }
+        ]);
+        res.json(stats);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+};
+
 const cancelMyAppointment = async (req, res) => {
     try {
         const appointment = await Appointment.findOne({ _id: req.params.id, student: req.user.id });
@@ -323,5 +336,6 @@ module.exports = {
     deleteAppointment,
     getMyAppointments,
     getPaginatedAppointments,
+    getAppointmentStatsByStatus,
     cancelMyAppointment
 };

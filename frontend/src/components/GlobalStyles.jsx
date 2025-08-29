@@ -22,11 +22,11 @@ const GlobalStyles = () => (
         backgroundColor: theme.palette.mode === 'dark' ? theme.palette.grey[600] : theme.palette.grey[500],
       },
       'input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:focus, input:-webkit-autofill:active': {
-        // Use a box-shadow to cover the browser's blue background
-        '-webkit-box-shadow': `0 0 0 1000px ${theme.palette.background.paper} inset !important`,
-        // Set the text color to match your theme
-        '-webkit-text-fill-color': `${theme.palette.text.primary} !important`,
-        // A transition delay trick to prevent a brief blue flash
+
+        WebkitBoxShadow: `0 0 0 1000px ${theme.palette.background.paper} inset !important`,
+
+        WebkitTextFillColor: `${theme.palette.text.primary} !important`,
+
         transition: 'background-color 5000s ease-in-out 0s',
       },
     })}

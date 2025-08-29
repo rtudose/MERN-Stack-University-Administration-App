@@ -21,6 +21,8 @@ router.put('/:id/status', adminOnly, appointmentController.updateAppointmentStat
 
 router.put('/:id/cancel-by-user', studentOnly, appointmentController.cancelMyAppointment);
 
+router.get('/stats/status', adminOnly, appointmentController.getAppointmentStatsByStatus);
+
 router.delete('/:id', adminOnly, appointmentController.deleteAppointment);
 
 module.exports = router;

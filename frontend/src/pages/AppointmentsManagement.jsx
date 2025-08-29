@@ -1,7 +1,7 @@
 // src/pages/AppointmentsManagement.jsx
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { getPaginatedAppointments, updateAppointmentStatus } from '../services/appointmentService';
+import { getPaginatedAppointments, updateAppointmentStatus, getAppointmentStatsByStatus } from '../services/appointmentService';
 import BackButton from '../components/BackButton';
 import { format } from 'date-fns';
 import {
@@ -14,6 +14,7 @@ import CancelIcon from '@mui/icons-material/Cancel';
 import DoneAllIcon from '@mui/icons-material/DoneAll';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import PaginatedTable from '../components/common/PaginatedTable';
+import AppointmentStatusChart from '../components/charts/AppointmentStatusChart';
 
 const AppointmentsManagement = () => {
   const { t } = useTranslation();
@@ -23,6 +24,7 @@ const AppointmentsManagement = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentAppointment, setCurrentAppointment] = useState(null);
   const [rejectionNotes, setRejectionNotes] = useState('');
+  const [showStats, setShowStats] = useState(true);
 
   const handleStatusUpdate = async (id, status, notes = '') => {
     try {
@@ -117,6 +119,17 @@ const AppointmentsManagement = () => {
         {t('appointments_management_title')}
       </Typography>
       {message.key && <Alert severity={message.type} sx={{ mb: 2 }} onClose={() => setMessage({ key: '', type: '' })}>{t(message.key)}</Alert>}
+
+      <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+          <Button
+              variant="outlined"
+              onClick={() => setShowStats(prev => !prev)}
+          >
+              {showStats ? t('hide_appointments_stats') : t('show_appointments_stats')}
+          </Button>
+      </Box>
+
+      {showStats && <AppointmentStatusChart />}
 
       <PaginatedTable
         columns={appointmentColumns}

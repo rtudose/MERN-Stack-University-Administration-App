@@ -27,7 +27,7 @@ import AppointmentsManagement from './pages/AppointmentsManagement';
 // import Register from './pages/Register'; // Uncomment if you have a register page
 import ProtectedRoute from './components/ProtectedRoute';
 import Navbar from './components/Navbar';
-
+import AdminStatistics from './pages/AdminStatistics';
 
 function AppContent() {
   return (
@@ -50,16 +50,16 @@ function AppContent() {
                   <Route path="/my-schedule" element={<MySchedulePage />} />
                 </Route>
                 
+                {/* EXTERNAL REP & TEACHER Routes */}
+                <Route element={<ProtectedRoute allowedRoles={['teacher', 'external_representative']} />}>
+                    <Route path="/book-room" element={<BookRoom />} />
+                    <Route path="/my-reservations" element={<MyReservations />} />
+                </Route>
+
                 {/* STUDENT-only Routes */}
                 <Route element={<ProtectedRoute allowedRoles={['student']} />}>
                     <Route path="/book-appointment" element={<BookAppointment />} />
                     <Route path="/my-appointments" element={<MyAppointments />} />
-                </Route>
-                
-                {/* EXTERNAL REP-only Routes */}
-                <Route element={<ProtectedRoute allowedRoles={['external_representative']} />}>
-                    <Route path="/book-room" element={<BookRoom />} />
-                    <Route path="/my-reservations" element={<MyReservations />} />
                 </Route>
 
                 {/* ADMIN-only Routes */}
@@ -71,6 +71,7 @@ function AppContent() {
                   <Route path="/reservations-management" element={<ReservationsManagement />} />
                   <Route path="/schedule-management" element={<ScheduleManagement />} />
                   <Route path="/appointments-management" element={<AppointmentsManagement />} />
+                  <Route path="/admin-statistics" element={<AdminStatistics />} />
                 </Route>
               </Routes>
             </Box>

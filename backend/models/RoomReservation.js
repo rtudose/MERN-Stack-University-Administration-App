@@ -45,7 +45,7 @@ const roomReservationSchema = new mongoose.Schema({
   },
   status: { // e.g., 'pending', 'approved', 'rejected', 'cancelled'
     type: String,
-    enum: ['pending', 'approved', 'rejected', 'cancelled'],
+    enum: ['pending', 'approved', 'rejected', 'cancelled', 'expired', 'completed'],
     default: 'pending'
   },
   adminNotes: { // For administrators to add notes

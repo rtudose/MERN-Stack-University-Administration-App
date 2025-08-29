@@ -46,6 +46,7 @@ const resources = {
       "manage_rooms_button": "Manage Rooms",
       "manage_users_button": "Manage Users",
       "manage_courses_button": "Manage Courses",
+      "view_statistics_button": "View Statistics",
 
       // User Dashboard
       "user_dashboard_title": "User Dashboard",
@@ -63,6 +64,7 @@ const resources = {
       "room_capacity": "Capacity",
       "room_location": "Location",
       "rooms_by_status": "Rooms by Status",
+      "rooms_reservations_by_status": "Rooms Reservations by Status",
       "status_available": "Available",
       "status_under_maintenance": "Under Maintenance",
       "status_unavailable": "Unavailable",
@@ -318,11 +320,17 @@ const resources = {
       "rejection_reason_title": "Reason for Rejection",
       "rejection_reason_label": "Notes for Student",
       "submit_rejection_button": "Submit Rejection",
+      "hide_appointments_stats": "Hide Appointment Stats",
+      "show_appointments_stats": "Show Appointment Stats",
+      "appointments_by_status": "Appointments by Status",
 
       //Student Appointments Page
       "my_appointments_button": "My Appointments",
       "my_appointments_title": "My Secretariat Appointments",
       "secretariat_notes_label": "Secretariat Notes",
+
+      //Admin Statistics Page
+      "faculty_statistics_title": "Faculty Statistics",
 
       // Form Messages & Errors
       "add_room_empty_fields_error": "Please fill in all required fields.",
@@ -395,6 +403,7 @@ const resources = {
       "manage_rooms_button": "Administrează Sălile",
       "manage_users_button": "Administrează Utilizatorii",
       "manage_courses_button": "Administrează Cursurile",
+      "view_statistics_button": "Vezi Statistici",
 
       // User Dashboard
       "user_dashboard_title": "Tablou de Bord Utilizator",
@@ -412,6 +421,7 @@ const resources = {
       "room_capacity": "Capacitate",
       "room_location": "Locație",
       "rooms_by_status": "Săli după Status",
+      "rooms_reservations_by_status": "Rezervări Săli după Status",
       "status_available": "Disponibilă",
       "status_under_maintenance": "În Mentenanță",
       "status_unavailable": "Indisponibilă",
@@ -454,7 +464,7 @@ const resources = {
       "delete_user_modal_title": "Confirmare Ștergere",
       "delete_user_modal_content": "Sunteți sigur că doriți să ștergeți permanent utilizatorul '{{username}}'? Această acțiune este ireversibilă.",
       "confirm_delete_button": "Șterge",
-      "student_registration_evolution": "Evoluție număr studenți înmatriculați pe an",
+      "student_registration_evolution": "Evoluție număr studenți înmatriculați per an",
       "year_label": "An",
       "number_of_students_label": "Număr de Studeni",
       "hide_student_stats": "Ascunde statistici studenți",
@@ -511,6 +521,7 @@ const resources = {
       "attendees_label": "Număr de Participanți",
       "submit_booking_button": "Trimite Cererea",
       "reservation_success": "Cererea dumneavoastră de rezervare a fost trimisă și așteaptă aprobare.",
+      "reservation_success_redirect": "Cererea dumneavoastră de rezervare a fost trimisă și așteaptă aprobare. Vă vom redirecționa către pagina de rezervări în 3 secunde.",
       "reservation_error_required": "Vă rugăm să completați toate câmpurile obligatorii.",
       "reservation_error_time_format": "Vă rugăm să folosiți un format valid HH:MM pentru oră.",
       "reservation_error_endtime": "Ora de sfârșit trebuie să fie după ora de început.",
@@ -667,11 +678,17 @@ const resources = {
       "rejection_reason_title": "Motivul Respingerii",
       "rejection_reason_label": "Notițe pentru Student",
       "submit_rejection_button": "Trimite Respingerea",
+      "hide_appointments_stats": "Ascunde Statistici Programări",
+      "show_appointments_stats": "Arată Statistici Programări",
+      "appointments_by_status": "Programări după Status",
 
       // Student Appointments Page
       "my_appointments_button": "Programările Mele",
       "my_appointments_title": "Programările Mele la Secretariat",
       "secretariat_notes_label": "Notițe Secretariat",
+
+      // Admin Statistics Page
+      "faculty_statistics_title": "Statistici Facultate",
 
       // Form Messages & Errors
       "add_room_empty_fields_error": "Vă rugăm să completați toate câmpurile obligatorii.",

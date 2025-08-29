@@ -9,7 +9,6 @@ module.exports = function(roles = []) {
       return res.status(401).json({ msg: 'No authorization data found' });
     }
 
-    // Trim whitespace from the user's role before checking
     if (roles.length && !roles.includes(req.user.role.trim())) {
       return res.status(403).json({ msg: 'Access denied: You do not have the required role' });
     }

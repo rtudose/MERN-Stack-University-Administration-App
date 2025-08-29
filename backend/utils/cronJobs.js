@@ -6,13 +6,11 @@ const updateOverdueAppointments = async () => {
   const now = new Date();
 
   try {
-    // 1. Find 'Confirmed' appointments where the end time is in the past and update them to 'Completed'
     const completedResult = await Appointment.updateMany(
       {
         status: 'confirmed',
-        date: { $lte: now } // Check if the appointment date is today or in the past
+        date: { $lte: now }
       },
-      // We must use a pipeline update to check the time within the date
       [{
         $set: {
           status: {
@@ -34,7 +32,6 @@ const updateOverdueAppointments = async () => {
         console.log(`Auto-completed ${completedResult.modifiedCount} appointments.`);
     }
 
-    // 2. Find 'Pending' appointments where the start time is in the past and update them to 'Expired'
     const expiredResult = await Appointment.updateMany(
       {
         status: 'pending',
@@ -66,9 +63,65 @@ const updateOverdueAppointments = async () => {
   }
 };
 
+const updateOverdueReservations = async () => {
+  console.log('Running cron job: Updating overdue room reservations...');
+  const now = new Date();
+
+  try {
+    await RoomReservation.updateMany(
+      {
+        status: 'approved',
+        date: { $lte: now }
+      },
+      [{ $set: {
+          status: {
+            $cond: {
+              if: {
+                $lte: [ 
+                  { $dateFromString: { dateString: { $concat: [{ $dateToString: { format: "%Y-%m-%d", date: "$date" } }, "T", "$endTime", ":00Z"] } } }, 
+                  now 
+                ] 
+              }, 
+              then: "completed", 
+              else: "$status" 
+            } 
+          } 
+        } 
+      }]
+    );
+    
+    await RoomReservation.updateMany(
+      {
+        status: 'pending',
+        date: { $lte: now }
+      },
+      [{ $set: {
+          status: {
+            $cond: {
+              if: {
+                $lte: [ 
+                  { $dateFromString: { dateString: { $concat: [{ $dateToString: { format: "%Y-%m-%d", date: "$date" } }, "T", "$startTime", ":00Z"] } } }, 
+                  now 
+                ] 
+              }, 
+              then: "expired", 
+              else: "$status" 
+            } 
+          } 
+        } 
+      }]
+    );
+
+  } catch (error) {
+    console.error('Error running reservation update cron job:', error);
+  }
+};
+
 const start = () => {
-  // Schedule the job to run every hour
-  cron.schedule('0 * * * *', updateOverdueAppointments);
+  cron.schedule('* * * * *', () => {
+    updateOverdueAppointments();
+    updateOverdueReservations();
+  });
 };
 
 module.exports = { start };

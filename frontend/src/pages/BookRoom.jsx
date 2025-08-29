@@ -1,6 +1,7 @@
 // src/pages/BookRoom.jsx
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { getPublicRooms } from '../services/roomService';
 import { createReservation } from '../services/reservationService';
 import BackButton from '../components/BackButton';
@@ -26,6 +27,7 @@ const setTime = (date, hours, minutes) => {
 
 const BookRoom = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -45,16 +47,16 @@ const BookRoom = () => {
     attendees: 1
   });
   
-  const [pageMessage, setPageMessage] = useState({ text: '', type: '' });
-  const [modalError, setModalError] = useState('');
+  const [pageMessage, setPageMessage] = useState({ key: '', type: '' });
+  const [modalError, setModalError] = useState({ key: '', type: 'error' });
 
   const getTranslatedError = (msg) => {
-    if (msg.includes('Cast to Number failed')) return t('attendees_integer_error');
-    if (msg.includes('is required')) return t('reservation_error_required');
-    if (msg.includes('HH:MM format')) return t('reservation_error_time_format');
-    if (msg.includes('End time must be after start time')) return t('reservation_error_endtime');
-    if (msg.includes('exceeds room capacity')) return t('reservation_error_capacity');
-    return t('generic_error');
+    if (msg.includes('Cast to Number failed')) return 'attendees_integer_error';
+    if (msg.includes('is required')) return 'reservation_error_required';
+    if (msg.includes('HH:MM format')) return 'reservation_error_time_format';
+    if (msg.includes('End time must be after start time')) return 'reservation_error_endtime';
+    if (msg.includes('exceeds room capacity')) return 'reservation_error_capacity';
+    return 'generic_error';
   };
 
   const fetchRooms = useCallback(async () => {
@@ -114,22 +116,27 @@ const BookRoom = () => {
   const handleEndTimeChange = (newTime) => {
     setReservationData(prev => ({ ...prev, endTime: newTime }));
   };
+
   const handleReservationSubmit = async () => {
     setModalError('');
 
     const now = new Date();
-    const selectedDate = new Date(reservationData.date);
-    const [startHour, startMinute] = reservationData.startTime.split(':').map(Number);
-    selectedDate.setHours(startHour, startMinute, 0, 0);
+    const combinedDateTime = new Date(reservationData.date);
+    combinedDateTime.setHours(
+        reservationData.startTime.getHours(),
+        reservationData.startTime.getMinutes(),
+        0, 0
+    );
 
-    if (selectedDate < now) {
-      setModalError(t('reservation_error_past_time'));
+    if (combinedDateTime < now) {
+      setModalError({key: 'reservation_error_past_time', type: 'error'});
       return;
     }
 
+
     const attendeesNumber = Number(reservationData.attendees);
     if (!Number.isInteger(attendeesNumber) || attendeesNumber < 1) {
-      setModalError(t('attendees_integer_error'));
+      setModalError({key: 'attendees_integer_error', type: 'error'});
       return;
     }
 
@@ -141,12 +148,16 @@ const BookRoom = () => {
         startTime: format(reservationData.startTime, 'HH:mm'),
         endTime: format(reservationData.endTime, 'HH:mm')
       };
-      await createReservation(payload);
-      setPageMessage({ text: 'reservation_success', type: 'success' });
+      const response = await createReservation(payload);
+      const newReservationId = response.data._id;
+      setPageMessage({ key: 'reservation_success_redirect', type: 'success' });
       handleCloseModal();
+      setTimeout(() => {
+        navigate('/my-reservations', { state: { highlightedId: newReservationId } });
+      }, 3000);
     } catch (err) {
-      const errorText = err.response?.data?.msg ? getTranslatedError(err.response.data.msg) : t('generic_error');
-      setModalError(errorText);
+      const errorText = err.response?.data?.msg ? getTranslatedError(err.response.data.msg) : 'generic_error';
+      setModalError({key: errorText, type: 'error'});
     }
   };
 
@@ -160,7 +171,7 @@ const BookRoom = () => {
         {t('book_a_room_title')}
       </Typography>
       
-      {pageMessage.text && <Alert severity={pageMessage.type} sx={{ mb: 2 }} onClose={() => setPageMessage({ text: '', type: '' })}>{t(pageMessage.text)}</Alert>}
+      {pageMessage.key && <Alert severity={pageMessage.type} sx={{ mb: 2 }} onClose={() => setPageMessage({ key: '', type: '' })}>{t(pageMessage.key)}</Alert>}
 
       <Paper sx={{ p: { xs: 2, md: 3 }, mb: 4 }}>
         <Typography variant="h6" gutterBottom>{t('filter_rooms_title')}</Typography>

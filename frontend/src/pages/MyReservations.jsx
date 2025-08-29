@@ -1,5 +1,6 @@
 // src/pages/MyReservations.jsx
 import React, { useState, useEffect, useCallback } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { getMyReservations } from '../services/reservationService';
 import BackButton from '../components/BackButton';
@@ -14,9 +15,24 @@ import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 
 const MyReservations = () => {
   const { t } = useTranslation();
+  const location = useLocation();
+  const navigate = useNavigate();
   const [reservations, setReservations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [highlightedId, setHighlightedId] = useState(null);
+
+  useEffect(() => {
+    if (location.state?.highlightedId) {
+      const { highlightedId } = location.state;
+      setHighlightedId(highlightedId);
+      
+      navigate(location.pathname, { replace: true });
+
+      const timer = setTimeout(() => setHighlightedId(null), 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [location.state, location.pathname, navigate]);
 
   const fetchReservations = useCallback(async () => {
     try {
@@ -42,7 +58,6 @@ const MyReservations = () => {
       cancelled: 'default',
     }[status];
     
-    // Case 1: The reservation is rejected AND has notes
     if (status === 'rejected' && notes) {
       return (
         <Tooltip title={notes} arrow>
@@ -63,7 +78,6 @@ const MyReservations = () => {
       );
     }
     
-    // Case 2: All other statuses (no special animation or icon)
     return <Chip label={t(`status_${status}`)} color={color || 'default'} size="small" />;
   };
 
@@ -98,7 +112,14 @@ const MyReservations = () => {
                 </TableRow>
               ) : (
                 reservations.map((res) => (
-                  <TableRow key={res._id}>
+                  <TableRow
+                    key={res._id}
+                    sx={{
+                      ...(res._id === highlightedId && {
+                        animation: `highlightFade 3s ease-in-out`,
+                      }),
+                    }}
+                  >
                     <TableCell>{getStatusChip(res.status, res.adminNotes)}</TableCell>
                     <TableCell>{res.room?.name || 'N/A'}</TableCell>
                     <TableCell>{format(new Date(res.date), 'dd/MM/yyyy')}</TableCell>

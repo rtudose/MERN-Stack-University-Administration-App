@@ -19,7 +19,7 @@ const ReservationsManagement = () => {
   const { t } = useTranslation();
   const [message, setMessage] = useState({ key: '', type: 'success' });
   const [refreshKey, setRefreshKey] = useState(0);
-  const [showStats, setShowStats] = useState(false);
+  const [showStats, setShowStats] = useState(true);
   const [statusFilter, setStatusFilter] = useState('all');
   const [rejectModalOpen, setRejectModalOpen] = useState(false);
   const [rejectionNote, setRejectionNote] = useState('');
