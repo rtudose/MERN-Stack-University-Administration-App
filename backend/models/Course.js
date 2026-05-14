@@ -8,7 +8,7 @@ const courseSchema = new mongoose.Schema({
     unique: true,
     trim: true
   },
-  code: { // e.g., "CS101", "MA203"
+  code: { // e.g., "SS1", "CIJTMP"
     type: String,
     required: true,
     unique: true,
@@ -38,7 +38,7 @@ const courseSchema = new mongoose.Schema({
     type: Number,
     required: true,
     min: 1,
-    max: 4 // Assuming a 4-year program, adjust as needed
+    max: 4 // Assuming a 4-year program
   },
   semester: {
     type: Number,

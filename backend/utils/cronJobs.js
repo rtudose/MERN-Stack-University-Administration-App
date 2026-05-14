@@ -1,5 +1,6 @@
 const cron = require('node-cron');
 const Appointment = require('../models/Appointment');
+const RoomReservation = require('../models/RoomReservation');
 
 const updateOverdueAppointments = async () => {
   console.log('Running cron job: Updating overdue appointments...');
@@ -118,7 +119,7 @@ const updateOverdueReservations = async () => {
 };
 
 const start = () => {
-  cron.schedule('* * * * *', () => {
+  cron.schedule('0 * * * *', () => {
     updateOverdueAppointments();
     updateOverdueReservations();
   });

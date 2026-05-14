@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { getPublicRooms } from '../services/roomService';
-import { createReservation } from '../services/reservationService';
+import { createRoomReservation } from '../services/roomReservationService';
 import BackButton from '../components/BackButton';
 import { DatePicker, TimePicker } from '@mui/x-date-pickers';
 import { format } from 'date-fns';
@@ -133,6 +133,11 @@ const BookRoom = () => {
       return;
     }
 
+    const purpose = String(reservationData.purpose);
+    if (!purpose) {
+      setModalError({key: 'reservation_error_empty_purpose', type: 'error'});
+      return;
+    }
 
     const attendeesNumber = Number(reservationData.attendees);
     if (!Number.isInteger(attendeesNumber) || attendeesNumber < 1) {
@@ -148,7 +153,7 @@ const BookRoom = () => {
         startTime: format(reservationData.startTime, 'HH:mm'),
         endTime: format(reservationData.endTime, 'HH:mm')
       };
-      const response = await createReservation(payload);
+      const response = await createRoomReservation(payload);
       const newReservationId = response.data._id;
       setPageMessage({ key: 'reservation_success_redirect', type: 'success' });
       handleCloseModal();
@@ -156,8 +161,17 @@ const BookRoom = () => {
         navigate('/my-reservations', { state: { highlightedId: newReservationId } });
       }, 3000);
     } catch (err) {
-      const errorText = err.response?.data?.msg ? getTranslatedError(err.response.data.msg) : 'generic_error';
-      setModalError({key: errorText, type: 'error'});
+      const errorData = err.response?.data;
+      
+      // Catch our specific overlap codes from the backend
+      if (['RESERVATION_ROOM_RESERVED', 'RESERVATION_BLOCKED_BY'].includes(errorData?.msg)) {
+        const errorKey = errorData.msg.toLowerCase(); 
+        setModalError({ key: errorKey, type: 'error', details: errorData.details });
+      } else {
+        // Fallback for standard errors
+        const errorText = errorData?.msg ? getTranslatedError(errorData.msg) : 'generic_error';
+        setModalError({ key: errorText, type: 'error', details: null });
+      }
     }
   };
 
@@ -238,7 +252,14 @@ const BookRoom = () => {
       <Dialog open={isModalOpen} onClose={handleCloseModal}>
         <DialogTitle>{t('book_room_for_title')} {selectedRoom?.name}</DialogTitle>
         <DialogContent>
-          {modalError && <Alert severity="error" sx={{ mb: 2 }}>{modalError}</Alert>}
+          {modalError && modalError.key && (
+            <Alert severity={modalError.type || "error"} sx={{ mb: 2 }}>
+                {t(modalError.key, { 
+                  ...modalError.details,
+                  dayOfWeek: modalError.details?.dayOfWeek ? t(`day_${modalError.details.dayOfWeek}`) : ''
+                })}
+            </Alert>
+          )}
           <Stack spacing={2} sx={{ mt: 1 }}>
             <DatePicker
               label={t('date_label')}
@@ -260,7 +281,7 @@ const BookRoom = () => {
                 ampm={false}
             />
             <TextField name="purpose" label={t('purpose_label')} value={reservationData.purpose} onChange={handleReservationChange} required fullWidth/>
-            <TextField name="attendees" label={t('attendees_label')} type="number" value={reservationData.attendees} onChange={handleReservationChange} inputProps={{ min: 1, step: 1 }} fullWidth/>
+            <TextField name="attendees" label={t('attendees_label')} type="number" value={reservationData.attendees} onChange={handleReservationChange} inputProps={{ min: 1, step: 1 }} required fullWidth/>
           </Stack>
         </DialogContent>
         <DialogActions>

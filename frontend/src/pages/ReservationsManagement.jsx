@@ -63,9 +63,9 @@ const ReservationsManagement = () => {
   const getStatusChip = (status, notes) => {
     const color = {
       pending: 'warning',
-      approved: 'success',
-      rejected: 'error',
-      cancelled: 'default',
+      confirmed: 'success',
+      completed: 'primary',
+      cancelled: 'error',
     }[status];
 
     if (status === 'rejected' && notes) {

@@ -53,10 +53,10 @@ const getAvailableSlots = async (req, res) => {
         const availableSlots = allSlots.filter(slot => {
             for (let existingAppt of appointmentsForDay) {
                 if (checkTimeOverlap(existingAppt.startTime, existingAppt.endTime, slot.startTime, slot.endTime)) {
-                    return false;
+                    return false; // Slot is intersecting and removed from the available array
                 }
             }
-            return true;
+            return true; // Slot is validated and appended to the client payload
         });
 
         res.json(availableSlots);
@@ -72,66 +72,66 @@ const createAppointment = async (req, res) => {
     const studentId = req.user.id;
 
     try {
-    const student = await User.findById(studentId);
-    if (!student) {
-      return res.status(404).json({ msg: 'Student not found.' });
-    }
-    if (student.role !== 'student' && student.role !== 'admin') {
-        return res.status(403).json({ msg: 'Only students or admins can book appointments.' });
-    }
-    const appointmentDate = new Date(date);
-    appointmentDate.setHours(0, 0, 0, 0);
+        const student = await User.findById(studentId);
+        if (!student) {
+            return res.status(404).json({ msg: 'Student not found.' });
+        }
+        if (student.role !== 'student' && student.role !== 'admin') {
+            return res.status(403).json({ msg: 'Only students or admins can book appointments.' });
+        }
+        const appointmentDate = new Date(date);
+        appointmentDate.setHours(0, 0, 0, 0);
 
-    const officeStart = parseTime("09:00");
-    const officeEnd = parseTime("17:00");
+        const officeStart = parseTime("09:00");
+        const officeEnd = parseTime("17:00");
 
-    const requestedStart = parseTime(startTime);
-    const requestedEnd = parseTime(endTime);
+        const requestedStart = parseTime(startTime);
+        const requestedEnd = parseTime(endTime);
 
-    if (requestedStart < officeStart || requestedEnd > officeEnd) {
-      return res.status(400).json({
-        msg: `Appointment times must be between 09:00 and 17:00.`
-      });
-     }
+        if (requestedStart < officeStart || requestedEnd > officeEnd) {
+        return res.status(400).json({
+            msg: `Appointment times must be between 09:00 and 17:00.`
+        });
+        }
 
-    const existingStudentAppointments = await Appointment.find({
+        const existingStudentAppointments = await Appointment.find({
+            student: studentId,
+            date: appointmentDate,
+            status: { $in: ['pending', 'confirmed'] }
+        });
+
+        for (let appt of existingStudentAppointments) {
+            if (checkTimeOverlap(appt.startTime, appt.endTime, startTime, endTime)) {
+                return res.status(400).json({
+                    msg: `You already have an appointment from ${appt.startTime} to ${appt.endTime} on this date.`
+                });
+            }
+        }
+
+        const newAppointment = new Appointment({
         student: studentId,
         date: appointmentDate,
-        status: { $in: ['pending', 'confirmed'] }
-    });
+        startTime,
+        endTime,
+        typeOfRequest,
+        description,
+        status: 'pending'
+        });
 
-    for (let appt of existingStudentAppointments) {
-        if (checkTimeOverlap(appt.startTime, appt.endTime, startTime, endTime)) {
-            return res.status(400).json({
-                msg: `You already have an appointment from ${appt.startTime} to ${appt.endTime} on this date.`
-            });
+        await newAppointment.save();
+
+        res.status(201).json({ msg: 'Appointment request submitted successfully. Awaiting confirmation.', appointment: newAppointment });
+
+    } catch (err) {
+        console.error(err.message);
+        if (err.name === 'Error' && err.message.includes('End time must be after start time')) {
+            return res.status(400).json({ msg: err.message });
         }
-    }
-
-    const newAppointment = new Appointment({
-      student: studentId,
-      date: appointmentDate,
-      startTime,
-      endTime,
-      typeOfRequest,
-      description,
-      status: 'pending'
-    });
-
-    await newAppointment.save();
-
-    res.status(201).json({ msg: 'Appointment request submitted successfully. Awaiting confirmation.', appointment: newAppointment });
-
-  } catch (err) {
-    console.error(err.message);
-    if (err.name === 'Error' && err.message.includes('End time must be after start time')) {
-        return res.status(400).json({ msg: err.message });
-    }
-    if (err.kind === 'ObjectId') {
-        return res.status(400).json({ msg: 'Invalid Student ID or data.' });
-    }
-    res.status(500).send('Server Error');
-  }  
+        if (err.kind === 'ObjectId') {
+            return res.status(400).json({ msg: 'Invalid Student ID or data.' });
+        }
+        res.status(500).send('Server Error');
+    }  
 };
 
 const getAppointmentById = async (req, res) => {
