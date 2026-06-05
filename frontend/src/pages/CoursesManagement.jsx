@@ -1,4 +1,4 @@
-// src/pages/CoursesManagement.jsx (Refactored Version)
+// src/pages/CoursesManagement.jsx
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getPaginatedCourses, createCourse, updateCourse, deleteCourse, getCourseStatsByYear } from '../services/courseService';

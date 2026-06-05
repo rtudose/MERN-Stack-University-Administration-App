@@ -25,4 +25,11 @@ const getAvailableReservationSlots = ({ date, roomId }) => {
   return api.get(`/api/reservations/available-slots?date=${date}&roomId=${roomId}`);
 };
 
-export { createReservation, getMyReservations, getPaginatedReservations, updateReservationStatus, getReservationStatsByStatus, getAvailableReservationSlots };
+export { 
+  createReservation,
+  getMyReservations,
+  getPaginatedReservations,
+  updateReservationStatus,
+  getReservationStatsByStatus,
+  getAvailableReservationSlots
+};

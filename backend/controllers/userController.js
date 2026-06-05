@@ -120,14 +120,13 @@ const getPaginatedUsers = async (req, res) => {
         let aggregationPipeline = [];
 
         // If sorting by a student-specific field, filter for students first.
-        // This solves the original Bug #2.
         if (sortBy.startsWith('studentDetails')) {
             aggregationPipeline.push({ $match: { role: 'student' } });
         }
 
         let sortStage = {};
 
-        // If sorting by role, use a custom order. This solves Bug #1.
+        // If sorting by role, use a custom order.
         if (sortBy === 'role') {
             aggregationPipeline.push({
                 $addFields: {
@@ -152,7 +151,7 @@ const getPaginatedUsers = async (req, res) => {
 
         aggregationPipeline.push(sortStage);
         
-        // This $facet stage allows us to get both the paginated data and the total count in one query.
+        // This $facet stage gets both the paginated data and the total count in one query.
         const results = await User.aggregate([
             ...aggregationPipeline,
             {
@@ -190,22 +189,18 @@ const getPaginatedUsers = async (req, res) => {
 const getStudentRegistrationStats = async (req, res) => {
     try {
         const stats = await User.aggregate([
-            // Stage 1: Filter to only include student roles
             { $match: { role: 'student' } },
-            // Stage 2: Group documents by the year of the 'createdAt' field
             {
                 $group: {
-                    _id: { $year: "$createdAt" }, // Group by the year
-                    count: { $sum: 1 } // Count the number of students in each group
+                    _id: { $year: "$createdAt" },
+                    count: { $sum: 1 }
                 }
             },
-            // Stage 3: Sort the results by year ascending
             { $sort: { "_id": 1 } },
-            // Stage 4: Reshape the output for easier use on the frontend
             { 
                 $project: {
-                    _id: 0, // Exclude the default _id field
-                    year: "$_id", // Rename _id to year
+                    _id: 0,
+                    year: "$_id",
                     count: "$count"
                 }
             }

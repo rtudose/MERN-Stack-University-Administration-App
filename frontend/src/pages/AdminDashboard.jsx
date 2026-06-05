@@ -1,4 +1,4 @@
-// src/pages/AdminDashboard.jsx (Refactored Version)
+// src/pages/AdminDashboard.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -22,7 +22,6 @@ const AdminDashboard = () => {
   const { user } = useAuth();
   const { t } = useTranslation();
   
-  // 1. Add state to hold the fetched statistics
   const [stats, setStats] = useState(null);
 
   useEffect(() => {

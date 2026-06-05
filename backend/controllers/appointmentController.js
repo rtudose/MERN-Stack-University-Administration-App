@@ -53,10 +53,10 @@ const getAvailableSlots = async (req, res) => {
         const availableSlots = allSlots.filter(slot => {
             for (let existingAppt of appointmentsForDay) {
                 if (checkTimeOverlap(existingAppt.startTime, existingAppt.endTime, slot.startTime, slot.endTime)) {
-                    return false; // Slot is intersecting and removed from the available array
+                    return false;
                 }
             }
-            return true; // Slot is validated and appended to the client payload
+            return true;
         });
 
         res.json(availableSlots);

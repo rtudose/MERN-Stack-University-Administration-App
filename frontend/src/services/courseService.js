@@ -1,5 +1,5 @@
 // src/services/courseService.js
-import api from './api'; // Import the new centralized api client
+import api from './api';
 
 const getAllCourses = () => {
   return api.get('/api/courses');

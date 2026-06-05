@@ -1,7 +1,6 @@
 // src/services/scheduleService.js
 import api from './api';
 
-// --- ADMIN FUNCTIONS ---
 const getAllScheduleEntries = () => {
   return api.get('/api/schedule');
 };

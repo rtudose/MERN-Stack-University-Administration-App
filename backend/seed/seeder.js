@@ -1,4 +1,4 @@
-// backend/seed/seeder.js (Advanced Version)
+// backend/seed/seeder.js
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const fs = require('fs');

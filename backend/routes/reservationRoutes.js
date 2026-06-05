@@ -1,4 +1,4 @@
-// backend/routes/reservationRoutes.js (Corrected)
+// backend/routes/reservationRoutes.js
 const express = require('express');
 const router = express.Router();
 const reservationController = require('../controllers/reservationController');
@@ -7,13 +7,11 @@ const authorize = require('../middleware/authorize');
 
 const adminOnly = [auth, authorize(['admin'])];
 
-// --- PUBLIC ROUTES ---
 
 router.post('/', auth, reservationController.createReservation);
 
 router.get('/my-reservations', auth, reservationController.getMyReservations);
 
-// --- ADMIN ROUTES ---
 
 router.get('/paginated', adminOnly, reservationController.getPaginatedReservations);
 

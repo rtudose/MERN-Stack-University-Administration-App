@@ -1,5 +1,5 @@
 // src/services/userService.js
-import api from './api'; // Import the new centralized api client
+import api from './api';
 
 const getAllUsers = () => {
   return api.get('/api/users');
@@ -25,4 +25,11 @@ const getStudentRegistrationStats = () => {
   return api.get('/api/users/stats/student-registrations');
 };
 
-export { getAllUsers, createUser, updateUser, deleteUser, getPaginatedUsers, getStudentRegistrationStats };
+export {
+  getAllUsers,
+  createUser,
+  updateUser,
+  deleteUser,
+  getPaginatedUsers,
+  getStudentRegistrationStats
+};

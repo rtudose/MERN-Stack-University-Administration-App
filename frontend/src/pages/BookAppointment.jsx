@@ -35,8 +35,6 @@ const BookAppointment = () => {
   const fetchSlots = useCallback(async (date) => {
     try {
       setLoadingSlots(true);
-      // Don't clear the main success message when fetching new slots
-      // setMessage({ text: '', type: '' }); 
       const response = await getAvailableSlots(date);
       setAvailableSlots(response.data);
     } catch (err) {
@@ -53,7 +51,7 @@ const BookAppointment = () => {
 
   const isWeekend = (date) => {
     const day = getDay(date);
-    return day === 0 || day === 6; // 0 = Sunday, 6 = Saturday
+    return day === 0 || day === 6;
   };
 
   const handleDateChange = (newDate) => {

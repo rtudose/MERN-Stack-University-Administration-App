@@ -2,7 +2,7 @@
 const mongoose = require('mongoose');
 
 const appointmentSchema = new mongoose.Schema({
-  student: { // Reference to the User model, assuming students also have accounts
+  student: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true
@@ -40,7 +40,7 @@ const appointmentSchema = new mongoose.Schema({
     type: String,
     required: false
   },
-  // You might add a field for the secretariat user who confirmed/handled it:
+  // Maybe add a field for the secretariat user who confirmed/handled it:
   // handledBy: {
   //   type: mongoose.Schema.Types.ObjectId,
   //   ref: 'User',

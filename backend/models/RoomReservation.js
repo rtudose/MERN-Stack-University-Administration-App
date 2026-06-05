@@ -7,8 +7,8 @@ const roomReservationSchema = new mongoose.Schema({
     ref: 'Room',
     required: true
   },
-  reservedBy: { // Could be an External Representative User ID or just a name/contact
-    type: String, // For simplicity, storing as string for now. Later could be ref to User.
+  reservedBy: {
+    type: String,
     required: true,
     trim: true
   },
@@ -38,17 +38,17 @@ const roomReservationSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
-  attendees: { // Expected number of attendees
+  attendees: {
     type: Number,
     min: 1,
     required: false
   },
-  status: { // e.g., 'pending', 'approved', 'rejected', 'cancelled'
+  status: {
     type: String,
     enum: ['pending', 'approved', 'rejected', 'cancelled', 'expired', 'completed'],
     default: 'pending'
   },
-  adminNotes: { // For administrators to add notes
+  adminNotes: {
     type: String,
     required: false
   },

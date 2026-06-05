@@ -21,11 +21,11 @@ const userSchema = new mongoose.Schema({
   password: {
     type: String,
     required: true,
-    minlength: 6 // Recommended minimum length for passwords
+    minlength: 6 // Password hassed before saving, maybe update security later
   },
   role: {
     type: String,
-    enum: ['admin', 'student', 'external_representative', 'teacher'], // Enforces specific roles
+    enum: ['admin', 'student', 'external_representative', 'teacher'],
     default: 'student' // Default role for new users if not specified
   },
   studentDetails: {
@@ -50,7 +50,6 @@ const userSchema = new mongoose.Schema({
   }
 });
 
-// --- Mongoose Middleware for Password Hashing ---
 // This pre-save hook will hash the password before saving a new user or updating a password
 userSchema.pre('save', async function(next) {
   if (!this.isModified('password')) { // Only hash if the password field is new or modified
@@ -65,7 +64,6 @@ userSchema.pre('save', async function(next) {
   }
 });
 
-// --- Method to compare passwords ---
 // This method will be available on user documents to check if a provided password matches
 userSchema.methods.matchPassword = async function(enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);

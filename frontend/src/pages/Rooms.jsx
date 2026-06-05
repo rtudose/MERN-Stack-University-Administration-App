@@ -1,4 +1,4 @@
-// src/pages/Rooms.jsx (Polished Version)
+// src/pages/Rooms.jsx
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { createRoom, updateRoom, deleteRoom, getPaginatedRooms } from '../services/roomService';

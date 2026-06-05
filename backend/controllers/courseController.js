@@ -116,16 +116,16 @@ const getCourseStatsByYear = async (req, res) => {
 
 const searchCourses = async (req, res) => {
     try {
-        const query = req.query.q || ''; // 'q' for query
+        const query = req.query.q || '';
         if (query.length < 2) {
-            return res.json([]); // Don't search for less than 2 characters
+            return res.json([]);
         }
         const courses = await Course.find({
             $or: [
-                { name: { $regex: query, $options: 'i' } }, // Case-insensitive search on name
-                { code: { $regex: query, $options: 'i' } }  // Case-insensitive search on code
+                { name: { $regex: query, $options: 'i' } },
+                { code: { $regex: query, $options: 'i' } }
             ]
-        }).limit(15); // Return a limited number of matches
+        }).limit(15);
         res.json(courses);
     } catch (err) {
         res.status(500).send('Server Error');

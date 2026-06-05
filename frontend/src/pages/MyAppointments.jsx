@@ -67,10 +67,10 @@ const MyAppointments = () => {
     if (appointmentToCancel) {
       try {
         await cancelMyAppointment(appointmentToCancel._id);
-        fetchAppointments(); // Refresh the list
+        fetchAppointments();
       } catch (err) {
         console.error("Failed to cancel appointment", err);
-        // Optionally set an error message to display in an Alert
+        // Maybe set an error message to display in an Alert
       }
     }
     closeCancelModal();

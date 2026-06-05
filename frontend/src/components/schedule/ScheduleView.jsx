@@ -24,7 +24,7 @@ const ScheduleView = ({ schedule, title }) => {
 
   return (
     <>
-      <Typography variant="h4" component="h1" gutterBottom sx={{ textAlign: 'center' }}>
+      <Typography variant="h4" component="h1" gutterBottom sx={{ textAlign: 'center' }}> 
         {title}
       </Typography>
       <Grid container spacing={2} sx={{ width: '100%' }}>
@@ -47,7 +47,7 @@ const ScheduleView = ({ schedule, title }) => {
                 ))
               )}
             </Paper>
-          </Grid>
+          </Grid> 
         ))}
       </Grid>
     </>

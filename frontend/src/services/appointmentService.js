@@ -1,7 +1,6 @@
 // src/services/appointmentService.js
 import api from './api';
 
-
 const getAvailableSlots = (date) => {
   return api.get(`/api/appointments/available-slots?date=${date}`);
 };

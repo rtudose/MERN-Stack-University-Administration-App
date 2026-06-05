@@ -1,7 +1,11 @@
 import React from 'react';
 import { Container, Typography } from '@mui/material';
+import AppointmentStatusChart from '../components/charts/AppointmentStatusChart';
+import CoursesByYearChart from '../components/charts/CoursesByYearChart';
+import ProfessorWorkloadList from '../components/charts/ProfessorWorkloadList';
+import ReservationStatusChart from '../components/charts/ReservationStatusChart';
+import RoomStatusChart from '../components/charts/RoomStatusChart';
 import StudentRegistrationChart from '../components/charts/StudentRegistrationChart';
-// ... import other chart components you create in the future
 
 const Statistics = () => {
     return (
@@ -10,11 +14,12 @@ const Statistics = () => {
                 Faculty Statistics
             </Typography>
             
-            {/* You can just place your reusable component here! */}
+            <AppointmentStatusChart />
+            <CoursesByYearChart />
+            <ProfessorWorkloadList />
+            <ReservationStatusChart />
+            <RoomStatusChart />
             <StudentRegistrationChart />
-
-            {/* <OtherChartComponent /> */}
-            {/* <AnotherChartComponent /> */}
 
         </Container>
     );

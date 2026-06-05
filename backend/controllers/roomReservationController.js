@@ -79,8 +79,6 @@ const createRoomReservation = async (req, res) => {
         const academicScheduleEntries = await ScheduleEntry.find({
             room,
             dayOfWeek,
-            // You might need to check if the current date falls within an academic year/semester defined in schedule entries.
-            // For simplicity, let's assume if it's on the schedule, it's blocked.
             // More robust: Add academicYear/semester to RoomReservation if needed
         });
 
@@ -114,13 +112,11 @@ const createRoomReservation = async (req, res) => {
         });
 
         await newReservation.save();
-        // TODO: Send automatic confirmation email here (future enhancement)
+        // TODO: Send automatic confirmation email here (future)
 
         res.status(201).json({ msg: 'Room reservation request submitted successfully. Awaiting administrator approval.', reservation: newReservation });
 
-    } catch (err) {
-        console.error("🔥 MONGOOSE SAVE ERROR:", err); // This will print the exact issue
-        
+    } catch (err) {   
         // Catch Mongoose Validation Errors and send them to the frontend
         if (err.name === 'ValidationError') {
             const messages = Object.values(err.errors).map(val => val.message);

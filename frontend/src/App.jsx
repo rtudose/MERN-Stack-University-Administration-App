@@ -24,7 +24,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import ReservationsManagement from './pages/ReservationsManagement';
 import ScheduleManagement from './pages/ScheduleManagement.jsx';
 import AppointmentsManagement from './pages/AppointmentsManagement';
-// import Register from './pages/Register'; // Uncomment if you have a register page
+// import Register from './pages/Register'; // For after/if creating registration page
 import ProtectedRoute from './components/ProtectedRoute';
 import Navbar from './components/Navbar';
 import AdminStatistics from './pages/AdminStatistics';
@@ -40,29 +40,29 @@ function AppContent() {
                 <Route path="/login" element={<Login />} />
                 <Route path="/" element={<Navigate to="/login" replace />} />
 
-                {/* SHARED Routes for multiple roles */}
+                {/* Multiple roles routes */}
                 <Route element={<ProtectedRoute allowedRoles={['student', 'teacher', 'external_representative']} />}>
                   <Route path="/dashboard" element={<Dashboard />} />
                 </Route>
 
-                {/* STUDENT & TEACHER Routes */}
+                {/* STUDENT & TEACHER routes */}
                 <Route element={<ProtectedRoute allowedRoles={['student', 'teacher']} />}>
                   <Route path="/my-schedule" element={<MySchedulePage />} />
                 </Route>
                 
-                {/* EXTERNAL REP & TEACHER Routes */}
+                {/* EXTERNAL REP & TEACHER routes */}
                 <Route element={<ProtectedRoute allowedRoles={['teacher', 'external_representative']} />}>
                     <Route path="/book-room" element={<BookRoom />} />
                     <Route path="/my-reservations" element={<MyReservations />} />
                 </Route>
 
-                {/* STUDENT-only Routes */}
+                {/* STUDENT-only routes */}
                 <Route element={<ProtectedRoute allowedRoles={['student']} />}>
                     <Route path="/book-appointment" element={<BookAppointment />} />
                     <Route path="/my-appointments" element={<MyAppointments />} />
                 </Route>
 
-                {/* ADMIN-only Routes */}
+                {/* ADMIN-only routes */}
                 <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
                   <Route path="/admin-dashboard" element={<AdminDashboard />} />
                   <Route path="/rooms" element={<Rooms />} />

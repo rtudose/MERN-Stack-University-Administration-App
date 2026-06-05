@@ -1,4 +1,4 @@
-// src/pages/ChartTest.jsx
+// src/pages/ChartTest.jsx - DELETE AFTER TESTING
 import React from 'react';
 import { BarChart } from '@mui/x-charts/BarChart';
 import { Box } from '@mui/material';

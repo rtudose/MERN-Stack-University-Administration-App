@@ -1,4 +1,4 @@
-// backend/routes/publicRoutes.js
+// backend/routes/publicRoutes.js - MAKE CUSTOM CONTROLLER FILE!!
 const express = require('express');
 const router = express.Router();
 const Room = require('../models/Room');

@@ -3,8 +3,8 @@ const mongoose = require('mongoose');
 
 const scheduleEntrySchema = new mongoose.Schema({
   course: {
-    type: mongoose.Schema.Types.ObjectId, // Reference to the Course model
-    ref: 'Course', // Name of the model being referenced
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Course',
     required: true
   },
   room: {
@@ -17,7 +17,7 @@ const scheduleEntrySchema = new mongoose.Schema({
     required: true,
     enum: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
   },
-  startTime: { // Store as string for simplicity (e.g., "09:00") or Date for full flexibility
+  startTime: {
     type: String,
     required: true,
     match: [/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Please use HH:MM format (e.g., 09:00, 14:30)']
@@ -27,7 +27,7 @@ const scheduleEntrySchema = new mongoose.Schema({
     required: true,
     match: [/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Please use HH:MM format (e.g., 10:30, 16:00)']
   },
-  type: { // e.g., "Lecture", "Lab", "Seminar"
+  type: {
     type: String,
     enum: ['Lecture', 'Lab', 'Seminar', 'Practice'],
     default: 'Lecture'

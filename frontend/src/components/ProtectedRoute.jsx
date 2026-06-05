@@ -1,6 +1,6 @@
-// src/components/ProtectedRoute.jsx (Create this file if it doesn't exist, or ensure its content matches)
+// src/components/ProtectedRoute.jsx
 import React from 'react';
-import { Navigate, Outlet } from 'react-router-dom'; // Import Outlet
+import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const ProtectedRoute = ({ allowedRoles }) => {
@@ -8,7 +8,7 @@ const ProtectedRoute = ({ allowedRoles }) => {
 
   if (loading) {
     // Optionally render a loading spinner or message while AuthContext initializes
-    return <div>Loading authentication...</div>; // You can replace this with a proper loading component
+    return <div>Loading authentication...</div>;
   }
 
   if (!isAuthenticated) {
@@ -20,8 +20,7 @@ const ProtectedRoute = ({ allowedRoles }) => {
   if (allowedRoles && allowedRoles.length > 0) {
     if (!user || !allowedRoles.includes(user.role)) {
       // Authenticated but not authorized for this route, redirect to a default dashboard
-      // or a 403 Forbidden page. Redirecting to general dashboard is safer for user experience.
-      return <Navigate to="/dashboard" replace />; // Redirect to generic dashboard
+      return <Navigate to="/dashboard" replace />;
     }
   }
 

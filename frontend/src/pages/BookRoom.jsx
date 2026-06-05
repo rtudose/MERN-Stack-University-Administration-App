@@ -163,12 +163,10 @@ const BookRoom = () => {
     } catch (err) {
       const errorData = err.response?.data;
       
-      // Catch our specific overlap codes from the backend
       if (['RESERVATION_ROOM_RESERVED', 'RESERVATION_BLOCKED_BY'].includes(errorData?.msg)) {
         const errorKey = errorData.msg.toLowerCase(); 
         setModalError({ key: errorKey, type: 'error', details: errorData.details });
       } else {
-        // Fallback for standard errors
         const errorText = errorData?.msg ? getTranslatedError(errorData.msg) : 'generic_error';
         setModalError({ key: errorText, type: 'error', details: null });
       }
