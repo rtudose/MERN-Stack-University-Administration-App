@@ -36,23 +36,20 @@ const appointmentSchema = new mongoose.Schema({
     enum: ['pending', 'confirmed', 'completed', 'cancelled', 'expired'],
     default: 'pending'
   },
+  isReadByUser: {
+    type: Boolean,
+    default: true
+  },
   secretariatNotes: {
     type: String,
     required: false
   },
-  // Maybe add a field for the secretariat user who confirmed/handled it:
-  // handledBy: {
-  //   type: mongoose.Schema.Types.ObjectId,
-  //   ref: 'User',
-  //   required: false
-  // },
   createdAt: {
     type: Date,
     default: Date.now
   }
 });
 
-// Add a custom validator or pre-save hook for startTime < endTime
 appointmentSchema.pre('save', function(next) {
     const start = this.startTime.split(':').map(Number);
     const end = this.endTime.split(':').map(Number);

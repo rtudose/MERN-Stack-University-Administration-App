@@ -17,7 +17,7 @@ const resources = {
       "edit_button": "Edit",
       "delete_button": "Delete",
       "cancel_button": "Cancel",
-      "success_indicator": "successfully", // Generic indicator for styling success messages
+      "success_indicator": "successfully",
 
       // Navbar
       "dashboard_link": "Dashboard",
@@ -71,6 +71,9 @@ const resources = {
       "loading_stats_data": "Loading stats data...",
       "hide_stats": "Hide Room Statistics",
       "show_stats": "Show Room Statistics",
+      "delete_room_confirm": "Confirm Deletion",
+      "delete_room_modal_content": "Are you sure you want to permanently delete the room '{{roomName}}'? This action cannot be undone.",
+      
 
       // User Management Page
       "users_management_title": "User Management",
@@ -130,7 +133,8 @@ const resources = {
       "existing_courses_title": "Existing Courses",
       "course_created_success": "Course created successfully!",
       "course_updated_success": "Course updated successfully!",
-      "delete_course_confirm": "Are you sure you want to delete this course?",
+      "delete_course_confirm": "Confirm Deletion",
+      "delete_course_modal_content": "Are you sure you want to permanently delete the course '{{courseName}}'? This action cannot be undone.",
       "course_deleted_success": "Course deleted successfully!",
       "delete_course_error": "Failed to delete course.",
       "course_code_exists_error": "A course with this code already exists.",
@@ -228,6 +232,7 @@ const resources = {
       "schedule_table_title": "Schedule",
       "fetch_schedule_error": "Failed to fetch schedule data.",
       "add_schedule_entry_title": "Add New Schedule Entry",
+      "edit_entry_button": "Edit Schedule Entry",
       "course_label": "Course",
       "room_label": "Room",
       "no_options_text": "No options available",
@@ -238,7 +243,8 @@ const resources = {
       "academic_year_label": "Academic Year",
       "semester_label": "Semester",
       "add_entry_button": "Add Entry",
-      "delete_schedule_entry_confirm": "Are you sure you want to delete this schedule entry?",
+      "delete_schedule_entry_confirm": "Confirm Deletion",
+      "delete_schedule_entry_modal_content": "Are you sure you want to permanently delete the schedule entry for the course {scheduleEntryName}? This action cannot be undone.",
       "schedule_entry_created_success": "Schedule entry created successfully.",
       "update_entry_button": "Update Entry",
       "schedule_entry_updated_success": "Schedule entry updated successfully.",
@@ -339,7 +345,7 @@ const resources = {
 
       // Form Messages & Errors
       "add_room_empty_fields_error": "Please fill in all required fields.",
-      "capacity_invalid_error": "Capacity must be a natural number (a positive whole number.)", // More generic
+      "capacity_invalid_error": "Capacity must be a natural number (a positive whole number.)",
       "room_exists_error": "A room with this name already exists.",
       "invalid_room_data": "Invalid room data provided.",
       "room_location_required_error": "Room location is required.",
@@ -349,7 +355,6 @@ const resources = {
       "add_room_generic_error": "Failed to add room. Please try again.",
       "room_updated_success": "Room '{{roomName}}' was updated successfully!",
       "update_room_generic_error": "Failed to update room. Please try again.",
-      "delete_room_confirm": "Are you sure you want to delete this room?",
       "room_deleted_success": "Room was deleted successfully!",
       "delete_room_generic_error": "Failed to delete room. Please try again.",
 
@@ -379,7 +384,7 @@ const resources = {
       "edit_button": "Modifică",
       "delete_button": "Șterge",
       "cancel_button": "Anulează",
-      "success_indicator": "cu succes", // Generic indicator for styling success messages
+      "success_indicator": "cu succes",
 
       // Navbar
       "dashboard_link": "Panou de Bord",
@@ -433,6 +438,8 @@ const resources = {
       "loading_stats_data": "Se încarcă statisticile...",
       "hide_stats": "Ascunde Statistici Săli",
       "show_stats": "Arată Statistici Săli",
+      "delete_room_confirm": "Confirmă Ștergerea",
+      "delete_room_modal_content": "Sunteți sigur că doriți să ștergeți permanent sala '{{roomName}}'? Această acțiune nu poate fi anulată.",
 
       // User Management Page
       "users_management_title": "Administrare Utilizatori",
@@ -492,7 +499,8 @@ const resources = {
       "existing_courses_title": "Cursuri Existente",
       "course_created_success": "Curs creat cu succes!",
       "course_updated_success": "Curs actualizat cu succes!",
-      "delete_course_confirm": "Sunteți sigur că doriți să ștergeți acest curs?",
+      "delete_course_confirm": "Confirmare Ștergere",
+      "delete_course_modal_content": "Sunteți sigur că doriți să ștergeți permanent cursul '{{courseName}}'? Această acțiune este ireversibilă.",
       "course_deleted_success": "Curs șters cu succes!",
       "delete_course_error": "Eroare la ștergerea cursului.",
       "course_code_exists_error": "Un curs cu acest cod există deja.",
@@ -591,6 +599,7 @@ const resources = {
       "schedule_table_title": "Orar",
       "fetch_schedule_error": "Eroare la preluarea orarului.",
       "add_schedule_entry_title": "Adaugă Intrare Nouă în Orar",
+      "edit_entry_button": "Editează Intrarea Din Orar",
       "course_label": "Curs",
       "room_label": "Sală",
       "no_options_text": "Nicio opțiune disponibilă",
@@ -601,7 +610,8 @@ const resources = {
       "academic_year_label": "An Academic",
       "semester_label": "Semestru",
       "add_entry_button": "Adaugă Intrare",
-      "delete_schedule_entry_confirm": "Sunteți sigur că doriți să ștergeți această intrare din orar?",
+      "delete_schedule_entry_confirm": "Confirmare Ștergere",
+      "delete_schedule_entry_modal_content": "Sunteți sigur că doriți să ștergeți definitiv intrarea din orar pentru materia {scheduleEntryName}? Această acțiune este ireversibilă.",
       "schedule_entry_created_success": "Intrare în orar creată cu succes.",
       "update_entry_button": "Actualizează Intrarea",
       "schedule_entry_updated_success": "Intrarea în orar a fost actualizată cu succes.",
@@ -702,7 +712,7 @@ const resources = {
 
       // Form Messages & Errors
       "add_room_empty_fields_error": "Vă rugăm să completați toate câmpurile obligatorii.",
-      "capacity_invalid_error": "Capacitatea trebuie să fie un număr natural (un număr întreg pozitiv).", // More generic
+      "capacity_invalid_error": "Capacitatea trebuie să fie un număr natural (un număr întreg pozitiv).",
       "room_exists_error": "O sală cu acest nume există deja.",
       "invalid_room_data": "Datele sălii sunt invalide.",
       "room_location_required_error": "Locația sălii este obligatorie.",
@@ -712,7 +722,6 @@ const resources = {
       "add_room_generic_error": "Eroare la adăugarea sălii. Vă rugăm să încercați din nou.",
       "room_updated_success": "Sala '{{roomName}}' a fost actualizată cu succes!",
       "update_room_generic_error": "Eroare la actualizarea sălii. Vă rugăm să încercați din nou.",
-      "delete_room_confirm": "Sunteți sigur că doriți să ștergeți această sală?",
       "room_deleted_success": "Sala a fost ștearsă cu succes!",
       "delete_room_generic_error": "Eroare la ștergerea sălii. Vă rugăm să încercați din nou.",
       
@@ -733,18 +742,17 @@ const resources = {
 };
 
 i18n
-  .use(LanguageDetector) // Use the language detector
+  .use(LanguageDetector)
   .use(initReactI18next)
   .init({
     resources,
-    fallbackLng: "en", // Fallback to English if a translation is missing
+    fallbackLng: "en",
     interpolation: {
       escapeValue: false
     },
-    // Configuration for the language detector
     detection: {
-      order: ['localStorage', 'navigator'], // Check localStorage first, then the browser's language
-      caches: ['localStorage'], // Cache the user's choice in localStorage
+      order: ['localStorage', 'navigator'],
+      caches: ['localStorage'],
     }
   });
 

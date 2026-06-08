@@ -35,34 +35,29 @@ function AppContent() {
         <AuthProvider>
           <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
             <Navbar />
-            <Box component="main" sx={{ flexGrow: 1, overflow: 'auto', p: 3 }}>
+            <Box id="main-content" component="main" sx={{ flexGrow: 1, overflow: 'auto', p: 3 }}>
               <Routes>
                 <Route path="/login" element={<Login />} />
                 <Route path="/" element={<Navigate to="/login" replace />} />
 
-                {/* Multiple roles routes */}
                 <Route element={<ProtectedRoute allowedRoles={['student', 'teacher', 'external_representative']} />}>
                   <Route path="/dashboard" element={<Dashboard />} />
                 </Route>
 
-                {/* STUDENT & TEACHER routes */}
                 <Route element={<ProtectedRoute allowedRoles={['student', 'teacher']} />}>
                   <Route path="/my-schedule" element={<MySchedulePage />} />
                 </Route>
                 
-                {/* EXTERNAL REP & TEACHER routes */}
                 <Route element={<ProtectedRoute allowedRoles={['teacher', 'external_representative']} />}>
                     <Route path="/book-room" element={<BookRoom />} />
                     <Route path="/my-reservations" element={<MyReservations />} />
                 </Route>
 
-                {/* STUDENT-only routes */}
                 <Route element={<ProtectedRoute allowedRoles={['student']} />}>
                     <Route path="/book-appointment" element={<BookAppointment />} />
                     <Route path="/my-appointments" element={<MyAppointments />} />
                 </Route>
 
-                {/* ADMIN-only routes */}
                 <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
                   <Route path="/admin-dashboard" element={<AdminDashboard />} />
                   <Route path="/rooms" element={<Rooms />} />

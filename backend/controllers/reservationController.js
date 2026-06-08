@@ -2,18 +2,7 @@
 const RoomReservation = require('../models/RoomReservation');
 const User = require('../models/User');
 const Room = require('../models/Room');
-
-const checkTimeOverlap = (existingStart, existingEnd, newStart, newEnd) => {
-    const parseTime = (timeStr) => {
-        const [hours, minutes] = timeStr.split(':').map(Number);
-        return hours * 60 + minutes;
-    };
-    const es = parseTime(existingStart);
-    const ee = parseTime(existingEnd);
-    const ns = parseTime(newStart);
-    const ne = parseTime(newEnd);
-    return ns < ee && ne > es; // Returns true if they overlap
-};
+const { checkTimeOverlap } = require('../utils/timeUtils');
 
 const createReservation = async (req, res) => {
     const { room, date, startTime, endTime, purpose, attendees } = req.body;
@@ -222,6 +211,7 @@ const updateReservationStatus = async (req, res) => {
         }
 
         reservation.status = status;
+        reservation.isReadByUser = false;
         if (adminNotes) {
             reservation.adminNotes = adminNotes;
         }
@@ -244,11 +234,28 @@ const getReservationStatsByStatus = async (req, res) => {
     } catch (err) { res.status(500).send('Server Error'); }
 };
 
+const markMyReservationsAsRead = async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id);
+        if (!user) return res.status(404).json({ msg: 'User not found' });
+        
+        await RoomReservation.updateMany(
+            { contactEmail: user.email, isReadByUser: false },
+            { $set: { isReadByUser: true } }
+        );
+        res.json({ msg: 'Reservations marked as read.' });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+};
+
 module.exports = {
     createReservation,
     getAvailableReservationSlots,
     getMyReservations,
     getPaginatedReservations,
     updateReservationStatus,
-    getReservationStatsByStatus
+    getReservationStatsByStatus,
+    markMyReservationsAsRead
 };

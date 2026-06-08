@@ -1,5 +1,5 @@
 // src/pages/ScheduleManagement.jsx
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { createScheduleEntry, deleteScheduleEntry, updateScheduleEntry, getPaginatedSchedule } from '../services/scheduleService';
 import PaginatedTable from '../components/common/PaginatedTable';
@@ -11,7 +11,7 @@ import ProfessorWorkloadList from '../components/charts/ProfessorWorkloadList';
 import BackButton from '../components/BackButton';
 import {
   Container, Typography, Paper, IconButton, Alert, Box, Grid, FormControl,
-  InputLabel, Select, MenuItem, TextField, Button, Stack
+  InputLabel, Select, MenuItem, TextField, Button, Stack, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -33,6 +33,7 @@ const parseTimeString = (timeStr) => {
 
 const ScheduleManagement = () => {
   const { t } = useTranslation();
+  const titleRef = useRef(null);
   const [formMessage, setFormMessage] = useState({ key: '', options: {}, type: 'success' });
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [selectedCourseDetails, setSelectedCourseDetails] = useState(null);
@@ -42,6 +43,8 @@ const ScheduleManagement = () => {
   const [refreshKey, setRefreshKey] = useState(0);
   const [isEditing, setIsEditing] = useState(false);
   const [currentEntryId, setCurrentEntryId] = useState(null);
+  const [openDeleteModal, setOpenDeleteModal] = useState(false);
+  const [entryToDelete, setEntryToDelete] = useState(null);
 
   const initialState = {
     course: '', room: '', dayOfWeek: dayOfWeekKeys[0], startTime: setTimeToDate(8, 0), 
@@ -134,16 +137,27 @@ const ScheduleManagement = () => {
     }
   };
   
-  const handleDelete = async (id) => {
-    if (window.confirm(t('delete_schedule_entry_confirm'))) {
+  const handleDeleteClick = (entry) => {
+    setEntryToDelete(entry);
+    setOpenDeleteModal(true);
+  };
+
+  const handleCloseDeleteModal = () => {
+    setOpenDeleteModal(false);
+    setEntryToDelete(null);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (entryToDelete) {
         try {
-            await deleteScheduleEntry(id);
+            await deleteScheduleEntry(entryToDelete._id);
             setFormMessage({ key: 'schedule_entry_deleted_success', type: 'success' });
             setRefreshKey(k => k + 1);
         } catch (err) {
             setFormMessage({ key: 'generic_error', type: 'error' });
         }
     }
+    handleCloseDeleteModal();
   };
 
   const handleStartTimeChange = (newTime) => {
@@ -170,7 +184,10 @@ const ScheduleManagement = () => {
         academicYear: entry.academicYear,
         semester: entry.semester
     });
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    setTimeout(() => {
+      titleRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
   };
   
   const scheduleColumns = [
@@ -188,7 +205,7 @@ const ScheduleManagement = () => {
     { id: 'actions', label: 'actions_label', align: 'center', renderCell: (row) => (
       <>
         <IconButton color="primary" onClick={() => handleEditClick(row)}><EditIcon /></IconButton>
-        <IconButton color="error" onClick={() => handleDelete(row._id)}><DeleteIcon /></IconButton>
+        <IconButton color="error" onClick={() => handleDeleteClick(row)}><DeleteIcon /></IconButton>
       </>
     )}
   ];
@@ -196,7 +213,7 @@ const ScheduleManagement = () => {
   return (
     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
       <BackButton />
-      <Typography variant="h4" component="h1" gutterBottom sx={{ textAlign: 'center' }}>
+      <Typography ref={titleRef} variant="h4" component="h1" gutterBottom sx={{ textAlign: 'center' }}>
         {t('schedule_management_title')}
       </Typography>
       {formMessage.key && 
@@ -328,6 +345,22 @@ const ScheduleManagement = () => {
         refreshKey={refreshKey}
         titleKey="schedule_table_title"
       />
+      
+      <Dialog open={openDeleteModal} onClose={handleCloseDeleteModal}>
+        <DialogTitle>{t('delete_schedule_entry_confirm')}</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            {/* The existing i18n key 'delete_schedule_entry_confirm' is just a question, so we use it as Title and Content or just Content */}
+            {t('delete_schedule_entry_modal_content', { scheduleEntryName: entryToDelete?.courseName || '' })}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDeleteModal}>{t('cancel_button')}</Button>
+          <Button onClick={handleConfirmDelete} color="error" variant="contained">
+            {t('delete_button')}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 };

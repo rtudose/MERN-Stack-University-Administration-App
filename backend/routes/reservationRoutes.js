@@ -12,6 +12,8 @@ router.post('/', auth, reservationController.createReservation);
 
 router.get('/my-reservations', auth, reservationController.getMyReservations);
 
+router.put('/mark-as-read', auth, reservationController.markMyReservationsAsRead);
+
 
 router.get('/paginated', adminOnly, reservationController.getPaginatedReservations);
 

@@ -11,8 +11,7 @@ const AdminRoute = ({ children }) => {
   }
 
   if (userRole !== 'admin') {
-    // Redirect to a non-admin dashboard or a permission denied page
-    return <Navigate to="/dashboard" replace />; // Assuming a generic user dashboard at /dashboard
+    return <Navigate to="/dashboard" replace />;
   }
 
   return children;

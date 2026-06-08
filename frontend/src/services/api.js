@@ -21,20 +21,16 @@ api.interceptors.request.use((config) => {
 
 // Interceptor to handle 401 errors globally
 api.interceptors.response.use(
-  (response) => response, // Directly return successful responses
+  (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
-      // If a 401 error is received
       console.log('Session expired or token is invalid. Logging out.');
-      // Clear user data from storage
       localStorage.removeItem('token');
       localStorage.removeItem('userRole');
       localStorage.removeItem('userEmail');
       localStorage.removeItem('username');
-      // Redirect to the login page
       window.location.href = '/login';
     }
-    // For all other errors, just pass them along
     return Promise.reject(error);
   }
 );

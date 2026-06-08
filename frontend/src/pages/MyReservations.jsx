@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { getMyReservations } from '../services/reservationService';
+import { getMyReservations, markMyReservationsAsRead } from '../services/reservationService';
 import BackButton from '../components/BackButton';
 import { format } from 'date-fns';
 
@@ -48,6 +48,7 @@ const MyReservations = () => {
 
   useEffect(() => {
     fetchReservations();
+    markMyReservationsAsRead().catch(err => console.error("Failed to mark reservations as read", err));
   }, [fetchReservations]);
 
   const getStatusChip = (status, notes) => {

@@ -1,33 +1,41 @@
-# backend/Dockerfile
-
-# --- 1. Build Stage ---
-# Use an official Node.js image as the base
+# --- Stage 1: Build & Prune ---
 FROM node:18-alpine AS builder
 
-# Set the working directory inside the container
 WORKDIR /app
 
-# Copy package.json and package-lock.json
+# Install dependencies based on package-lock.json
 COPY package*.json ./
+RUN npm ci
 
-# Install all dependencies, including development ones for potential build steps
-RUN npm install
-
-# Copy the rest of your application's source code
+# Copy the rest of the application code
 COPY . .
 
-# --- 2. Production Stage ---
-# Start from a clean, lightweight Node.js image
+# Prune development dependencies
+RUN npm prune --production
+
+# --- Stage 2: Production ---
 FROM node:18-alpine
+
+# Set to production environment
+ENV NODE_ENV=production
 
 WORKDIR /app
 
-# Copy only the necessary files from the builder stage
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app ./
+# Create a non-root user and group
+RUN addgroup -g 1001 nodejs && \
+    adduser -u 1001 -G nodejs -S -D nodeuser
 
-# Expose the port the app runs on
+# Copy only the necessary files from the builder stage
+COPY --from=builder /app /app
+
+# Ensure the non-root user owns the /app directory
+RUN chown -R nodeuser:nodejs /app
+
+# Switch to the non-root user
+USER nodeuser
+
+# Expose the application port
 EXPOSE 5000
 
-# The command to run your application
-CMD [ "node", "server.js" ]
+# Start the application
+CMD ["node", "server.js"]

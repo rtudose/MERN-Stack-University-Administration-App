@@ -1,23 +1,27 @@
 // src/pages/CoursesManagement.jsx
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getPaginatedCourses, createCourse, updateCourse, deleteCourse, getCourseStatsByYear } from '../services/courseService';
+// ... rest of imports unchanged ...
 import PaginatedTable from '../components/common/PaginatedTable';
 import CoursesByYearChart from '../components/charts/CoursesByYearChart';
 import BackButton from '../components/BackButton';
 import {
   Container, Box, Typography, TextField, Button, Alert, Paper, Grid, Stack, IconButton,
-  Select, MenuItem, InputLabel, FormControl
+  Select, MenuItem, InputLabel, FormControl, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 
 const CoursesManagement = () => {
   const { t } = useTranslation();
+  const titleRef = useRef(null);
   const [formMessage, setFormMessage] = useState({ key: '', options: {}, type: 'success' });
   const [isEditing, setIsEditing] = useState(false);
   const [currentCourseId, setCurrentCourseId] = useState(null);
   const [showStats, setShowStats] = useState(true);
+  const [openDeleteModal, setOpenDeleteModal] = useState(false);
+  const [courseToDelete, setCourseToDelete] = useState(null);
   const [refreshKey, setRefreshKey] = useState(0);
 
   const initialState = {
@@ -80,19 +84,33 @@ const CoursesManagement = () => {
     setIsEditing(true);
     setCurrentCourseId(course._id);
     setFormData({ ...initialState, ...course });
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    setTimeout(() => {
+      titleRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
   };
   
-  const handleDeleteClick = async (courseId) => {
-    if (window.confirm(t('delete_course_confirm'))) {
+  const handleDeleteClick = (course) => {
+    setCourseToDelete(course);
+    setOpenDeleteModal(true);
+  };
+
+  const handleCloseDeleteModal = () => {
+    setOpenDeleteModal(false);
+    setCourseToDelete(null);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (courseToDelete) {
       try {
-        await deleteCourse(courseId);
+        await deleteCourse(courseToDelete._id);
         setFormMessage({ key: 'course_deleted_success', type: 'success' });
         setRefreshKey(oldKey => oldKey + 1);
       } catch (err) {
         setFormMessage({ key: 'delete_course_error', type: 'error' });
       }
     }
+    handleCloseDeleteModal();
   };
 
   const courseColumns = [
@@ -108,7 +126,7 @@ const CoursesManagement = () => {
       renderCell: (row) => (
         <>
           <IconButton onClick={() => handleEditClick(row)} color="primary"><EditIcon /></IconButton>
-          <IconButton onClick={() => handleDeleteClick(row._id)} color="error"><DeleteIcon /></IconButton>
+          <IconButton onClick={() => handleDeleteClick(row)} color="error"><DeleteIcon /></IconButton>
         </>
       )
     }
@@ -117,7 +135,7 @@ const CoursesManagement = () => {
   return (
     <Container maxWidth="xl" sx={{ pt: 2, pb: 4 }}>
       <BackButton />
-      <Typography variant="h4" component="h1" gutterBottom sx={{ textAlign: 'center' }}>
+      <Typography ref={titleRef} variant="h4" component="h1" gutterBottom sx={{ textAlign: 'center' }}>
         {t('courses_management_title')}
       </Typography>
 
@@ -176,6 +194,21 @@ const CoursesManagement = () => {
         refreshKey={refreshKey}
         titleKey="existing_courses_title"
       />
+      
+      <Dialog open={openDeleteModal} onClose={handleCloseDeleteModal}>
+        <DialogTitle>{t('delete_course_confirm')}</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            {t('delete_course_modal_content', { courseName: courseToDelete?.name || '' })}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDeleteModal}>{t('cancel_button')}</Button>
+          <Button onClick={handleConfirmDelete} color="error" variant="contained">
+            {t('delete_button')}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 };

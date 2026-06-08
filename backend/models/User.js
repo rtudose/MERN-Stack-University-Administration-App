@@ -16,17 +16,17 @@ const userSchema = new mongoose.Schema({
     unique: true,
     trim: true,
     lowercase: true, 
-    match: [/.+@.+\..+/, 'Please fill a valid email address'] // Basic email regex validation
+    match: [/.+@.+\..+/, 'Please fill a valid email address']
   },
   password: {
     type: String,
     required: true,
-    minlength: 6 // Password hassed before saving, maybe update security later
+    minlength: 6
   },
   role: {
     type: String,
     enum: ['admin', 'student', 'external_representative', 'teacher'],
-    default: 'student' // Default role for new users if not specified
+    default: 'student'
   },
   studentDetails: {
     yearOfStudy: {
@@ -50,21 +50,19 @@ const userSchema = new mongoose.Schema({
   }
 });
 
-// This pre-save hook will hash the password before saving a new user or updating a password
 userSchema.pre('save', async function(next) {
-  if (!this.isModified('password')) { // Only hash if the password field is new or modified
+  if (!this.isModified('password')) {
     return next();
   }
   try {
-    const salt = await bcrypt.genSalt(10); // Generate a salt
-    this.password = await bcrypt.hash(this.password, salt); // Hash the password with the salt
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
     next();
   } catch (error) {
-    next(error); // Pass any error to the next middleware
+    next(error);
   }
 });
 
-// This method will be available on user documents to check if a provided password matches
 userSchema.methods.matchPassword = async function(enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };

@@ -1,5 +1,5 @@
 // src/pages/Rooms.jsx
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { createRoom, updateRoom, deleteRoom, getPaginatedRooms } from '../services/roomService';
 import PaginatedTable from '../components/common/PaginatedTable';
@@ -8,7 +8,7 @@ import BackButton from '../components/BackButton';
 import {
   Container, Box, Typography, TextField, Button, Alert, Paper, Grid, Stack, IconButton,
   Select, MenuItem, Checkbox, ListItemText, OutlinedInput, InputLabel, FormControl,
-  FormControlLabel, Switch, Chip
+  FormControlLabel, Switch, Chip, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -19,6 +19,7 @@ const equipmentOptionKeys = [
 
 function Rooms() {
   const { t } = useTranslation();
+  const titleRef = useRef(null);
   const [formMessage, setFormMessage] = useState({ key: '', options: {}, type: 'success' });
   const [isEditing, setIsEditing] = useState(false);
   const [currentRoomId, setCurrentRoomId] = useState(null);
@@ -27,6 +28,8 @@ function Rooms() {
   };
   const [formData, setFormData] = useState(initialState);
   const [showStats, setShowStats] = useState(true);
+  const [openDeleteModal, setOpenDeleteModal] = useState(false);
+  const [roomToDelete, setRoomToDelete] = useState(null);
   const [refreshKey, setRefreshKey] = useState(0);
 
   const resetForm = () => {
@@ -97,19 +100,33 @@ function Rooms() {
       isAvailableForExternal: room.isAvailableForExternal,
       status: room.status
     });
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    setTimeout(() => {
+      titleRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
   };
 
-  const handleDeleteClick = async (roomId) => {
-    if (window.confirm(t('delete_room_confirm'))) {
+  const handleDeleteClick = (room) => {
+    setRoomToDelete(room);
+    setOpenDeleteModal(true);
+  };
+
+  const handleCloseDeleteModal = () => {
+    setOpenDeleteModal(false);
+    setRoomToDelete(null);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (roomToDelete) {
       try {
-        await deleteRoom(roomId);
+        await deleteRoom(roomToDelete._id);
         setFormMessage({ key: 'room_deleted_success', type: 'success' });
         setRefreshKey(oldKey => oldKey + 1);
       } catch (err) {
         setFormMessage({ key: 'delete_room_generic_error', type: 'error' });
       }
     }
+    handleCloseDeleteModal();
   };
 
   const roomColumns = [
@@ -125,7 +142,7 @@ function Rooms() {
       renderCell: (row) => (
         <>
           <IconButton onClick={() => handleEditClick(row)} color="primary"><EditIcon /></IconButton>
-          <IconButton onClick={() => handleDeleteClick(row._id)} color="error"><DeleteIcon /></IconButton>
+          <IconButton onClick={() => handleDeleteClick(row)} color="error"><DeleteIcon /></IconButton>
         </>
       )
     }
@@ -134,7 +151,7 @@ function Rooms() {
   return (
     <Container maxWidth="xl" sx={{ pt: 2, pb: 4 }}>
       <BackButton />
-      <Typography variant="h4" component="h1" gutterBottom sx={{ textAlign: 'center' }}>
+      <Typography ref={titleRef} variant="h4" component="h1" gutterBottom sx={{ textAlign: 'center' }}>
         {t('rooms_management_title')}
       </Typography>
 
@@ -201,6 +218,21 @@ function Rooms() {
         refreshKey={refreshKey}
         titleKey="available_rooms"
       />
+      
+      <Dialog open={openDeleteModal} onClose={handleCloseDeleteModal}>
+        <DialogTitle>{t('delete_room_confirm')}</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            {t('delete_room_modal_content', { roomName: roomToDelete?.name || '' })}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDeleteModal}>{t('cancel_button')}</Button>
+          <Button onClick={handleConfirmDelete} color="error" variant="contained">
+            {t('delete_button')}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 }

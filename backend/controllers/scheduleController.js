@@ -4,15 +4,11 @@ const ScheduleEntry = require('../models/ScheduleEntry');
 const Course = require('../models/Course');
 const Room = require('../models/Room');
 const User = require('../models/User');
+const { parseTime, checkTimeOverlap } = require('../utils/timeUtils');
 
 const checkOverlap = (existingEntry, newEntry) => {
     if (existingEntry.dayOfWeek !== newEntry.dayOfWeek) { return false; }
-    const parseTime = (timeStr) => { const [hours, minutes] = timeStr.split(':').map(Number); return hours * 60 + minutes; };
-    const existingStart = parseTime(existingEntry.startTime);
-    const existingEnd = parseTime(existingEntry.endTime);
-    const newStart = parseTime(newEntry.startTime);
-    const newEnd = parseTime(newEntry.endTime);
-    return newStart < existingEnd && newEnd > existingStart;
+    return checkTimeOverlap(existingEntry.startTime, existingEntry.endTime, newEntry.startTime, newEntry.endTime);
   };
 
   const getTeacherSchedule = async (req, res) => {
@@ -323,7 +319,7 @@ const checkOverlap = (existingEntry, newEntry) => {
                     data: [
                         { $skip: (pageNum - 1) * limitNum },
                         { $limit: limitNum },
-                        { $project: { dayOrder: 0, typeOrder: 0 } } // Clean up temporary fields
+                        { $project: { dayOrder: 0, typeOrder: 0 } }
                     ],
                     pagination: [{ $count: 'totalItems' }]
                 }

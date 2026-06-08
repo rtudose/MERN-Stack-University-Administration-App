@@ -1,16 +1,14 @@
 // controllers/authController.js
-const User = require('../models/User'); // Import the User model
-const jwt = require('jsonwebtoken'); // For creating JSON Web Tokens
+const User = require('../models/User');
+const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 
-// Load environment variables for JWT secret
 require('dotenv').config();
 
 const registerUser = async (req, res) => {
     const { username, email, password, role } = req.body;
 
     try {
-        // 1. Check if user already exists
         let user = await User.findOne({ email });
         if (user) {
         return res.status(400).json({ msg: 'User with that email already exists' });
@@ -21,29 +19,26 @@ const registerUser = async (req, res) => {
         return res.status(400).json({ msg: 'User with that username already exists' });
         }
 
-        // 2. Create new user instance (password hashing happens in pre-save hook)
         user = new User({
         username,
         email,
         password, // This password will be hashed by the pre-save hook in the User model
-        role: role || 'student' // Allow specifying role, default to student
+        role: role || 'student'
         });
 
-        // 3. Save user to database
         await user.save();
 
-        // 4. Create and send JWT token
         const payload = {
         user: {
             id: user.id,
-            role: user.role // Include role in token payload
+            role: user.role
         }
         };
 
         jwt.sign(
         payload,
-        process.env.JWT_SECRET, // The secret key from .env
-        { expiresIn: '1h' }, // Token expires in 1 hour
+        process.env.JWT_SECRET,
+        { expiresIn: '1h' },
         (err, token) => {
             if (err) throw err;
             res.status(201).json({ msg: 'User registered successfully', token });
@@ -60,19 +55,16 @@ const loginUser = async (req, res) => {
     const { email, password } = req.body;
 
     try {
-        // 1. Check if user exists by email
         let user = await User.findOne({ email });
         if (!user) {
         return res.status(400).json({ msg: 'Invalid Credentials' });
         }
 
-        // 2. Compare entered password with hashed password
-        const isMatch = await user.matchPassword(password); // Using the method defined in User model
+        const isMatch = await user.matchPassword(password);
         if (!isMatch) {
         return res.status(400).json({ msg: 'Invalid Credentials' });
         }
 
-        // 3. Create and send JWT token
         const payload = {
         user: {
             id: user.id,

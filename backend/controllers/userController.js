@@ -41,9 +41,11 @@ const updateUser = async (req, res) => {
     const { username, email, role, studentDetails } = req.body;
     try {
         const user = await User.findById(req.params.id);
-        if (!user) { return res.status(404).json({ msg: 'User not found' }); }
 
-        // Prevent changing the last admin's role
+        if (!user) {
+            return res.status(404).json({ msg: 'User not found' });
+        }
+
         if (user.role === 'admin' && role && role !== 'admin') {
             const adminCount = await User.countDocuments({ role: 'admin' });
             if (adminCount <= 1) {
@@ -55,14 +57,11 @@ const updateUser = async (req, res) => {
         if (username) updateFields.username = username;
         if (email) updateFields.email = email;
         if (role) updateFields.role = role;
-
-        // The update operation object
         const updateOperation = { $set: updateFields };
 
         if (role === 'student' && studentDetails) {
             updateOperation.$set.studentDetails = studentDetails;
         } else if (role && role !== 'student') {
-            // If the role is changing TO something other than student, remove the studentDetails
             updateOperation.$unset = { studentDetails: 1 };
         }
 
@@ -90,7 +89,9 @@ const updateUser = async (req, res) => {
 const deleteUser = async (req, res) => {
     try {
         const user = await User.findById(req.params.id);
-        if (!user) { return res.status(404).json({ msg: 'User not found' }); }
+        if (!user) { 
+            return res.status(404).json({ msg: 'User not found' }); 
+        }
         if (user._id.toString() === req.user.id) {
             return res.status(400).json({ msg: 'You cannot delete your own account' });
         }
@@ -111,22 +112,18 @@ const deleteUser = async (req, res) => {
 const getPaginatedUsers = async (req, res) => {
     try {
         const { page = 1, limit = 10, sortBy = 'username', order = 'asc' } = req.query;
-
-        // Ensure limit is a number to prevent issues
         const limitNum = parseInt(limit, 10);
         const pageNum = parseInt(page, 10);
         const sortOrder = order === 'asc' ? 1 : -1;
 
         let aggregationPipeline = [];
 
-        // If sorting by a student-specific field, filter for students first.
         if (sortBy.startsWith('studentDetails')) {
             aggregationPipeline.push({ $match: { role: 'student' } });
         }
 
         let sortStage = {};
 
-        // If sorting by role, use a custom order.
         if (sortBy === 'role') {
             aggregationPipeline.push({
                 $addFields: {
@@ -145,13 +142,11 @@ const getPaginatedUsers = async (req, res) => {
             });
             sortStage = { $sort: { roleOrder: sortOrder } };
         } else {
-            // Otherwise, use a standard sort.
             sortStage = { $sort: { [sortBy]: sortOrder } };
         }
 
         aggregationPipeline.push(sortStage);
         
-        // This $facet stage gets both the paginated data and the total count in one query.
         const results = await User.aggregate([
             ...aggregationPipeline,
             {
@@ -159,7 +154,7 @@ const getPaginatedUsers = async (req, res) => {
                     data: [
                         { $skip: (pageNum - 1) * limitNum },
                         { $limit: limitNum },
-                        { $project: { password: 0, roleOrder: 0 } } // Exclude password and temporary sort field
+                        { $project: { password: 0, roleOrder: 0 } }
                     ],
                     pagination: [
                         { $count: 'totalItems' }

@@ -11,9 +11,9 @@ const BackButton = ({ to }) => {
 
   const handleClick = () => {
     if (to) {
-      navigate(to); // Navigate to a specific path if provided
+      navigate(to);
     } else {
-      navigate(-1); // Otherwise, go back one step in history
+      navigate(-1);
     }
   };
 

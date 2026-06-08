@@ -1,7 +1,18 @@
 services:
-  # The service for your backend application
+  # Frontend Application
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        - VITE_API_URL=http://localhost:5000
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+
+  # Backend Application
   backend:
-    build: ./backend # UPDATED: This now correctly points to your backend folder
+    build: ./backend
     ports:
       - "5000:5000"
     environment:
@@ -10,9 +21,9 @@ services:
     depends_on:
       - mongo
 
-  # The service for your MongoDB database
+  # MongoDB Database
   mongo:
-    image: mongo:latest
+    image: mongo:8.2.9-noble
     ports:
       - "27017:27017"
     volumes:

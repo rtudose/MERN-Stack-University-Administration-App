@@ -1,5 +1,5 @@
 // src/pages/Users.jsx
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getPaginatedUsers, createUser, updateUser, deleteUser, getStudentRegistrationStats } from '../services/userService';
 import BackButton from '../components/BackButton';
@@ -15,6 +15,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 
 const Users = () => {
   const { t } = useTranslation();
+  const titleRef = useRef(null);
   const [formMessage, setFormMessage] = useState({ text: '', type: '' });
   const [isEditing, setIsEditing] = useState(false);
   const [currentUserId, setCurrentUserId] = useState(null);
@@ -98,7 +99,10 @@ const Users = () => {
       username: user.username, email: user.email, password: '', role: user.role,
       studentDetails: user.studentDetails || { yearOfStudy: 1, specialization: '', group: '' }
     });
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    setTimeout(() => {
+      titleRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
   };
 
   const handleDeleteClick = (user) => {
@@ -152,7 +156,7 @@ const Users = () => {
     >
       <Box sx={{ flexShrink: 0 }}>
         <BackButton />
-        <Typography variant="h4" component="h1" gutterBottom sx={{ textAlign: 'center' }}>
+        <Typography ref={titleRef} variant="h4" component="h1" gutterBottom sx={{ textAlign: 'center' }}>
           {t('users_management_title')}
         </Typography>
         {formMessage.text && <Alert severity={formMessage.type} sx={{ mb: 2 }} onClose={() => setFormMessage({ text: '', type: '' })}>{t(formMessage.text)}</Alert>}

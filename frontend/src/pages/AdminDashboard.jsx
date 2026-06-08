@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from 'react-i18next';
-import { getStats } from '../services/adminService'; // Assuming a central api export
+import { getStats } from '../services/adminService';
 import {
   Container, Box, Typography, Grid, Card, CardActionArea,
   CardContent, Avatar, Badge

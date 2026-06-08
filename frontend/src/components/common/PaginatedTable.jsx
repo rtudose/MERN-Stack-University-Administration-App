@@ -25,7 +25,6 @@ const PaginatedTable = ({ columns, fetchDataFunction, refreshKey, titleKey }) =>
       setPagination(prev => ({ ...prev, totalPages: response.data.pagination.totalPages }));
     } catch (err) {
       console.error("Failed to fetch data for table:", err);
-      // You could pass a prop to handle errors here if needed
     }
   }, [pagination.page, pagination.limit, orderBy, order, fetchDataFunction, refreshKey]);
 

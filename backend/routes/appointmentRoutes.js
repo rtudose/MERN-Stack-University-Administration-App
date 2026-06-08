@@ -14,6 +14,8 @@ router.post('/', studentOnly, appointmentController.createAppointment);
 
 router.get('/my-appointments', studentOnly, appointmentController.getMyAppointments);
 
+router.put('/mark-as-read', studentOnly, appointmentController.markMyAppointmentsAsRead);
+
 
 router.get('/paginated', adminOnly, appointmentController.getPaginatedAppointments);
 

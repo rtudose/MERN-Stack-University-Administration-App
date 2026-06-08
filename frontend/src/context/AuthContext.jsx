@@ -15,11 +15,10 @@ export const AuthProvider = ({ children }) => {
   const API_URL = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
-    // Load user data from localStorage on initial load
     const token = localStorage.getItem('token');
     const userRole = localStorage.getItem('userRole');
     const userEmail = localStorage.getItem('userEmail');
-    const username = localStorage.getItem('username'); // Get username
+    const username = localStorage.getItem('username');
 
     if (token && userRole && username && userEmail) {
       axios.defaults.headers.common['x-auth-token'] = token;
@@ -31,17 +30,14 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       const response = await axios.post(`${API_URL}/api/auth/login`, { email, password });
-      // Destructure the full user details from the response
       const { token, role, username, email: userEmail } = response.data;
 
-      // Store all user details in localStorage
       localStorage.setItem('token', token);
       localStorage.setItem('userRole', role);
       localStorage.setItem('userEmail', userEmail);
       localStorage.setItem('username', username);
 
       axios.defaults.headers.common['x-auth-token'] = token;
-      // Set the full user object in the state
       setUser({ token, role, username, email: userEmail });
 
       return { success: true };
@@ -53,7 +49,6 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
-    // Remove all user items on logout
     localStorage.removeItem('token');
     localStorage.removeItem('userRole');
     localStorage.removeItem('userEmail');

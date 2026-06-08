@@ -67,7 +67,6 @@ const importData = async () => {
     const fakeUsers = generateUsers();
     await User.insertMany(fakeUsers);
 
-    // --- Programmatically build a realistic schedule ---
     console.log('Building schedule from blueprint...');
 
     const scheduleBlueprint = [
@@ -123,7 +122,7 @@ const importData = async () => {
             academicYear: '2024-2025',
             semester: course.semester,
         };
-    }).filter(entry => entry !== null); // Filter out any null entries
+    }).filter(entry => entry !== null);
 
     await ScheduleEntry.create(finalScheduleEntries);
     console.log(`${finalScheduleEntries.length} schedule entries created.`);

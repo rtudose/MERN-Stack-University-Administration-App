@@ -8,7 +8,7 @@ const scheduleEntrySchema = new mongoose.Schema({
     required: true
   },
   room: {
-    type: mongoose.Schema.Types.ObjectId, // Reference to the Room model
+    type: mongoose.Schema.Types.ObjectId,
     ref: 'Room',
     required: true
   },
@@ -37,15 +37,15 @@ const scheduleEntrySchema = new mongoose.Schema({
     required: false,
     trim: true
   },
-  academicYear: { // e.g., "2024-2025"
+  academicYear: {
     type: String,
     required: true,
     trim: true
   },
-  semester: { // e.g., "Fall", "Spring"
+  semester: {
     type: Number,
     required: true,
-    enum: [1, 2] //Maybe use ['Fall', 'Spring'] notation?
+    enum: [1, 2]
   },
   createdAt: {
     type: Date,
@@ -53,7 +53,6 @@ const scheduleEntrySchema = new mongoose.Schema({
   }
 });
 
-// Add a custom validator or pre-save hook for startTime < endTime
 scheduleEntrySchema.pre('save', function(next) {
     const start = this.startTime.split(':').map(Number);
     const end = this.endTime.split(':').map(Number);

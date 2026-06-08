@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { getMyAppointments, cancelMyAppointment } from '../services/appointmentService';
+import { getMyAppointments, cancelMyAppointment, markMyAppointmentsAsRead } from '../services/appointmentService';
 import BackButton from '../components/BackButton';
 import { format } from 'date-fns';
 import {
@@ -51,6 +51,7 @@ const MyAppointments = () => {
 
   useEffect(() => {
     fetchAppointments();
+    markMyAppointmentsAsRead().catch(err => console.error("Failed to mark appointments as read", err));
   }, [fetchAppointments]);
 
   const openCancelModal = (appointment) => {

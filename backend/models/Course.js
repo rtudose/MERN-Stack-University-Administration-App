@@ -22,7 +22,7 @@ const courseSchema = new mongoose.Schema({
   credits: {
     type: Number,
     required: true,
-    min: 1 // Minimum 1 credit
+    min: 1
   },
   professors: {
     lecture: { type: String, required: true, trim: true },
@@ -38,7 +38,7 @@ const courseSchema = new mongoose.Schema({
     type: Number,
     required: true,
     min: 1,
-    max: 4 // Assuming a 4-year program
+    max: 4
   },
   semester: {
     type: Number,
@@ -50,7 +50,7 @@ const courseSchema = new mongoose.Schema({
     type: String,
     required: true, 
     trim: true,
-    default: 'General' // A default for courses in early years
+    default: 'General'
   },
   createdAt: {
     type: Date,

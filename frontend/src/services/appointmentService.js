@@ -34,6 +34,10 @@ const deleteAppointment = (id) => {
   return api.delete(`/api/appointments/${id}`);
 };
 
+const markMyAppointmentsAsRead = () => {
+  return api.put('/api/appointments/mark-as-read');
+};
+
 export {
   getAvailableSlots,
   createAppointment,
@@ -43,4 +47,5 @@ export {
   getAppointmentStatsByStatus,
   cancelMyAppointment,
   deleteAppointment,
+  markMyAppointmentsAsRead,
 };

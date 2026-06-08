@@ -1,19 +1,7 @@
 // backend/controllers/appointmentController.js
 const Appointment = require('../models/Appointment');
 const User = require('../models/User');
-
-const parseTime = (timeStr) => {
-    const [hours, minutes] = timeStr.split(':').map(Number);
-    return hours * 60 + minutes;
-};
-
-const checkTimeOverlap = (start1, end1, start2, end2) => {
-    const s1 = parseTime(start1);
-    const e1 = parseTime(end1);
-    const s2 = parseTime(start2);
-    const e2 = parseTime(end2);
-    return s2 < e1 && e2 > s1;
-};
+const { parseTime, checkTimeOverlap } = require('../utils/timeUtils');
 
 
 const getAvailableSlots = async (req, res) => {
@@ -32,22 +20,20 @@ const getAvailableSlots = async (req, res) => {
         }).select('startTime endTime');
 
         const allSlots = [];
-        for (let h = 9; h < 17; h++) {
-            for (let m = 0; m < 60; m += 15) {
-                const slotStart = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+        const startMinutes = parseTime(process.env.SECRETARITAT_START_HOUR || "09:00");
+        const endMinutes = parseTime(process.env.SECRETARITAT_END_HOUR || "17:00");
 
-                let endHour = h;
-                let endMinute = m + 15;
+        for (let current = startMinutes; current < endMinutes; current += 15) {
+            const h = Math.floor(current / 60);
+            const m = current % 60;
+            const slotStart = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
 
-                if (endMinute === 60) {
-                    endMinute = 0;
-                    endHour += 1;
-                }
+            const next = current + 15;
+            const nextH = Math.floor(next / 60);
+            const nextM = next % 60;
+            const slotEnd = `${nextH.toString().padStart(2, '0')}:${nextM.toString().padStart(2, '0')}`;
 
-                const slotEnd = `${endHour.toString().padStart(2, '0')}:${endMinute.toString().padStart(2, '0')}`;
-
-                allSlots.push({ startTime: slotStart, endTime: slotEnd });
-            }
+            allSlots.push({ startTime: slotStart, endTime: slotEnd });
         }
 
         const availableSlots = allSlots.filter(slot => {
@@ -82,15 +68,15 @@ const createAppointment = async (req, res) => {
         const appointmentDate = new Date(date);
         appointmentDate.setHours(0, 0, 0, 0);
 
-        const officeStart = parseTime("09:00");
-        const officeEnd = parseTime("17:00");
+        const officeStart = parseTime(process.env.SECRETARITAT_START_HOUR || "09:00");
+        const officeEnd = parseTime(process.env.SECRETARITAT_END_HOUR || "17:00");
 
         const requestedStart = parseTime(startTime);
         const requestedEnd = parseTime(endTime);
 
         if (requestedStart < officeStart || requestedEnd > officeEnd) {
         return res.status(400).json({
-            msg: `Appointment times must be between 09:00 and 17:00.`
+            msg: `Appointment times must be between ${process.env.SECRETARITAT_START_HOUR || "09:00"} and ${process.env.SECRETARITAT_END_HOUR || "17:00"}.`
         });
         }
 
@@ -170,6 +156,7 @@ const updateAppointmentStatus = async (req, res) => {
     }
 
     appointment.status = status;
+    appointment.isReadByUser = false;
     if (secretariatNotes) appointment.secretariatNotes = secretariatNotes;
 
     await appointment.save();
@@ -328,6 +315,19 @@ const cancelMyAppointment = async (req, res) => {
     }
 };
 
+const markMyAppointmentsAsRead = async (req, res) => {
+    try {
+        await Appointment.updateMany(
+            { student: req.user.id, isReadByUser: false },
+            { $set: { isReadByUser: true } }
+        );
+        res.json({ msg: 'Appointments marked as read.' });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+};
+
 module.exports = {
     createAppointment,
     getAvailableSlots,
@@ -337,5 +337,6 @@ module.exports = {
     getMyAppointments,
     getPaginatedAppointments,
     getAppointmentStatsByStatus,
-    cancelMyAppointment
+    cancelMyAppointment,
+    markMyAppointmentsAsRead
 };

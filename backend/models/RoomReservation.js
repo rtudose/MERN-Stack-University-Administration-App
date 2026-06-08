@@ -48,6 +48,10 @@ const roomReservationSchema = new mongoose.Schema({
     enum: ['pending', 'approved', 'rejected', 'cancelled', 'expired', 'completed'],
     default: 'pending'
   },
+  isReadByUser: {
+    type: Boolean,
+    default: true
+  },
   adminNotes: {
     type: String,
     required: false
@@ -58,7 +62,6 @@ const roomReservationSchema = new mongoose.Schema({
   }
 });
 
-// Add a custom validator or pre-save hook for startTime < endTime
 roomReservationSchema.pre('save', function(next) {
     const start = this.startTime.split(':').map(Number);
     const end = this.endTime.split(':').map(Number);

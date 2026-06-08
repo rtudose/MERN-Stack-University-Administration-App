@@ -15,6 +15,18 @@ const updateOverdueAppointments = async () => {
       },
       [{
         $set: {
+          isReadByUser: {
+            $cond: {
+              if: {
+                $lte: [
+                  { $dateFromString: { dateString: { $concat: [{ $dateToString: { format: "%Y-%m-%d", date: "$date" } }, "T", "$endTime", ":00Z"] } } },
+                  now
+                ]
+              },
+              then: false,
+              else: "$isReadByUser"
+            }
+          },
           status: {
             $cond: {
               if: {
@@ -41,6 +53,18 @@ const updateOverdueAppointments = async () => {
       },
       [{
         $set: {
+          isReadByUser: {
+            $cond: {
+              if: {
+                $lte: [
+                  { $dateFromString: { dateString: { $concat: [{ $dateToString: { format: "%Y-%m-%d", date: "$date" } }, "T", "$startTime", ":00Z"] } } },
+                  now
+                ]
+              },
+              then: false,
+              else: "$isReadByUser"
+            }
+          },
           status: {
             $cond: {
               if: {
@@ -76,6 +100,18 @@ const updateOverdueReservations = async () => {
         date: { $lte: now }
       },
       [{ $set: {
+          isReadByUser: {
+            $cond: {
+              if: {
+                $lte: [ 
+                  { $dateFromString: { dateString: { $concat: [{ $dateToString: { format: "%Y-%m-%d", date: "$date" } }, "T", "$endTime", ":00Z"] } } }, 
+                  now 
+                ] 
+              }, 
+              then: false, 
+              else: "$isReadByUser" 
+            } 
+          },
           status: {
             $cond: {
               if: {
@@ -98,6 +134,18 @@ const updateOverdueReservations = async () => {
         date: { $lte: now }
       },
       [{ $set: {
+          isReadByUser: {
+            $cond: {
+              if: {
+                $lte: [ 
+                  { $dateFromString: { dateString: { $concat: [{ $dateToString: { format: "%Y-%m-%d", date: "$date" } }, "T", "$startTime", ":00Z"] } } }, 
+                  now 
+                ] 
+              }, 
+              then: false, 
+              else: "$isReadByUser" 
+            } 
+          },
           status: {
             $cond: {
               if: {

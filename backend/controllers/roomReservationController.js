@@ -1,35 +1,21 @@
-// controllers/roomReservationController.js
+// backend/controllers/roomReservationController.js
 const RoomReservation = require('../models/RoomReservation');
 const Room = require('../models/Room');
 const ScheduleEntry = require('../models/ScheduleEntry');
 const Course = require('../models/Course');
 const User = require('../models/User');
-
-// Helper function for time overlap (can be reused from scheduleRoutes or put in a common utility)
-const parseTime = (timeStr) => {
-    const [hours, minutes] = timeStr.split(':').map(Number);
-    return hours * 60 + minutes;
-};
-const checkTimeOverlap = (start1, end1, start2, end2) => {
-    const s1 = parseTime(start1);
-    const e1 = parseTime(end1);
-    const s2 = parseTime(start2);
-    const e2 = parseTime(end2);
-    return s2 < e1 && e2 > s1;
-};
+const { parseTime, checkTimeOverlap } = require('../utils/timeUtils');
 
 const createRoomReservation = async (req, res) => {
     const { room, date, startTime, endTime, purpose, attendees } = req.body;
 
     try {
 
-        // Fetch the user making the request (using the JWT token id)
         const user = await User.findById(req.user.id);
         if (!user) {
             return res.status(404).json({ msg: 'User not found' });
         }
 
-        // 1. Validate Room exists and is available for external booking
         const existingRoom = await Room.findById(room);
         if (!existingRoom) {
             return res.status(404).json({ msg: 'Room not found' });
@@ -38,16 +24,12 @@ const createRoomReservation = async (req, res) => {
             return res.status(400).json({ msg: `Room ${existingRoom.name} is not available for external reservations.` });
         }
 
-        // 2. Convert date string to Date object for query
-        // Establish absolute lower boundary (Start of Day)
         const startOfDay = new Date(date);
         startOfDay.setHours(0, 0, 0, 0);
 
-        // Establish absolute upper boundary (End of Day)
         const endOfDay = new Date(date);
         endOfDay.setHours(23, 59, 59, 999);
 
-        // Execute bounded range query against persistent storage
         const existingReservations = await RoomReservation.find({
             room,
             date: {
@@ -71,15 +53,12 @@ const createRoomReservation = async (req, res) => {
             }
         }
 
-        // 4. Overlap Detection with existing Academic Schedule Entries
-        // Need to convert reservation date to day of week string
         const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
         const dayOfWeek = days[startOfDay.getDay()];
 
         const academicScheduleEntries = await ScheduleEntry.find({
             room,
             dayOfWeek,
-            // More robust: Add academicYear/semester to RoomReservation if needed
         });
 
         for (let entry of academicScheduleEntries) {
@@ -98,7 +77,6 @@ const createRoomReservation = async (req, res) => {
             }
         }
 
-        // 5. If no overlaps, create and save the reservation request
         const newReservation = new RoomReservation({
         room,
         reservedBy: user.username,
@@ -108,7 +86,7 @@ const createRoomReservation = async (req, res) => {
         endTime,
         purpose,
         attendees,
-        status: 'pending' // Default status
+        status: 'pending'
         });
 
         await newReservation.save();
@@ -117,7 +95,6 @@ const createRoomReservation = async (req, res) => {
         res.status(201).json({ msg: 'Room reservation request submitted successfully. Awaiting administrator approval.', reservation: newReservation });
 
     } catch (err) {   
-        // Catch Mongoose Validation Errors and send them to the frontend
         if (err.name === 'ValidationError') {
             const messages = Object.values(err.errors).map(val => val.message);
             return res.status(400).json({ msg: messages.join(', ') });
@@ -189,6 +166,7 @@ const updateRoomReservationStatus = async (req, res) => {
         }
 
         reservation.status = status;
+        reservation.isReadByUser = false;
         if (adminNotes) reservation.adminNotes = adminNotes;
 
         await reservation.save();
