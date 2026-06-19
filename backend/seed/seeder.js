@@ -12,146 +12,211 @@ const Room = require('../models/Room');
 const Course = require('../models/Course');
 const RoomReservation = require('../models/RoomReservation');
 const ScheduleEntry = require('../models/ScheduleEntry');
+const Appointment = require('../models/Appointment');
 
-mongoose.connect(process.env.MONGO_URI, {});
-
-const users = JSON.parse(fs.readFileSync(path.join(__dirname, 'users.json'), 'utf-8'));
-const rooms = JSON.parse(fs.readFileSync(path.join(__dirname, 'rooms.json'), 'utf-8'));
-const courses = JSON.parse(fs.readFileSync(path.join(__dirname, 'courses.json'), 'utf-8'));
-
-const generateUsers = () => {
-  const users = [];
-  const numberOfUsers = 50;
-
-  for (let i = 0; i < numberOfUsers; i++) {
-    const role = faker.helpers.arrayElement(['student']);
-    
-    const user = {
-      username: faker.internet.userName(),
-      email: faker.internet.email(),
-      password: 'password123',
-      role: role,
-      createdAt: faker.date.between({from: '2015-09-15', to: Date.now()}),
-    };
-
-    if (role === 'student') {
-      user.studentDetails = {
-        yearOfStudy: faker.helpers.arrayElement([1, 2, 3, 4]),
-        specialization: faker.helpers.arrayElement(['General', 'Informatica', 'MON']),
-        group: faker.helpers.arrayElement(['A', 'B', 'C', 'D']),
-      };
-    }
-    
-    users.push(user);
-  }
-  return users;
-};
-
-const importData = async () => {
+const connectDB = async () => {
   try {
-    console.log('Destroying existing data...');
-    await User.deleteMany();
-    await Room.deleteMany();
-    await Course.deleteMany();
-    await RoomReservation.deleteMany();
-    await ScheduleEntry.deleteMany();
-
-    console.log('Importing primary data...');
-    const createdUsers = await User.create(users);
-    const createdRooms = await Room.create(rooms);
-    const createdCourses = await Course.create(courses);
-
-    console.log('Primary data imported.');
-
-    console.log('Generating fake users');
-    const fakeUsers = generateUsers();
-    await User.insertMany(fakeUsers);
-
-    console.log('Building schedule from blueprint...');
-
-    const scheduleBlueprint = [
-        // Year 3, Informatica, Semester 1
-        { courseCode: 'CS301', roomName: 'Sala B201', day: 'Monday', time: ['10:00', '12:00'], type: 'Lecture', group: '' },
-        { courseCode: 'CS301', roomName: 'Laborator A105', day: 'Tuesday', time: ['10:00', '12:00'], type: 'Lab', group: 'A' },
-        { courseCode: 'CS301', roomName: 'Laborator A105', day: 'Tuesday', time: ['12:00', '14:00'], type: 'Lab', group: 'B' },
-        { courseCode: 'CS302', roomName: 'Sala B201', day: 'Wednesday', time: ['14:00', '16:00'], type: 'Lecture', group: '' },
-        { courseCode: 'CS302', roomName: 'Laborator A105', day: 'Wednesday', time: ['16:00', '18:00'], type: 'Lab', group: 'A' },
-        { courseCode: 'CS303', roomName: 'Sala B201', day: 'Friday', time: ['08:00', '10:00'], type: 'Lecture', group: '' },
-        
-        // Year 3, Informatica, Semester 2
-        { courseCode: 'CS304', roomName: 'Amfiteatru C3', day: 'Tuesday', time: ['12:00', '14:00'], type: 'Lecture', group: '' },
-        { courseCode: 'CS304', roomName: 'Laborator A105', day: 'Tuesday', time: ['14:00', '17:00'], type: 'Lab', group: 'A' },
-        { courseCode: 'CS304', roomName: 'Laborator A105', day: 'Tuesday', time: ['12:00', '14:00'], type: 'Lab', group: 'B' },
-
-        // Year 3, MON, Semester 2
-        { courseCode: 'SCCS', roomName: 'Laborator A105', day: 'Monday', time: ['14:00', '16:00'], type: 'Lab', group: 'A' },
-        { courseCode: 'DEPI', roomName: 'Sala B201', day: 'Tuesday', time: ['16:00', '18:00'], type: 'Lecture', group: '' },
-        { courseCode: 'PDS', roomName: 'Laborator A105', day: 'Thursday', time: ['10:00', '12:00'], type: 'Lab', group: 'B' },
-        { courseCode: 'TV', roomName: 'Amfiteatru C3', day: 'Wednesday', time: ['09:00', '11:00'], type: 'Lecture', group: '' },
-        { courseCode: 'SCCS', roomName: 'Amfiteatru C3', day: 'Wednesday', time: ['11:00', '13:00'], type: 'Lecture', group: '' },
-        { courseCode: 'DEPI', roomName: 'Sala B201', day: 'Wednesday', time: ['15:00', '17:00'], type: 'Lab', group: 'A' },
-        { courseCode: 'DEPI', roomName: 'Sala Senatului', day: 'Thursday', time: ['10:00', '12:00'], type: 'Seminar', group: 'B' },
-        { courseCode: 'CAF', roomName: 'Laborator A105', day: 'Thursday', time: ['11:00', '13:00'], type: 'Lab', group: 'B' },
-        { courseCode: 'PDS', roomName: 'Amfiteatru C3', day: 'Friday', time: ['12:00', '16:00'], type: 'Lecture', group: '' },
-
-        // Year 2, General, Semester 2
-        { courseCode: 'CEF', roomName: 'Sala B201', day: 'Monday', time: ['08:00', '10:00'], type: 'Lecture', group: '' },
-        { courseCode: 'CEF', roomName: 'Laborator A105', day: 'Monday', time: ['10:00', '12:00'], type: 'Lab', group: 'A' },
-        { courseCode: 'CEF', roomName: 'Laborator A105', day: 'Friday', time: ['10:00', '12:00'], type: 'Lab', group: 'B' },
-        { courseCode: 'SS2', roomName: 'Sala B201', day: 'Thursday', time: ['14:00', '16:00'], type: 'Lecture', group: '' },
-        { courseCode: 'SS2', roomName: 'Sala B201', day: 'Thursday', time: ['16:00', '18:00'], type: 'Seminar', group: 'A' },
-    ];
-
-    const finalScheduleEntries = scheduleBlueprint.map(entry => {
-        const course = createdCourses.find(c => c.code === entry.courseCode);
-        const room = createdRooms.find(r => r.name === entry.roomName);
-        
-        if (!course || !room) {
-            console.warn(`Could not create schedule entry for ${entry.courseCode} in ${entry.roomName}. Course or Room not found.`);
-            return null;
-        }
-
-        return {
-            course: course._id,
-            room: room._id,
-            dayOfWeek: entry.day,
-            startTime: entry.time[0],
-            endTime: entry.time[1],
-            type: entry.type,
-            group: entry.group,
-            academicYear: '2024-2025',
-            semester: course.semester,
-        };
-    }).filter(entry => entry !== null);
-
-    await ScheduleEntry.create(finalScheduleEntries);
-    console.log(`${finalScheduleEntries.length} schedule entries created.`);
-
-    console.log('Data Import Complete!');
-    process.exit();
+    await mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/faculty-admin');
+    console.log('MongoDB Connected for seeding...');
   } catch (err) {
-    console.error('Seeder script failed:', err);
+    console.error(`Error connecting to MongoDB: ${err.message}`);
     process.exit(1);
   }
 };
 
-const deleteData = async () => {
+// --- Configuration ---
+const SPECIALIZATIONS = ['ELA', 'MON', 'TST'];
+const GROUPS = ['A', 'B', 'C', 'D'];
+const NUM_STUDENTS_PER_YEAR = 40; // Total ~160 students
+const NUM_TEACHERS = 30;
+const NUM_EXTERNAL_REPS = 10;
+
+// Helper to get random specialization based on year
+const getSpecializationForYear = (year) => {
+  if (year <= 2) return 'General';
+  return faker.helpers.arrayElement(SPECIALIZATIONS);
+};
+
+const generateData = async () => {
   try {
+    console.log('Clearing existing data...');
     await User.deleteMany();
     await Room.deleteMany();
     await Course.deleteMany();
     await RoomReservation.deleteMany();
     await ScheduleEntry.deleteMany();
-    console.log('Data Destroyed...');
+    await Appointment.deleteMany();
+
+    // 1. Create Admin
+    const admin = await User.create({
+      username: 'admin',
+      email: 'admin@example.com',
+      password: 'password123',
+      role: 'admin'
+    });
+    console.log('Admin created');
+
+    // 2. Create Rooms (from rooms.json if exists, else generate)
+    let roomsData = [];
+    const roomsFilePath = path.join(__dirname, 'rooms.json');
+    if (fs.existsSync(roomsFilePath)) {
+      roomsData = JSON.parse(fs.readFileSync(roomsFilePath, 'utf-8'));
+    } else {
+      roomsData = [
+        { name: 'Amfiteatru AN010', capacity: 150, type: 'Amphitheater', equipment: ['Projector', 'Whiteboard'] },
+        { name: 'Sala B201', capacity: 40, type: 'Classroom', equipment: ['Projector'] },
+        { name: 'Laborator A105', capacity: 20, type: 'Laboratory', equipment: ['Video_Conferencing', 'Conference_Phone'] },
+      ];
+    }
+    const createdRooms = await Room.create(roomsData);
+    console.log(`${createdRooms.length} rooms created`);
+
+    // 3. Create Teachers
+    const teachers = [];
+    for (let i = 0; i < NUM_TEACHERS; i++) {
+      const gender = faker.person.sexType();
+      const firstName = faker.person.firstName(gender);
+      const lastName = faker.person.lastName();
+      const prefix = faker.helpers.arrayElement(['Prof.', 'Dr.', 'Asist.']);
+
+      teachers.push({
+        username: `${prefix} ${firstName} ${lastName}`,
+        email: faker.internet.email({ firstName, lastName }).toLowerCase(),
+        password: 'password123',
+        role: 'teacher'
+      });
+    }
+    const createdTeachers = await User.create(teachers);
+    console.log(`${createdTeachers.length} teachers created`);
+
+    // 4. Create External Representatives
+    const externalReps = [];
+    for (let i = 0; i < NUM_EXTERNAL_REPS; i++) {
+      externalReps.push({
+        username: faker.internet.userName(),
+        email: faker.internet.email().toLowerCase(),
+        password: 'password123',
+        role: 'external_representative'
+      });
+    }
+    await User.create(externalReps);
+    console.log(`${NUM_EXTERNAL_REPS} external representatives created`);
+
+    // 5. Create Courses (using anonymized teachers)
+    // We'll read courses.json and replace professor names with our newly created ones
+    const originalCourses = JSON.parse(fs.readFileSync(path.join(__dirname, 'courses.json'), 'utf-8'));
+
+    // Map of original professor name to new anonymized teacher object
+    const professorMap = {};
+    const getAnonymizedTeacher = (originalName) => {
+      if (!originalName) return null;
+      if (!professorMap[originalName]) {
+        professorMap[originalName] = faker.helpers.arrayElement(createdTeachers);
+      }
+      return professorMap[originalName].username;
+    };
+
+    const courseData = originalCourses.map(course => {
+      // Ensure specialization logic matches (General for Year 1-2, Specific for 3-4)
+      let spec = course.specialization;
+      if (course.yearOfStudy <= 2) spec = 'General';
+      else if (spec === 'Informatica') spec = 'ELA'; // Mapping old names to new ones if needed
+
+      return {
+        ...course,
+        specialization: spec,
+        professors: {
+          lecture: getAnonymizedTeacher(course.professors.lecture),
+          seminar: course.professors.seminar ? getAnonymizedTeacher(course.professors.seminar) : undefined,
+          lab: course.professors.lab ? getAnonymizedTeacher(course.professors.lab) : undefined
+        }
+      };
+    });
+    const createdCourses = await Course.create(courseData);
+    console.log(`${createdCourses.length} courses created with anonymized professors`);
+
+    // 6. Create Students
+    const students = [];
+    for (let year = 1; year <= 4; year++) {
+      for (let i = 0; i < NUM_STUDENTS_PER_YEAR; i++) {
+        const gender = faker.person.sexType();
+        const firstName = faker.person.firstName(gender);
+        const lastName = faker.person.lastName();
+        const specialization = getSpecializationForYear(year);
+
+        students.push({
+          username: faker.internet.userName({ firstName, lastName }),
+          email: faker.internet.email({ firstName, lastName }).toLowerCase(),
+          password: 'password123',
+          role: 'student',
+          studentDetails: {
+            yearOfStudy: year,
+            specialization: specialization,
+            group: faker.helpers.arrayElement(GROUPS)
+          }
+        });
+      }
+    }
+    await User.create(students);
+    console.log(`${students.length} students created (Years 1-4)`);
+
+    // 7. Generate Schedule Entries (Simplified logic)
+    console.log('Generating schedule entries...');
+    const scheduleEntries = [];
+    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+    const timeSlots = [
+      ['08:00', '10:00'],
+      ['10:00', '12:00'],
+      ['12:00', '14:00'],
+      ['14:00', '16:00'],
+      ['16:00', '18:00']
+    ];
+
+    // For each course, create a few schedule entries
+    for (const course of createdCourses) {
+      const numEntries = faker.number.int({ min: 1, max: 2 });
+      for (let i = 0; i < numEntries; i++) {
+        const slot = faker.helpers.arrayElement(timeSlots);
+        scheduleEntries.push({
+          course: course._id,
+          room: faker.helpers.arrayElement(createdRooms)._id,
+          dayOfWeek: faker.helpers.arrayElement(days),
+          startTime: slot[0],
+          endTime: slot[1],
+          type: faker.helpers.arrayElement(['Lecture', 'Lab', 'Seminar']),
+          group: course.specialization === 'General' ? faker.helpers.arrayElement(GROUPS) : faker.helpers.arrayElement(GROUPS),
+          academicYear: '2025-2026',
+          semester: course.semester
+        });
+      }
+    }
+    await ScheduleEntry.create(scheduleEntries);
+    console.log(`${scheduleEntries.length} schedule entries generated`);
+
+    console.log('Seeding completed successfully!');
     process.exit();
   } catch (err) {
-    console.error(err);
+    console.error(`Error generating data: ${err.message}`);
+    console.error(err.stack);
     process.exit(1);
   }
 };
 
 if (process.argv[2] === '-d') {
-  deleteData();
+  connectDB().then(() => {
+    console.log('Destroying data...');
+    Promise.all([
+      User.deleteMany(),
+      Room.deleteMany(),
+      Course.deleteMany(),
+      RoomReservation.deleteMany(),
+      ScheduleEntry.deleteMany(),
+      Appointment.deleteMany()
+    ]).then(() => {
+      console.log('Data destroyed.');
+      process.exit();
+    });
+  });
 } else {
-  importData();
+  connectDB().then(generateData);
 }

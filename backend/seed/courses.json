@@ -5,9 +5,9 @@
         "description": "Principles of software design and architecture.",
         "credits": 5,
         "professors": {
-            "lecture": "Dr. Ioana Popescu",
-            "seminar": "Dr. Ioana Popescu",
-            "lab": "Asist. Radu Andrei"
+            "lecture": "Anonim",
+            "seminar": "Anonim",
+            "lab": "Anonim"
         },
         "department": "Computer Science",
         "yearOfStudy": 3,
@@ -20,8 +20,8 @@
         "description": "Advanced topics in database systems.",
         "credits": 5,
         "professors": {
-            "lecture": "Dr. Andrei Ionescu",
-            "lab": "Asist. Vlad Stoica"
+            "lecture": "Anonim",
+            "lab": "Anonim"
         },
         "department": "Computer Science",
         "yearOfStudy": 3,
@@ -34,7 +34,7 @@
         "description": "Understanding network protocols and layers.",
         "credits": 4,
         "professors": {
-            "lecture": "Dr. Radu Georgescu"
+            "lecture": "Anonim"
         },
         "department": "Computer Science",
         "yearOfStudy": 3,
@@ -47,8 +47,8 @@
         "description": "Introduction to AI concepts and algorithms.",
         "credits": 5,
         "professors": {
-            "lecture": "Dr. Ioana Popescu",
-            "lab": "Asist. Radu Andrei"
+            "lecture": "Anonim",
+            "lab": "Anonim"
         },
         "department": "Computer Science",
         "yearOfStudy": 3,
@@ -61,7 +61,7 @@
         "description": "Introduction to differential calculus.",
         "credits": 6,
         "professors": {
-            "lecture": "Dr. Maria Vasilescu"
+            "lecture": "Anonim"
         },
         "department": "Mathematics",
         "yearOfStudy": 1,
@@ -74,8 +74,8 @@
         "description": "Continuare materii CIA, IEM",
         "credits": 3,
         "professors": {
-            "lecture": "Prof. Marius Enachescu",
-            "lab": "Asist. Andrei Daescu"
+            "lecture": "Anonim",
+            "lab": "Anonim"
         },
         "department": "Catedra de Electronica",
         "yearOfStudy": 3,
@@ -88,9 +88,9 @@
         "description": "Continuare materie TTI",
         "credits": 4,
         "professors": {
-            "lecture": "Prof. Corneliu Nicolae Florea",
-            "seminar": "Asist. Cosmin-Razvan Danisor",
-            "lab": "Asist. Laura Florea"
+            "lecture": "Anonim",
+            "seminar": "Anonim",
+            "lab": "Anonim"
         },
         "department": "Catedra de Electronica",
         "yearOfStudy": 3,
@@ -103,8 +103,8 @@
         "description": "Continuare materii SS1/SS2/SS3",
         "credits": 4,
         "professors": {
-            "lecture": "Prof. Dragos Burileanu",
-            "lab": "Asist. Serban Mihalache"
+            "lecture": "Anonim",
+            "lab": "Anonim"
         },
         "department": "Catedra de Electronica",
         "yearOfStudy": 3,
@@ -117,8 +117,8 @@
         "description": "Continuare materie CIA + punere in practica",
         "credits": 2,
         "professors": {
-            "lecture": "Prof. Claudius Dan",
-            "lab": "Asist. Florin Silviu Dumitru"
+            "lecture": "Anonim",
+            "lab": "Anonim"
         },
         "department": "Catedra de Electronica",
         "yearOfStudy": 3,
@@ -131,8 +131,8 @@
         "description": "Notiuni de baza despre calitatea produselor electronice produse/cumparate",
         "credits": 2,
         "professors": {
-            "lecture": "Prof. Angelica Bacivarov",
-            "lab": "Asist. Sebastian Arghirescu"
+            "lecture": "Anonim",
+            "lab": "Anonim"
         },
         "department": "Catedra de Electronica",
         "yearOfStudy": 3,
@@ -145,8 +145,8 @@
         "description": "Notiuni de baza despre Inteligenta Artificiala",
         "credits": 2,
         "professors": {
-            "lecture": "Asist. Serban Mihalache",
-            "lab": "Asist. Serban Mihalache"
+            "lecture": "Anonim",
+            "lab": "Anonim"
         },
         "department": "Catedra de Electronica",
         "yearOfStudy": 3,
@@ -159,8 +159,8 @@
         "description": "Notiuni de baza despre emisia/receptia semnalelor TV",
         "credits": 2,
         "professors": {
-            "lecture": "Prof. Ioan Tache",
-            "lab": "Prof. Ioan Tache"
+            "lecture": "Anonim",
+            "lab": "Anonim"
         },
         "department": "Catedra de Electronica",
         "yearOfStudy": 3,
@@ -173,8 +173,8 @@
         "description": "Notiuni de baza despre Baze de date (Oracle, SQL)",
         "credits": 5,
         "professors": {
-            "lecture": "Prof. Dan Galatchi",
-            "lab": "Prof. Dan Galatchi"
+            "lecture": "Anonim",
+            "lab": "Anonim"
         },
         "department": "Catedra de Electronica",
         "yearOfStudy": 2,
@@ -187,9 +187,9 @@
         "description": "Continuare materii DE + Baze1/2",
         "credits": 5,
         "professors": {
-            "lecture": "Prof. Florin Draghici",
-            "seminar": "Prof. Florin Mitu",
-            "lab": "Prof. Florin Draghici"
+            "lecture": "Anonim",
+            "seminar": "Anonim",
+            "lab": "Anonim"
         },
         "department": "Catedra de Electronica",
         "yearOfStudy": 2,
@@ -202,9 +202,9 @@
         "description": "Continuare materie AMP1 (realizare circuite din spatele registrilor si memoriilor)",
         "credits": 4,
         "professors": {
-            "lecture": "Prof. Mihai Antonescu",
-            "seminar": "Prof. Mihai Antonescu",
-            "lab": "Prof. Mihai Antonescu"
+            "lecture": "Anonim",
+            "seminar": "Anonim",
+            "lab": "Anonim"
         },
         "department": "Catedra de Electronica",
         "yearOfStudy": 2,
@@ -217,8 +217,8 @@
         "description": "Continuare materie AMP1 (aprofundare arhitecturi cunoscute + invatare arhitecturi noi)",
         "credits": 4,
         "professors": {
-            "lecture": "Prof. Ana-Antonia Neacsu",
-            "lab": "Prof. Ana-Antonia Neacsu"
+            "lecture": "Anonim",
+            "lab": "Anonim"
         },
         "department": "Catedra de Electronica",
         "yearOfStudy": 2,
@@ -231,9 +231,9 @@
         "description": "Continuare materie SS1 (aprofundare tranfsormate + accent pe semnale discrete)",
         "credits": 5,
         "professors": {
-            "lecture": "Prof. Teodor Petrescu",
-            "seminar": "Prof. Carmen Florea",
-            "lab": "Asist. Ana-Maria Dragan"
+            "lecture": "Anonim",
+            "seminar": "Anonim",
+            "lab": "Anonim"
         },
         "department": "Catedra de Electronica",
         "yearOfStudy": 2,
@@ -246,8 +246,8 @@
         "description": "",
         "credits": 5,
         "professors": {
-            "lecture": "Prof. Adriana Balan",
-            "seminar": "Prof. Adriana Balan"
+            "lecture": "Anonim",
+            "seminar": "Anonim"
         },
         "department": "Catedra de Electronica",
         "yearOfStudy": 2,
@@ -260,12 +260,152 @@
         "description": "Optional, aprofundare cunostiinte diode si tranzistori in OrCAD si LTSpice",
         "credits": 3,
         "professors": {
-            "lecture": "Prof. Adriana Balan",
-            "seminar": "Prof. Adriana Balan"
+            "lecture": "Anonim",
+            "seminar": "Anonim"
         },
         "department": "Catedra de Electronica",
         "yearOfStudy": 2,
         "semester": 2,
         "specialization": "General"
+    },
+    {
+        "name": "Fizica 1",
+        "code": "FIZ1",
+        "description": "Concepte fundamentale de fizica.",
+        "credits": 5,
+        "professors": {
+            "lecture": "Anonim",
+            "seminar": "Anonim"
+        },
+        "department": "Catdra de Fizica",
+        "yearOfStudy": 1,
+        "semester": 1,
+        "specialization": "General"
+    },
+    {
+        "name": "Programming Basics",
+        "code": "CS101",
+        "description": "Introduction to programming logic and syntax.",
+        "credits": 6,
+        "professors": {
+            "lecture": "Anonim",
+            "lab": "Anonim"
+        },
+        "department": "Computer Science",
+        "yearOfStudy": 1,
+        "semester": 1,
+        "specialization": "General"
+    },
+    {
+        "name": "Semnale si sisteme 3",
+        "code": "SS3",
+        "description": "Continuare materii SS1 si SS2",
+        "credits": 5,
+        "professors": {
+            "lecture": "Anonim",
+            "lab": "Anonim"
+        },
+        "department": "Catedra de Electronica",
+        "yearOfStudy": 3,
+        "semester": 1,
+        "specialization": "TST"
+    },
+    {
+        "name": "Digital Signal Processing",
+        "code": "TST302",
+        "description": "Core concepts of DSP.",
+        "credits": 4,
+        "professors": {
+            "lecture": "Anonim",
+            "lab": "Anonim"
+        },
+        "department": "Telecommunications",
+        "yearOfStudy": 3,
+        "semester": 2,
+        "specialization": "TST"
+    },
+    {
+        "name": "Advanced Web Technologies",
+        "code": "ELA401",
+        "description": "Modern web frameworks and patterns.",
+        "credits": 5,
+        "professors": {
+            "lecture": "Anonim",
+            "lab": "Anonim"
+        },
+        "department": "Computer Science",
+        "yearOfStudy": 4,
+        "semester": 1,
+        "specialization": "ELA"
+    },
+    {
+        "name": "Cloud Computing",
+        "code": "ELA402",
+        "description": "Introduction to cloud infrastructure and services.",
+        "credits": 5,
+        "professors": {
+            "lecture": "Anonim",
+            "lab": "Anonim"
+        },
+        "department": "Computer Science",
+        "yearOfStudy": 4,
+        "semester": 2,
+        "specialization": "ELA"
+    },
+    {
+        "name": "Embedded Systems",
+        "code": "MON401",
+        "description": "Design and development of embedded systems.",
+        "credits": 5,
+        "professors": {
+            "lecture": "Anonim",
+            "lab": "Anonim"
+        },
+        "department": "Applied Electronics",
+        "yearOfStudy": 4,
+        "semester": 1,
+        "specialization": "MON"
+    },
+    {
+        "name": "Wireless Sensor Networks",
+        "code": "MON402",
+        "description": "Introduction to WSN architectures and protocols.",
+        "credits": 4,
+        "professors": {
+            "lecture": "Anonim",
+            "lab": "Anonim"
+        },
+        "department": "Applied Electronics",
+        "yearOfStudy": 4,
+        "semester": 2,
+        "specialization": "MON"
+    },
+    {
+        "name": "Mobile Communications",
+        "code": "TST401",
+        "description": "Cellular networks and mobile technology.",
+        "credits": 5,
+        "professors": {
+            "lecture": "Anonim",
+            "lab": "Anonim"
+        },
+        "department": "Telecommunications",
+        "yearOfStudy": 4,
+        "semester": 1,
+        "specialization": "TST"
+    },
+    {
+        "name": "Satellite Communications",
+        "code": "TST402",
+        "description": "Orbital mechanics and satellite link design.",
+        "credits": 4,
+        "professors": {
+            "lecture": "Anonim",
+            "lab": "Anonim"
+        },
+        "department": "Telecommunications",
+        "yearOfStudy": 4,
+        "semester": 2,
+        "specialization": "TST"
     }
 ]

@@ -270,8 +270,22 @@ const checkOverlap = (existingEntry, newEntry) => {
 
         let pipeline = [
             { $match: filterQuery },
-            { $lookup: { from: 'courses', localField: 'course', foreignField: '_id', as: 'course' } },
-            { $lookup: { from: 'rooms', localField: 'room', foreignField: '_id', as: 'room' } },
+            {
+                $lookup: {
+                    from: 'courses',
+                    localField: 'course',
+                    foreignField: '_id',
+                    as: 'course'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'rooms',
+                    localField: 'room',
+                    foreignField: '_id',
+                    as: 'room'
+                }
+            },
             { $unwind: { path: '$course', preserveNullAndEmptyArrays: true } },
             { $unwind: { path: '$room', preserveNullAndEmptyArrays: true } },
         ];

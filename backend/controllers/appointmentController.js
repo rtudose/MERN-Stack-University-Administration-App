@@ -20,15 +20,16 @@ const getAvailableSlots = async (req, res) => {
         }).select('startTime endTime');
 
         const allSlots = [];
-        const startMinutes = parseTime(process.env.SECRETARITAT_START_HOUR || "09:00");
-        const endMinutes = parseTime(process.env.SECRETARITAT_END_HOUR || "17:00");
+        const startMinutes = parseTime(process.env.SECRETARIAT_START_HOUR || "09:00");
+        const endMinutes = parseTime(process.env.SECRETARIAT_END_HOUR || "17:00");
+        const duration = parseInt(process.env.SECRETARIAT_APPOINTMENT_DURATION || 15, 10);
 
-        for (let current = startMinutes; current < endMinutes; current += 15) {
+        for (let current = startMinutes; current < endMinutes; current += duration) {
             const h = Math.floor(current / 60);
             const m = current % 60;
             const slotStart = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
 
-            const next = current + 15;
+            const next = current + duration;
             const nextH = Math.floor(next / 60);
             const nextM = next % 60;
             const slotEnd = `${nextH.toString().padStart(2, '0')}:${nextM.toString().padStart(2, '0')}`;
@@ -68,15 +69,15 @@ const createAppointment = async (req, res) => {
         const appointmentDate = new Date(date);
         appointmentDate.setHours(0, 0, 0, 0);
 
-        const officeStart = parseTime(process.env.SECRETARITAT_START_HOUR || "09:00");
-        const officeEnd = parseTime(process.env.SECRETARITAT_END_HOUR || "17:00");
+        const officeStart = parseTime(process.env.SECRETARIAT_START_HOUR || "09:00");
+        const officeEnd = parseTime(process.env.SECRETARIAT_END_HOUR || "17:00");
 
         const requestedStart = parseTime(startTime);
         const requestedEnd = parseTime(endTime);
 
         if (requestedStart < officeStart || requestedEnd > officeEnd) {
         return res.status(400).json({
-            msg: `Appointment times must be between ${process.env.SECRETARITAT_START_HOUR || "09:00"} and ${process.env.SECRETARITAT_END_HOUR || "17:00"}.`
+            msg: `Appointment times must be between ${process.env.SECRETARIAT_START_HOUR || "09:00"} and ${process.env.SECRETARIAT_END_HOUR || "17:00"}.`
         });
         }
 
