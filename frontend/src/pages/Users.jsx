@@ -217,7 +217,7 @@ const Users = () => {
         </Paper>
       </Box>
       
-      {showStats && <StudentRegistrationChart />}
+      {showStats && <StudentRegistrationChart refreshKey={refreshKey} />}
 
       <PaginatedTable
         columns={userColumns}

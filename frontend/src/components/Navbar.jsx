@@ -1,4 +1,4 @@
-// src/components/Navbar.jsx
+// src/components/schedule/Navbar.jsx
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from 'react-i18next';
@@ -55,19 +55,19 @@ const Navbar = () => {
         </Box>
 
         <Box sx={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
-            <Link component={RouterLink} to={user ? homePath : '/'} sx={{ color: 'inherit', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 1 }}>
-                <SchoolIcon />
-                <Typography variant="h6" noWrap>
-                    {t('app_title')}
-                </Typography>
-            </Link>
+          <Link component={RouterLink} to={user ? homePath : '/'} sx={{ color: 'inherit', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 1 }}>
+            <SchoolIcon />
+            <Typography variant="h6" noWrap>
+              {t('app_title')}
+            </Typography>
+          </Link>
         </Box>
 
         <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 1.5 }}>
           <Button color="inherit" onClick={handleLanguageChange} sx={{ minWidth: 'auto' }}>
             {i18n.language === 'ro' ? 'EN' : 'RO'}
           </Button>
-          
+
           <Tooltip title={t('toggle_theme_tooltip')}>
             <IconButton onClick={toggleColorMode} color="inherit">
               {theme.palette.mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}

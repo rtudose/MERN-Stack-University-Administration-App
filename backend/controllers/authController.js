@@ -11,38 +11,38 @@ const registerUser = async (req, res) => {
     try {
         let user = await User.findOne({ email });
         if (user) {
-        return res.status(400).json({ msg: 'User with that email already exists' });
+            return res.status(400).json({ msg: 'User with that email already exists' });
         }
 
         user = await User.findOne({ username });
         if (user) {
-        return res.status(400).json({ msg: 'User with that username already exists' });
+            return res.status(400).json({ msg: 'User with that username already exists' });
         }
 
         user = new User({
-        username,
-        email,
-        password, // This password will be hashed by the pre-save hook in the User model
-        role: role || 'student'
+            username,
+            email,
+            password,
+            role: role || 'student'
         });
 
         await user.save();
 
         const payload = {
-        user: {
-            id: user.id,
-            role: user.role
-        }
+            user: {
+                id: user.id,
+                role: user.role
+            }
         };
 
         jwt.sign(
-        payload,
-        process.env.JWT_SECRET,
-        { expiresIn: '1h' },
-        (err, token) => {
-            if (err) throw err;
-            res.status(201).json({ msg: 'User registered successfully', token });
-        }
+            payload,
+            process.env.JWT_SECRET,
+            { expiresIn: '1h' },
+            (err, token) => {
+                if (err) throw err;
+                res.status(201).json({ msg: 'User registered successfully', token });
+            }
         );
 
     } catch (err) {
@@ -57,34 +57,34 @@ const loginUser = async (req, res) => {
     try {
         let user = await User.findOne({ email });
         if (!user) {
-        return res.status(400).json({ msg: 'Invalid Credentials' });
+            return res.status(400).json({ msg: 'Invalid Credentials' });
         }
 
         const isMatch = await user.matchPassword(password);
         if (!isMatch) {
-        return res.status(400).json({ msg: 'Invalid Credentials' });
+            return res.status(400).json({ msg: 'Invalid Credentials' });
         }
 
         const payload = {
-        user: {
-            id: user.id,
-            role: user.role
-        }
+            user: {
+                id: user.id,
+                role: user.role
+            }
         };
 
         jwt.sign(
-        payload,
-        process.env.JWT_SECRET,
-        { expiresIn: '1h' },
-        (err, token) => {
-            if (err) throw err;
-            res.json({ 
-            token, 
-            role: user.role, 
-            username: user.username,
-            email: user.email 
-            });
-        }
+            payload,
+            process.env.JWT_SECRET,
+            { expiresIn: '1h' },
+            (err, token) => {
+                if (err) throw err;
+                res.json({
+                    token,
+                    role: user.role,
+                    username: user.username,
+                    email: user.email
+                });
+            }
         );
 
     } catch (err) {

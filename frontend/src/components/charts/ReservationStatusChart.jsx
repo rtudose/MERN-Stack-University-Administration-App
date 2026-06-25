@@ -5,7 +5,7 @@ import {getReservationStatsByStatus} from '../../services/reservationService';
 import { Paper, Typography, Box } from '@mui/material';
 import { PieChart } from '@mui/x-charts/PieChart';
 
-const ReservationStatusChart = () => {
+const ReservationStatusChart = ({ refreshKey }) => {
     const { t } = useTranslation();
     const [chartData, setChartData] = useState([]);
 
@@ -23,7 +23,7 @@ const ReservationStatusChart = () => {
             }
         };
         fetchStats();
-    }, [t]);
+    }, [t, refreshKey]);
 
     return (
         <Paper sx={{ p: 2, mb: 2 }}>

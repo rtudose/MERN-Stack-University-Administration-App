@@ -1,4 +1,4 @@
-// src/components/GlobalStyles.jsx
+// src/components/schedule/GlobalStyles.jsx
 import React from 'react';
 import { GlobalStyles as MuiGlobalStyles } from '@mui/material';
 

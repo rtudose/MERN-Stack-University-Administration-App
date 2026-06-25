@@ -129,7 +129,7 @@ const AppointmentsManagement = () => {
           </Button>
       </Box>
 
-      {showStats && <AppointmentStatusChart />}
+      {showStats && <AppointmentStatusChart refreshKey={refreshKey} />}
 
       <PaginatedTable
         columns={appointmentColumns}

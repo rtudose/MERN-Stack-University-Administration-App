@@ -5,7 +5,7 @@ import { getCourseStatsByYear } from '../../services/courseService';
 import { Paper, Typography, Box } from '@mui/material';
 import { BarChart } from '@mui/x-charts/BarChart';
 
-const CoursesByYearChart = () => {
+const CoursesByYearChart = ({ refreshKey }) => {
     const { t } = useTranslation();
     const [chartData, setChartData] = useState([]);
 
@@ -19,7 +19,7 @@ const CoursesByYearChart = () => {
             }
         };
         fetchStats();
-    }, []);
+    }, [refreshKey]);
 
     if (chartData.length === 0) return <Typography>{t('loading_stats_data')}</Typography>;
 

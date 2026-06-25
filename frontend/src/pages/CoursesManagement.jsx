@@ -2,7 +2,6 @@
 import React, { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getPaginatedCourses, createCourse, updateCourse, deleteCourse, getCourseStatsByYear } from '../services/courseService';
-// ... rest of imports unchanged ...
 import PaginatedTable from '../components/common/PaginatedTable';
 import CoursesByYearChart from '../components/charts/CoursesByYearChart';
 import BackButton from '../components/BackButton';
@@ -30,26 +29,26 @@ const CoursesManagement = () => {
     professors: { lecture: '', seminar: '', lab: '' }
   };
   const [formData, setFormData] = useState(initialState);
-  
+
   const resetForm = () => {
     setIsEditing(false);
     setCurrentCourseId(null);
     setFormData(initialState);
   };
-  
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     if (['lecture', 'seminar', 'lab'].includes(name)) {
-        setFormData(prev => ({ ...prev, professors: { ...prev.professors, [name]: value } }));
+      setFormData(prev => ({ ...prev, professors: { ...prev.professors, [name]: value } }));
     } else {
-        setFormData(prev => ({ ...prev, [name]: value }));
+      setFormData(prev => ({ ...prev, [name]: value }));
     }
   };
-  
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setFormMessage({ key: '' });
-  
+
     const { name, code, credits, professors } = formData;
     if (!name.trim() || !code.trim() || !String(credits).trim() || !professors.lecture.trim()) {
       setFormMessage({ key: 'course_form_error_all_fields', type: 'error' }); return;
@@ -59,7 +58,7 @@ const CoursesManagement = () => {
       setFormMessage({ key: 'course_credits_integer_error', type: 'error' }); return;
     }
     const courseData = { ...formData, credits: creditsNumber };
-  
+
     try {
       if (isEditing) {
         await updateCourse(currentCourseId, courseData);
@@ -84,12 +83,12 @@ const CoursesManagement = () => {
     setIsEditing(true);
     setCurrentCourseId(course._id);
     setFormData({ ...initialState, ...course });
-    
+
     setTimeout(() => {
       titleRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 100);
   };
-  
+
   const handleDeleteClick = (course) => {
     setCourseToDelete(course);
     setOpenDeleteModal(true);
@@ -144,7 +143,7 @@ const CoursesManagement = () => {
           {t(formMessage.key, formMessage.options)}
         </Alert>
       )}
-      
+
       <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
         <Button variant="outlined" onClick={() => setShowStats(prev => !prev)}>
           {showStats ? t('hide_stats') : t('show_stats')}
@@ -160,7 +159,7 @@ const CoursesManagement = () => {
             <Grid size={{ xs: 12, md: 5 }}><TextField fullWidth required name="name" label={t('course_name_label')} value={formData.name} onChange={handleInputChange} /></Grid>
             <Grid size={{ xs: 12, md: 5 }}><TextField fullWidth required name="code" label={t('course_code_label')} value={formData.code} onChange={handleInputChange} /></Grid>
             <Grid size={{ xs: 12, md: 2 }}><TextField fullWidth required name="credits" label={t('course_credits_label')} value={formData.credits} onChange={handleInputChange} type="number" inputProps={{ min: 1, step: 1 }} /></Grid>
-            
+
             <Grid size={{ xs: 12, md: 4 }}>
               <TextField fullWidth required name="lecture" label={t('lecture_professor_label')} value={formData.professors.lecture} onChange={handleInputChange} />
             </Grid>
@@ -186,7 +185,7 @@ const CoursesManagement = () => {
         {formMessage.text && <Alert severity={formMessage.type} sx={{ mt: 2 }}>{t(formMessage.text)}</Alert>}
       </Paper>
 
-      {showStats && <CoursesByYearChart />}
+      {showStats && <CoursesByYearChart refreshKey={refreshKey} />}
 
       <PaginatedTable
         columns={courseColumns}
@@ -194,7 +193,7 @@ const CoursesManagement = () => {
         refreshKey={refreshKey}
         titleKey="existing_courses_title"
       />
-      
+
       <Dialog open={openDeleteModal} onClose={handleCloseDeleteModal}>
         <DialogTitle>{t('delete_course_confirm')}</DialogTitle>
         <DialogContent>

@@ -1,4 +1,4 @@
-// frontend/src/components/common/RoomAutocomplete.jsx
+// src/components/common/RoomAutocomplete.jsx
 import React, { useState, useEffect } from 'react';
 import { Autocomplete, TextField, CircularProgress } from '@mui/material';
 import { useTranslation } from 'react-i18next';
@@ -16,7 +16,7 @@ const RoomAutocomplete = ({ value, onChange }) => {
       setOptions([]);
       return;
     }
-    
+
     setLoading(true);
     const debounceTimer = setTimeout(async () => {
       try {
@@ -38,7 +38,7 @@ const RoomAutocomplete = ({ value, onChange }) => {
       onOpen={() => setOpen(true)}
       onClose={() => setOpen(false)}
       onInputChange={(event, newInputValue) => setInputValue(newInputValue)}
-      onChange={(event, value) => onChange(value)} // Pass selected room back to parent form
+      onChange={(event, value) => onChange(value)}
       isOptionEqualToValue={(option, value) => option._id === value._id}
       getOptionLabel={(option) => option.name}
       options={options}
@@ -47,7 +47,7 @@ const RoomAutocomplete = ({ value, onChange }) => {
       renderInput={(params) => (
         <TextField
           {...params}
-          label= {t('search_for_a_room')}
+          label={t('search_for_a_room')}
           InputProps={{
             ...params.InputProps,
             endAdornment: (

@@ -1,4 +1,4 @@
-// frontend/src/components/common/CourseAutocomplete.jsx
+// src/components/common/CourseAutocomplete.jsx
 import React, { useState, useEffect } from 'react';
 import { Autocomplete, TextField, CircularProgress } from '@mui/material';
 import { useTranslation } from 'react-i18next';
@@ -16,7 +16,7 @@ const CourseAutocomplete = ({ value, onChange }) => {
       setOptions([]);
       return;
     }
-    
+
     setLoading(true);
     const debounceTimer = setTimeout(async () => {
       try {
@@ -38,7 +38,7 @@ const CourseAutocomplete = ({ value, onChange }) => {
       onOpen={() => setOpen(true)}
       onClose={() => setOpen(false)}
       onInputChange={(event, newInputValue) => setInputValue(newInputValue)}
-      onChange={(event, value) => onChange(value)} // Pass selected course back to parent form
+      onChange={(event, value) => onChange(value)}
       isOptionEqualToValue={(option, value) => option._id === value._id}
       getOptionLabel={(option) => `[${option.code}] ${option.name}`}
       options={options}
@@ -47,7 +47,7 @@ const CourseAutocomplete = ({ value, onChange }) => {
       renderInput={(params) => (
         <TextField
           {...params}
-          label= {t('search_for_a_course')}
+          label={t('search_for_a_course')}
           InputProps={{
             ...params.InputProps,
             endAdornment: (

@@ -47,7 +47,7 @@ const ScheduleManagement = () => {
   const [entryToDelete, setEntryToDelete] = useState(null);
 
   const initialState = {
-    course: '', room: '', dayOfWeek: dayOfWeekKeys[0], startTime: setTimeToDate(8, 0), 
+    course: '', room: '', dayOfWeek: dayOfWeekKeys[0], startTime: setTimeToDate(8, 0),
     endTime: setTimeToDate(10, 0), type: activityTypeKeys[0], group: '',
     academicYear: academicYears[0], semester: semesterKeys[0]
   };
@@ -66,7 +66,7 @@ const ScheduleManagement = () => {
       setFormData(prev => ({ ...prev, room: value }));
     }
   };
-  
+
   const handleCourseSelect = (course) => {
     setSelectedCourse(course);
     setSelectedCourseDetails(course);
@@ -79,13 +79,13 @@ const ScheduleManagement = () => {
   };
 
   const resetForm = () => {
-      setIsEditing(false);
-      setCurrentEntryId(null);
-      setSelectedCourse(null);
-      setSelectedRoom(null);
-      setSelectedCourseDetails(null);
-      setSelectedRoomDetails(null);
-      setFormData(initialState);
+    setIsEditing(false);
+    setCurrentEntryId(null);
+    setSelectedCourse(null);
+    setSelectedRoom(null);
+    setSelectedCourseDetails(null);
+    setSelectedRoomDetails(null);
+    setFormData(initialState);
   };
 
   const getTranslatedError = (msg) => {
@@ -102,8 +102,8 @@ const ScheduleManagement = () => {
 
     const { course, room, dayOfWeek, startTime, endTime, type, academicYear, semester } = formData;
     if (!course || !room || !dayOfWeek || !startTime || !endTime || !type || !academicYear || !semester) {
-        setFormMessage({ key: 'form_error_all_fields', type: 'error' });
-        return;
+      setFormMessage({ key: 'form_error_all_fields', type: 'error' });
+      return;
     }
 
     const payload = {
@@ -136,7 +136,7 @@ const ScheduleManagement = () => {
       }
     }
   };
-  
+
   const handleDeleteClick = (entry) => {
     setEntryToDelete(entry);
     setOpenDeleteModal(true);
@@ -149,13 +149,13 @@ const ScheduleManagement = () => {
 
   const handleConfirmDelete = async () => {
     if (entryToDelete) {
-        try {
-            await deleteScheduleEntry(entryToDelete._id);
-            setFormMessage({ key: 'schedule_entry_deleted_success', type: 'success' });
-            setRefreshKey(k => k + 1);
-        } catch (err) {
-            setFormMessage({ key: 'generic_error', type: 'error' });
-        }
+      try {
+        await deleteScheduleEntry(entryToDelete._id);
+        setFormMessage({ key: 'schedule_entry_deleted_success', type: 'success' });
+        setRefreshKey(k => k + 1);
+      } catch (err) {
+        setFormMessage({ key: 'generic_error', type: 'error' });
+      }
     }
     handleCloseDeleteModal();
   };
@@ -174,40 +174,44 @@ const ScheduleManagement = () => {
     setSelectedCourseDetails(entry.course);
     setSelectedRoomDetails(entry.room);
     setFormData({
-        course: entry.course._id,
-        room: entry.room._id,
-        dayOfWeek: entry.dayOfWeek,
-        startTime: parseTimeString(entry.startTime),
-        endTime: parseTimeString(entry.endTime),
-        type: entry.type,
-        group: entry.group || '',
-        academicYear: entry.academicYear,
-        semester: entry.semester
+      course: entry.course._id,
+      room: entry.room._id,
+      dayOfWeek: entry.dayOfWeek,
+      startTime: parseTimeString(entry.startTime),
+      endTime: parseTimeString(entry.endTime),
+      type: entry.type,
+      group: entry.group || '',
+      academicYear: entry.academicYear,
+      semester: entry.semester
     });
-    
+
     setTimeout(() => {
       titleRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 100);
   };
-  
+
   const scheduleColumns = [
-    { id: 'course.name', label: 'course_label', sortable: true, renderCell: (row) => (
-      <Box>
-        <Typography variant="body2" sx={{ fontWeight: 'bold' }}>{row.course?.name || 'N/A'}</Typography>
-        <Typography variant="caption" color="text.secondary">{row.course?.code || ''}</Typography>
-      </Box>
-    )},
+    {
+      id: 'course.name', label: 'course_label', sortable: true, renderCell: (row) => (
+        <Box>
+          <Typography variant="body2" sx={{ fontWeight: 'bold' }}>{row.course?.name || 'N/A'}</Typography>
+          <Typography variant="caption" color="text.secondary">{row.course?.code || ''}</Typography>
+        </Box>
+      )
+    },
     { id: 'type', label: 'type_label', sortable: true, renderCell: (row) => t(`type_${row.type}`) },
     { id: 'room.name', label: 'room_label', sortable: true, renderCell: (row) => row.room?.name || 'N/A' },
     { id: 'dayOfWeek', label: 'day_of_week_label', sortable: true, renderCell: (row) => t(`day_${row.dayOfWeek}`) },
     { id: 'startTime', label: 'time_slot_label', sortable: true, renderCell: (row) => `${row.startTime} - ${row.endTime}` },
     { id: 'group', label: 'group_label', sortable: true, renderCell: (row) => row.group || t('all_groups') },
-    { id: 'actions', label: 'actions_label', align: 'center', renderCell: (row) => (
-      <>
-        <IconButton color="primary" onClick={() => handleEditClick(row)}><EditIcon /></IconButton>
-        <IconButton color="error" onClick={() => handleDeleteClick(row)}><DeleteIcon /></IconButton>
-      </>
-    )}
+    {
+      id: 'actions', label: 'actions_label', align: 'center', renderCell: (row) => (
+        <>
+          <IconButton color="primary" onClick={() => handleEditClick(row)}><EditIcon /></IconButton>
+          <IconButton color="error" onClick={() => handleDeleteClick(row)}><DeleteIcon /></IconButton>
+        </>
+      )
+    }
   ];
 
   return (
@@ -216,14 +220,14 @@ const ScheduleManagement = () => {
       <Typography ref={titleRef} variant="h4" component="h1" gutterBottom sx={{ textAlign: 'center' }}>
         {t('schedule_management_title')}
       </Typography>
-      {formMessage.key && 
-        <Alert 
-          severity={formMessage.type} 
-          sx={{ mb: 2 }} 
+      {formMessage.key &&
+        <Alert
+          severity={formMessage.type}
+          sx={{ mb: 2 }}
           onClose={() => setFormMessage({ key: '', type: '' })}
         >
-          {t(formMessage.key, { 
-            ...formMessage.details, 
+          {t(formMessage.key, {
+            ...formMessage.details,
             dayOfWeek: formMessage.details?.dayOfWeek ? t(`day_${formMessage.details.dayOfWeek}`) : ''
           })}
         </Alert>
@@ -249,34 +253,34 @@ const ScheduleManagement = () => {
             </Grid>
 
             {(selectedCourseDetails || selectedRoomDetails) && (
-              <Grid size={ 12 }>
+              <Grid size={12}>
                 <Paper variant="outlined" sx={{ p: 2, bgcolor: 'action.hover' }}>
-                    <Grid container spacing={2} sx={{ width: '100%' }}>
-                        {selectedCourseDetails && (
-                            <Grid size={{ xs: 12, sm: 6 }}>
-                                <Typography variant="subtitle2" gutterBottom>{t('course_details_label')}</Typography>
-                                <Stack direction="row" spacing={3}>
-                                    <TextField label={t('course_year_label')} value={selectedCourseDetails.yearOfStudy} InputProps={{ readOnly: true }} variant="standard" />
-                                    <TextField label={t('course_specialization_label')} value={selectedCourseDetails.specialization} InputProps={{ readOnly: true }} variant="standard" />
-                                </Stack>
-                            </Grid>
-                        )}
-                        {selectedRoomDetails && (
-                            <Grid size={{ xs: 12, sm: 6 }}>
-                                <Typography variant="subtitle2" gutterBottom>{t('room_details_label')}</Typography>
-                                <Stack direction="row" spacing={3}>
-                                    <TextField label={t('room_capacity_label')} value={selectedRoomDetails.capacity} InputProps={{ readOnly: true }} variant="standard" />
-                                    <TextField 
-                                      label={t('equipment_label')} 
-                                      value={(selectedRoomDetails.equipment || []).map(key => t(`equipment_${key}`)).join(', ') || t('none')} 
-                                      InputProps={{ readOnly: true }} 
-                                      variant="standard" 
-                                      fullWidth
-                                    />
-                                </Stack>
-                            </Grid>
-                        )}
-                    </Grid>
+                  <Grid container spacing={2} sx={{ width: '100%' }}>
+                    {selectedCourseDetails && (
+                      <Grid size={{ xs: 12, sm: 6 }}>
+                        <Typography variant="subtitle2" gutterBottom>{t('course_details_label')}</Typography>
+                        <Stack direction="row" spacing={3}>
+                          <TextField label={t('course_year_label')} value={selectedCourseDetails.yearOfStudy} InputProps={{ readOnly: true }} variant="standard" />
+                          <TextField label={t('course_specialization_label')} value={selectedCourseDetails.specialization} InputProps={{ readOnly: true }} variant="standard" />
+                        </Stack>
+                      </Grid>
+                    )}
+                    {selectedRoomDetails && (
+                      <Grid size={{ xs: 12, sm: 6 }}>
+                        <Typography variant="subtitle2" gutterBottom>{t('room_details_label')}</Typography>
+                        <Stack direction="row" spacing={3}>
+                          <TextField label={t('room_capacity_label')} value={selectedRoomDetails.capacity} InputProps={{ readOnly: true }} variant="standard" />
+                          <TextField
+                            label={t('equipment_label')}
+                            value={(selectedRoomDetails.equipment || []).map(key => t(`equipment_${key}`)).join(', ') || t('none')}
+                            InputProps={{ readOnly: true }}
+                            variant="standard"
+                            fullWidth
+                          />
+                        </Stack>
+                      </Grid>
+                    )}
+                  </Grid>
                 </Paper>
               </Grid>
             )}
@@ -336,8 +340,8 @@ const ScheduleManagement = () => {
           </Stack>
         </Box>
       </Paper>
-      
-      {showStats && <ProfessorWorkloadList />}
+
+      {showStats && <ProfessorWorkloadList refreshKey={refreshKey} />}
 
       <PaginatedTable
         columns={scheduleColumns}
@@ -345,12 +349,11 @@ const ScheduleManagement = () => {
         refreshKey={refreshKey}
         titleKey="schedule_table_title"
       />
-      
+
       <Dialog open={openDeleteModal} onClose={handleCloseDeleteModal}>
         <DialogTitle>{t('delete_schedule_entry_confirm')}</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            {/* The existing i18n key 'delete_schedule_entry_confirm' is just a question, so we use it as Title and Content or just Content */}
             {t('delete_schedule_entry_modal_content', { scheduleEntryName: entryToDelete?.courseName || '' })}
           </DialogContentText>
         </DialogContent>

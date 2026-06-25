@@ -1,3 +1,4 @@
+// src/pages/Statistics.jsx
 import React from 'react';
 import { Container, Typography } from '@mui/material';
 import AppointmentStatusChart from '../components/charts/AppointmentStatusChart';
@@ -13,7 +14,7 @@ const Statistics = () => {
             <Typography variant="h4" component="h1" gutterBottom>
                 Faculty Statistics
             </Typography>
-            
+
             <AppointmentStatusChart />
             <CoursesByYearChart />
             <ProfessorWorkloadList />

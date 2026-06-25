@@ -1,4 +1,4 @@
-// src/components/BackButton.jsx
+// src/components/schedule/BackButton.jsx
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@mui/material';

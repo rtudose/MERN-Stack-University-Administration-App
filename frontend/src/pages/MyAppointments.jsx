@@ -41,7 +41,7 @@ const MyAppointments = () => {
     if (location.state?.highlightedId) {
       const { highlightedId } = location.state;
       setHighlightedId(highlightedId);
-      
+
       navigate(location.pathname, { replace: true });
 
       const timer = setTimeout(() => setHighlightedId(null), 4000);
@@ -71,7 +71,6 @@ const MyAppointments = () => {
         fetchAppointments();
       } catch (err) {
         console.error("Failed to cancel appointment", err);
-        // Maybe set an error message to display in an Alert
       }
     }
     closeCancelModal();
@@ -90,7 +89,7 @@ const MyAppointments = () => {
           arrow
           slotProps={{
             tooltip: {
-              sx: { 
+              sx: {
                 fontSize: '1rem',
                 lineHeight: 1.6,
                 p: 1
@@ -112,7 +111,7 @@ const MyAppointments = () => {
         </Tooltip>
       );
     }
-    
+
     return <Chip label={t(`appointment_status_${status}`)} color={color || 'default'} size="small" />;
   };
 

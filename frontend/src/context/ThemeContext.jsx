@@ -1,8 +1,8 @@
-// src/context/ThemeContext.jsx (Final Version)
+// src/context/ThemeContext.jsx
 import React, { createContext, useState, useMemo, useContext } from 'react';
 
 export const ColorModeContext = createContext({
-  toggleColorMode: () => {},
+  toggleColorMode: () => { },
   mode: 'light',
 });
 

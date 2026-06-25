@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { getProfessorWorkloadStats } from '../../services/scheduleService';
 import { Paper, Typography, Box, Stack, LinearProgress, useTheme } from '@mui/material';
 
-const ProfessorWorkloadList = () => {
+const ProfessorWorkloadList = ({ refreshKey }) => {
     const { t } = useTranslation();
     const theme = useTheme();
     const [statsData, setStatsData] = useState([]);
@@ -19,7 +19,7 @@ const ProfessorWorkloadList = () => {
             }
         };
         fetchStats();
-    }, []);
+    }, [refreshKey]);
 
     if (statsData.length === 0) {
         return (

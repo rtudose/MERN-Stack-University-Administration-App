@@ -3,7 +3,6 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 
-// Define your translations
 const resources = {
   en: {
     translation: {
@@ -39,7 +38,7 @@ const resources = {
       "login_failed_generic": "Login failed. Please try again.",
       "invalid_credentials_error": "Invalid credentials",
       "user_not_found_error": "User not found",
-      
+
       // Admin Dashboard
       "admin_dashboard_title": "Admin Dashboard",
       "admin_dashboard_welcome": "Welcome, {{role}}!",
@@ -73,7 +72,6 @@ const resources = {
       "show_stats": "Show Room Statistics",
       "delete_room_confirm": "Confirm Deletion",
       "delete_room_modal_content": "Are you sure you want to permanently delete the room '{{roomName}}'? This action cannot be undone.",
-      
 
       // User Management Page
       "users_management_title": "User Management",
@@ -155,7 +153,7 @@ const resources = {
       "room_location_label": "Location",
       "add_room_button": "Add Room",
       "update_room_button": "Update Room",
-      
+
       // Room Booking Page
       "book_a_room_title": "Book a Room",
       "equipment_label": "Equipment",
@@ -203,8 +201,8 @@ const resources = {
       "status_approved": "Approved",
       "status_rejected": "Rejected",
       "status_cancelled": "Cancelled",
-      "status_expired" : "Expired",
-      "status_completed" : "Completed",
+      "status_expired": "Expired",
+      "status_completed": "Completed",
       "reservation_status_updated": "Reservation status updated successfully.",
       "hide_reservation_stats": "Hide Reservation Stats",
       "show_reservation_stats": "Show Reservation Stats",
@@ -349,7 +347,7 @@ const resources = {
       "room_exists_error": "A room with this name already exists.",
       "invalid_room_data": "Invalid room data provided.",
       "room_location_required_error": "Room location is required.",
-      
+
       // Success/Error Toasts
       "room_added_success": "Room '{{roomName}}' was added successfully!",
       "add_room_generic_error": "Failed to add room. Please try again.",
@@ -724,7 +722,7 @@ const resources = {
       "update_room_generic_error": "Eroare la actualizarea sălii. Vă rugăm să încercați din nou.",
       "room_deleted_success": "Sala a fost ștearsă cu succes!",
       "delete_room_generic_error": "Eroare la ștergerea sălii. Vă rugăm să încercați din nou.",
-      
+
       // Other Backend Messages
       "course_not_found": "Cursul nu a fost găsit",
       "room_not_found": "Sala nu a fost găsită",

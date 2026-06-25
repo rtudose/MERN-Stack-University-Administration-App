@@ -1,69 +1,69 @@
 [
     {
-        "name": "Software Engineering",
-        "code": "CS301",
-        "description": "Principles of software design and architecture.",
+        "name": "Inginerie software",
+        "code": "IS",
+        "description": "Principii de proiectare si arhitectura software.",
         "credits": 5,
         "professors": {
             "lecture": "Anonim",
             "seminar": "Anonim",
             "lab": "Anonim"
         },
-        "department": "Computer Science",
+        "department": "Calculatoare",
         "yearOfStudy": 3,
         "semester": 1,
         "specialization": "Informatica"
     },
     {
-        "name": "Database Management Systems",
-        "code": "CS302",
-        "description": "Advanced topics in database systems.",
+        "name": "Sisteme de gestiune a bazelor de date",
+        "code": "SGBD",
+        "description": "Topici avansate in sisteme de baze de date.",
         "credits": 5,
         "professors": {
             "lecture": "Anonim",
             "lab": "Anonim"
         },
-        "department": "Computer Science",
+        "department": "Calculatoare",
         "yearOfStudy": 3,
         "semester": 1,
         "specialization": "Informatica"
     },
     {
-        "name": "Computer Networks",
-        "code": "CS303",
-        "description": "Understanding network protocols and layers.",
+        "name": "Retele de calculatoare",
+        "code": "RC",
+        "description": "Intelegerea protocoalelor si straturilor de retea.",
         "credits": 4,
         "professors": {
             "lecture": "Anonim"
         },
-        "department": "Computer Science",
+        "department": "Calculatoare",
         "yearOfStudy": 3,
         "semester": 1,
         "specialization": "Informatica"
     },
     {
-        "name": "Artificial Intelligence",
-        "code": "CS304",
-        "description": "Introduction to AI concepts and algorithms.",
+        "name": "Inteligenta artificiala",
+        "code": "IA",
+        "description": "Introducere in concepte si algoritmi de inteligenta artificiala.",
         "credits": 5,
         "professors": {
             "lecture": "Anonim",
             "lab": "Anonim"
         },
-        "department": "Computer Science",
+        "department": "Calculatoare",
         "yearOfStudy": 3,
         "semester": 2,
         "specialization": "Informatica"
     },
     {
-        "name": "Calculus I",
-        "code": "MA101",
-        "description": "Introduction to differential calculus.",
+        "name": "Analiza matematica 1",
+        "code": "AM1",
+        "description": "Introducere in calculul diferential.",
         "credits": 6,
         "professors": {
             "lecture": "Anonim"
         },
-        "department": "Mathematics",
+        "department": "Matematica",
         "yearOfStudy": 1,
         "semester": 1,
         "specialization": "General"
@@ -98,20 +98,6 @@
         "specialization": "MON"
     },
     {
-        "name": "Prelucrarea digitală a semnalelor",
-        "code": "PDS",
-        "description": "Continuare materii SS1/SS2/SS3",
-        "credits": 4,
-        "professors": {
-            "lecture": "Anonim",
-            "lab": "Anonim"
-        },
-        "department": "Catedra de Electronica",
-        "yearOfStudy": 3,
-        "semester": 2,
-        "specialization": "MON"
-    },
-    {
         "name": "Instrumente software pentru microelectronica",
         "code": "ISM",
         "description": "Continuare materie CIA + punere in practica",
@@ -129,20 +115,6 @@
         "name": "Calitate si fiabiliate",
         "code": "CAF",
         "description": "Notiuni de baza despre calitatea produselor electronice produse/cumparate",
-        "credits": 2,
-        "professors": {
-            "lecture": "Anonim",
-            "lab": "Anonim"
-        },
-        "department": "Catedra de Electronica",
-        "yearOfStudy": 3,
-        "semester": 2,
-        "specialization": "MON"
-    },
-    {
-        "name": "Inteligenta artificiala",
-        "code": "IA",
-        "description": "Notiuni de baza despre Inteligenta Artificiala",
         "credits": 2,
         "professors": {
             "lecture": "Anonim",
@@ -283,15 +255,15 @@
         "specialization": "General"
     },
     {
-        "name": "Programming Basics",
-        "code": "CS101",
-        "description": "Introduction to programming logic and syntax.",
+        "name": "Programarea calculatoarelor si limbaje de programare 1",
+        "code": "PCLP1",
+        "description": "Introducere in logica si sintaxa de programare.",
         "credits": 6,
         "professors": {
             "lecture": "Anonim",
             "lab": "Anonim"
         },
-        "department": "Computer Science",
+        "department": "Calculatoare",
         "yearOfStudy": 1,
         "semester": 1,
         "specialization": "General"
@@ -311,99 +283,99 @@
         "specialization": "TST"
     },
     {
-        "name": "Digital Signal Processing",
-        "code": "TST302",
-        "description": "Core concepts of DSP.",
+        "name": "Prelucrarea digitala a semnalelor",
+        "code": "PDS",
+        "description": "Concepte de baza ale prelucrarii digitale a semnalelor.",
         "credits": 4,
         "professors": {
             "lecture": "Anonim",
             "lab": "Anonim"
         },
-        "department": "Telecommunications",
+        "department": "Telecomunicatii",
         "yearOfStudy": 3,
         "semester": 2,
         "specialization": "TST"
     },
     {
-        "name": "Advanced Web Technologies",
-        "code": "ELA401",
-        "description": "Modern web frameworks and patterns.",
+        "name": "Tehnologii de programare in Internet",
+        "code": "TPI",
+        "description": "Framework-uri si sabloane web moderne.",
         "credits": 5,
         "professors": {
             "lecture": "Anonim",
             "lab": "Anonim"
         },
-        "department": "Computer Science",
+        "department": "Electronica Aplicata",
         "yearOfStudy": 4,
         "semester": 1,
         "specialization": "ELA"
     },
     {
-        "name": "Cloud Computing",
-        "code": "ELA402",
-        "description": "Introduction to cloud infrastructure and services.",
+        "name": "Robotica",
+        "code": "R",
+        "description": "Introducere in infrastructura si servicii cloud.",
         "credits": 5,
         "professors": {
             "lecture": "Anonim",
             "lab": "Anonim"
         },
-        "department": "Computer Science",
+        "department": "Electronica Aplicata",
         "yearOfStudy": 4,
         "semester": 2,
         "specialization": "ELA"
     },
     {
-        "name": "Embedded Systems",
-        "code": "MON401",
-        "description": "Design and development of embedded systems.",
+        "name": "Sisteme incorporate",
+        "code": "SI",
+        "description": "Proiectarea si dezvoltarea sistemelor incorporate.",
         "credits": 5,
         "professors": {
             "lecture": "Anonim",
             "lab": "Anonim"
         },
-        "department": "Applied Electronics",
+        "department": "Microelectronica",
         "yearOfStudy": 4,
         "semester": 1,
         "specialization": "MON"
     },
     {
-        "name": "Wireless Sensor Networks",
-        "code": "MON402",
-        "description": "Introduction to WSN architectures and protocols.",
+        "name": "Retele de senzori wireless",
+        "code": "RSW",
+        "description": "Introducere in arhitecturi si protocoale WSN.",
         "credits": 4,
         "professors": {
             "lecture": "Anonim",
             "lab": "Anonim"
         },
-        "department": "Applied Electronics",
+        "department": "Microelectronica",
         "yearOfStudy": 4,
         "semester": 2,
         "specialization": "MON"
     },
     {
-        "name": "Mobile Communications",
-        "code": "TST401",
-        "description": "Cellular networks and mobile technology.",
+        "name": "Sisteme de comunicatii mobile",
+        "code": "SCM",
+        "description": "Retele celulare si tehnologie mobila.",
         "credits": 5,
         "professors": {
             "lecture": "Anonim",
             "lab": "Anonim"
         },
-        "department": "Telecommunications",
+        "department": "Telecomunicatii",
         "yearOfStudy": 4,
         "semester": 1,
         "specialization": "TST"
     },
     {
-        "name": "Satellite Communications",
-        "code": "TST402",
-        "description": "Orbital mechanics and satellite link design.",
+        "name": "Comunicatii spatiale",
+        "code": "CS",
+        "description": "Mecanica orbitala si proiectarea legaturilor prin satelit.",
         "credits": 4,
         "professors": {
             "lecture": "Anonim",
             "lab": "Anonim"
         },
-        "department": "Telecommunications",
+        "department": "Telecomunicatii",
         "yearOfStudy": 4,
         "semester": 2,
         "specialization": "TST"

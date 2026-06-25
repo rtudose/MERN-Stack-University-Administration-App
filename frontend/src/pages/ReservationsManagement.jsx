@@ -138,7 +138,7 @@ const ReservationsManagement = () => {
         </FormControl>
       </Box>
 
-      {showStats && <ReservationStatusChart />}
+      {showStats && <ReservationStatusChart refreshKey={refreshKey} />}
 
       <PaginatedTable
         columns={reservationColumns}

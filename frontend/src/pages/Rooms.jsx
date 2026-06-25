@@ -210,7 +210,7 @@ function Rooms() {
         </Box>
       </Paper>
 
-      {showStats && <RoomStatusChart />}
+      {showStats && <RoomStatusChart refreshKey={refreshKey} />}
 
       <PaginatedTable
         columns={roomColumns}

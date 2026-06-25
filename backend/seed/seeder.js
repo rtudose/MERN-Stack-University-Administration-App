@@ -24,14 +24,12 @@ const connectDB = async () => {
   }
 };
 
-// --- Configuration ---
-const SPECIALIZATIONS = ['ELA', 'MON', 'TST'];
+const SPECIALIZATIONS = ['ELA', 'MON', 'TST', 'CTI'];
 const GROUPS = ['A', 'B', 'C', 'D'];
-const NUM_STUDENTS_PER_YEAR = 40; // Total ~160 students
+const NUM_STUDENTS_PER_YEAR = 40;
 const NUM_TEACHERS = 30;
 const NUM_EXTERNAL_REPS = 10;
 
-// Helper to get random specialization based on year
 const getSpecializationForYear = (year) => {
   if (year <= 2) return 'General';
   return faker.helpers.arrayElement(SPECIALIZATIONS);
@@ -47,16 +45,15 @@ const generateData = async () => {
     await ScheduleEntry.deleteMany();
     await Appointment.deleteMany();
 
-    // 1. Create Admin
     const admin = await User.create({
       username: 'admin',
-      email: 'admin@example.com',
-      password: 'password123',
-      role: 'admin'
+      email: process.env.ADMIN_EMAIL || 'admin@example.com',
+      password: process.env.ADMIN_PASSWORD || 'password123',
+      role: 'admin',
+      createdAt: faker.date.past({ years: 10 })
     });
     console.log('Admin created');
 
-    // 2. Create Rooms (from rooms.json if exists, else generate)
     let roomsData = [];
     const roomsFilePath = path.join(__dirname, 'rooms.json');
     if (fs.existsSync(roomsFilePath)) {
@@ -71,7 +68,6 @@ const generateData = async () => {
     const createdRooms = await Room.create(roomsData);
     console.log(`${createdRooms.length} rooms created`);
 
-    // 3. Create Teachers
     const teachers = [];
     for (let i = 0; i < NUM_TEACHERS; i++) {
       const gender = faker.person.sexType();
@@ -83,59 +79,47 @@ const generateData = async () => {
         username: `${prefix} ${firstName} ${lastName}`,
         email: faker.internet.email({ firstName, lastName }).toLowerCase(),
         password: 'password123',
-        role: 'teacher'
+        role: 'teacher',
+        createdAt: faker.date.past({ years: 10 })
       });
     }
     const createdTeachers = await User.create(teachers);
     console.log(`${createdTeachers.length} teachers created`);
 
-    // 4. Create External Representatives
     const externalReps = [];
     for (let i = 0; i < NUM_EXTERNAL_REPS; i++) {
       externalReps.push({
-        username: faker.internet.userName(),
+        username: faker.internet.username(),
         email: faker.internet.email().toLowerCase(),
         password: 'password123',
-        role: 'external_representative'
+        role: 'external_representative',
+        createdAt: faker.date.past({ years: 10 })
       });
     }
     await User.create(externalReps);
     console.log(`${NUM_EXTERNAL_REPS} external representatives created`);
 
-    // 5. Create Courses (using anonymized teachers)
-    // We'll read courses.json and replace professor names with our newly created ones
     const originalCourses = JSON.parse(fs.readFileSync(path.join(__dirname, 'courses.json'), 'utf-8'));
 
-    // Map of original professor name to new anonymized teacher object
-    const professorMap = {};
-    const getAnonymizedTeacher = (originalName) => {
-      if (!originalName) return null;
-      if (!professorMap[originalName]) {
-        professorMap[originalName] = faker.helpers.arrayElement(createdTeachers);
-      }
-      return professorMap[originalName].username;
-    };
-
     const courseData = originalCourses.map(course => {
-      // Ensure specialization logic matches (General for Year 1-2, Specific for 3-4)
       let spec = course.specialization;
       if (course.yearOfStudy <= 2) spec = 'General';
-      else if (spec === 'Informatica') spec = 'ELA'; // Mapping old names to new ones if needed
+      else if (spec === 'Informatica') spec = 'CTI';
+      const assignedTeachers = faker.helpers.arrayElements(createdTeachers, 3);
 
       return {
         ...course,
         specialization: spec,
         professors: {
-          lecture: getAnonymizedTeacher(course.professors.lecture),
-          seminar: course.professors.seminar ? getAnonymizedTeacher(course.professors.seminar) : undefined,
-          lab: course.professors.lab ? getAnonymizedTeacher(course.professors.lab) : undefined
+          lecture: assignedTeachers[0].username,
+          seminar: course.professors.seminar ? assignedTeachers[1].username : undefined,
+          lab: course.professors.lab ? assignedTeachers[2].username : undefined
         }
       };
     });
     const createdCourses = await Course.create(courseData);
     console.log(`${createdCourses.length} courses created with anonymized professors`);
 
-    // 6. Create Students
     const students = [];
     for (let year = 1; year <= 4; year++) {
       for (let i = 0; i < NUM_STUDENTS_PER_YEAR; i++) {
@@ -145,7 +129,7 @@ const generateData = async () => {
         const specialization = getSpecializationForYear(year);
 
         students.push({
-          username: faker.internet.userName({ firstName, lastName }),
+          username: faker.internet.username({ firstName, lastName }),
           email: faker.internet.email({ firstName, lastName }).toLowerCase(),
           password: 'password123',
           role: 'student',
@@ -153,14 +137,14 @@ const generateData = async () => {
             yearOfStudy: year,
             specialization: specialization,
             group: faker.helpers.arrayElement(GROUPS)
-          }
+          },
+          createdAt: faker.date.past({ years: 10 })
         });
       }
     }
     await User.create(students);
     console.log(`${students.length} students created (Years 1-4)`);
 
-    // 7. Generate Schedule Entries (Simplified logic)
     console.log('Generating schedule entries...');
     const scheduleEntries = [];
     const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
@@ -172,7 +156,6 @@ const generateData = async () => {
       ['16:00', '18:00']
     ];
 
-    // For each course, create a few schedule entries
     for (const course of createdCourses) {
       const numEntries = faker.number.int({ min: 1, max: 2 });
       for (let i = 0; i < numEntries; i++) {

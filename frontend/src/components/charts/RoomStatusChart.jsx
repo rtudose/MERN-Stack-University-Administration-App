@@ -5,7 +5,7 @@ import { getRoomStatsByStatus } from '../../services/roomService';
 import { Paper, Typography, Box } from '@mui/material';
 import { PieChart } from '@mui/x-charts/PieChart';
 
-const RoomStatusChart = () => {
+const RoomStatusChart = ({ refreshKey }) => {
     const { t } = useTranslation();
     const [chartData, setChartData] = useState([]);
 
@@ -23,7 +23,7 @@ const RoomStatusChart = () => {
             }
         };
         fetchStats();
-    }, [t]);
+    }, [t, refreshKey]);
 
     return (
         <Paper sx={{ p: 2, mb: 2 }}>

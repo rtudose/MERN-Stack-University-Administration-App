@@ -5,7 +5,7 @@ import { getStudentRegistrationStats } from '../../services/userService';
 import { Paper, Typography, Box } from '@mui/material';
 import { BarChart } from '@mui/x-charts/BarChart';
 
-const StudentRegistrationChart = () => {
+const StudentRegistrationChart = ({ refreshKey }) => {
     const { t } = useTranslation();
     const [statsData, setStatsData] = useState([]);
 
@@ -19,7 +19,7 @@ const StudentRegistrationChart = () => {
             }
         };
         fetchStats();
-    }, []);
+    }, [refreshKey]);
 
     return (
         <Paper sx={{ p: 2, mb: 2 }}>

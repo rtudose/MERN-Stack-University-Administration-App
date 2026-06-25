@@ -1,24 +1,26 @@
 /* src/index.css */
 
-/* Hide the default number input arrows (spinners) for a cleaner look */
-input[type=number]::-webkit-inner-spin-button, 
-input[type=number]::-webkit-outer-spin-button { 
-  -webkit-appearance: none; 
-  margin: 0; 
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
+
 input[type=number] {
   -moz-appearance: textfield;
 }
 
-/* Fix for the time input's clock icon being invisible in dark mode */
 html[data-mui-color-scheme="dark"] input[type="time"]::-webkit-calendar-picker-indicator {
   filter: invert(1);
 }
 
 @keyframes subtleBounce {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateY(0);
   }
+
   50% {
     transform: translateY(-3px);
   }
@@ -26,8 +28,9 @@ html[data-mui-color-scheme="dark"] input[type="time"]::-webkit-calendar-picker-i
 
 @keyframes highlightFade {
   0% {
-    background-color: rgba(255, 160, 0, 0.5); /* Bright orange highlight */
+    background-color: rgba(255, 160, 0, 0.5);
   }
+
   100% {
     background-color: transparent;
   }

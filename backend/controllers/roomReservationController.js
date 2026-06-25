@@ -36,19 +36,19 @@ const createRoomReservation = async (req, res) => {
                 $gte: startOfDay,
                 $lte: endOfDay
             },
-            status: { $in: ['pending', 'approved'] } 
+            status: { $in: ['pending', 'approved'] }
         });
 
         for (let resv of existingReservations) {
             if (checkTimeOverlap(resv.startTime, resv.endTime, startTime, endTime)) {
                 return res.status(400).json({
-                        msg: 'RESERVATION_ROOM_RESERVED',
-                        details: {
-                            roomName: existingRoom.name,
-                            reservedBy: resv.reservedBy,
-                            startTime: resv.startTime,
-                            endTime: resv.endTime
-                        }
+                    msg: 'RESERVATION_ROOM_RESERVED',
+                    details: {
+                        roomName: existingRoom.name,
+                        reservedBy: resv.reservedBy,
+                        startTime: resv.startTime,
+                        endTime: resv.endTime
+                    }
                 });
             }
         }
@@ -78,28 +78,27 @@ const createRoomReservation = async (req, res) => {
         }
 
         const newReservation = new RoomReservation({
-        room,
-        reservedBy: user.username,
-        contactEmail: user.email,
-        date: startOfDay,
-        startTime,
-        endTime,
-        purpose,
-        attendees,
-        status: 'pending'
+            room,
+            reservedBy: user.username,
+            contactEmail: user.email,
+            date: startOfDay,
+            startTime,
+            endTime,
+            purpose,
+            attendees,
+            status: 'pending'
         });
 
         await newReservation.save();
-        // TODO: Send automatic confirmation email here (future)
 
         res.status(201).json({ msg: 'Room reservation request submitted successfully. Awaiting administrator approval.', reservation: newReservation });
 
-    } catch (err) {   
+    } catch (err) {
         if (err.name === 'ValidationError') {
             const messages = Object.values(err.errors).map(val => val.message);
             return res.status(400).json({ msg: messages.join(', ') });
         }
-        
+
         if (err.name === 'Error' && err.message.includes('End time must be after start time')) {
             return res.status(400).json({ msg: err.message });
         }
@@ -118,7 +117,7 @@ const getRoomReservations = async (req, res) => {
         if (room) filter.room = room;
         if (date) {
             const queryDate = new Date(date);
-            queryDate.setHours(0,0,0,0);
+            queryDate.setHours(0, 0, 0, 0);
             filter.date = {
                 $gte: queryDate,
                 $lt: new Date(queryDate.getTime() + 24 * 60 * 60 * 1000) // Next day
@@ -126,8 +125,8 @@ const getRoomReservations = async (req, res) => {
         }
 
         const reservations = await RoomReservation.find(filter)
-                                                  .populate('room', ['name', 'location'])
-                                                  .sort({ date: 1, startTime: 1 });
+            .populate('room', ['name', 'location'])
+            .sort({ date: 1, startTime: 1 });
         res.json(reservations);
     } catch (err) {
         console.error(err.message);
@@ -138,15 +137,15 @@ const getRoomReservations = async (req, res) => {
 const getRoomReservationById = async (req, res) => {
     try {
         const reservation = await RoomReservation.findById(req.params.id)
-                                                    .populate('room', ['name', 'location']);
+            .populate('room', ['name', 'location']);
         if (!reservation) {
-        return res.status(404).json({ msg: 'Reservation not found' });
+            return res.status(404).json({ msg: 'Reservation not found' });
         }
         res.json(reservation);
     } catch (err) {
         console.error(err.message);
         if (err.kind === 'ObjectId') {
-        return res.status(400).json({ msg: 'Invalid Reservation ID' });
+            return res.status(400).json({ msg: 'Invalid Reservation ID' });
         }
         res.status(500).send('Server Error');
     }
@@ -158,7 +157,7 @@ const updateRoomReservationStatus = async (req, res) => {
     try {
         let reservation = await RoomReservation.findById(req.params.id);
         if (!reservation) {
-        return res.status(404).json({ msg: 'Reservation not found' });
+            return res.status(404).json({ msg: 'Reservation not found' });
         }
 
         if (!['approved', 'rejected', 'cancelled'].includes(status)) {
@@ -170,13 +169,12 @@ const updateRoomReservationStatus = async (req, res) => {
         if (adminNotes) reservation.adminNotes = adminNotes;
 
         await reservation.save();
-        // TODO: Send notification email to the contactEmail based on status change (future)
         res.json({ msg: `Reservation status updated to ${status}`, reservation });
 
     } catch (err) {
         console.error(err.message);
         if (err.kind === 'ObjectId') {
-        return res.status(400).json({ msg: 'Invalid Reservation ID' });
+            return res.status(400).json({ msg: 'Invalid Reservation ID' });
         }
         res.status(500).send('Server Error');
     }
@@ -186,13 +184,13 @@ const deleteRoomReservation = async (req, res) => {
     try {
         const reservation = await RoomReservation.findByIdAndDelete(req.params.id);
         if (!reservation) {
-        return res.status(404).json({ msg: 'Reservation not found' });
+            return res.status(404).json({ msg: 'Reservation not found' });
         }
         res.json({ msg: 'Room reservation removed' });
     } catch (err) {
         console.error(err.message);
         if (err.kind === 'ObjectId') {
-        return res.status(400).json({ msg: 'Invalid Reservation ID' });
+            return res.status(400).json({ msg: 'Invalid Reservation ID' });
         }
         res.status(500).send('Server Error');
     }
