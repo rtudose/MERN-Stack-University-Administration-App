@@ -19,10 +19,12 @@ export const AuthProvider = ({ children }) => {
     const userRole = localStorage.getItem('userRole');
     const userEmail = localStorage.getItem('userEmail');
     const username = localStorage.getItem('username');
+    const studentData = localStorage.getItem('studentDetails');
+    const studentDetails = studentData ? JSON.parse(studentData) : null;
 
     if (token && userRole && username && userEmail) {
       axios.defaults.headers.common['x-auth-token'] = token;
-      setUser({ token, role: userRole, email: userEmail, username: username });
+      setUser({ token, role: userRole, email: userEmail, username: username, studentDetails });
     }
     setLoading(false);
   }, []);
@@ -30,15 +32,19 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       const response = await axios.post(`${API_URL}/api/auth/login`, { email, password });
-      const { token, role, username, email: userEmail } = response.data;
+      const { token, role, username, email: userEmail, studentDetails } = response.data;
 
       localStorage.setItem('token', token);
       localStorage.setItem('userRole', role);
       localStorage.setItem('userEmail', userEmail);
       localStorage.setItem('username', username);
 
+      if (studentDetails) {
+        localStorage.setItem('studentDetails', JSON.stringify(studentDetails));
+      }
+
       axios.defaults.headers.common['x-auth-token'] = token;
-      setUser({ token, role, username, email: userEmail });
+      setUser({ token, role, username, email: userEmail, studentDetails });
 
       return { success: true };
     } catch (error) {
@@ -53,6 +59,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('userRole');
     localStorage.removeItem('userEmail');
     localStorage.removeItem('username');
+    localStorage.removeItem('studentDetails');
     delete axios.defaults.headers.common['x-auth-token'];
     setUser(null);
   };

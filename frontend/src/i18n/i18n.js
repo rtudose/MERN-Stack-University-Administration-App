@@ -27,6 +27,8 @@ const resources = {
       "logout_button": "Logout",
       "toggle_theme_tooltip": "Toggle light/dark theme",
       "open_settings_tooltip": "Open user settings",
+      "nav_year": "Year",
+      "nav_group": "Group",
 
       // Login Page
       "login_header": "Login",
@@ -393,6 +395,8 @@ const resources = {
       "logout_button": "Deconectare",
       "toggle_theme_tooltip": "Comută tema lumină/întuneric",
       "open_settings_tooltip": "Deschide setările de utilizator",
+      "nav_year": "Anul",
+      "nav_group": "Grupa",
 
       // Login Page
       "login_header": "Autentificare",

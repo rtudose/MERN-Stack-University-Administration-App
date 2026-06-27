@@ -157,17 +157,32 @@ const generateData = async () => {
     ];
 
     for (const course of createdCourses) {
-      const numEntries = faker.number.int({ min: 1, max: 2 });
-      for (let i = 0; i < numEntries; i++) {
-        const slot = faker.helpers.arrayElement(timeSlots);
+      const lectureSlot = faker.helpers.arrayElement(timeSlots);
+      scheduleEntries.push({
+        course: course._id,
+        room: faker.helpers.arrayElement(createdRooms)._id,
+        dayOfWeek: faker.helpers.arrayElement(days),
+        startTime: lectureSlot[0],
+        endTime: lectureSlot[1],
+        type: 'Lecture',
+        group: '',
+        academicYear: '2025-2026',
+        semester: course.semester
+      });
+
+      const numPracticals = faker.number.int({ min: 1, max: 3 });
+      for (let i = 0; i < numPracticals; i++) {
+        const practicalSlot = faker.helpers.arrayElement(timeSlots);
+        const practicalType = faker.helpers.arrayElement(['Lab', 'Seminar']);
+        
         scheduleEntries.push({
           course: course._id,
           room: faker.helpers.arrayElement(createdRooms)._id,
           dayOfWeek: faker.helpers.arrayElement(days),
-          startTime: slot[0],
-          endTime: slot[1],
-          type: faker.helpers.arrayElement(['Lecture', 'Lab', 'Seminar']),
-          group: course.specialization === 'General' ? faker.helpers.arrayElement(GROUPS) : faker.helpers.arrayElement(GROUPS),
+          startTime: practicalSlot[0],
+          endTime: practicalSlot[1],
+          type: practicalType,
+          group: faker.helpers.arrayElement(GROUPS),
           academicYear: '2025-2026',
           semester: course.semester
         });

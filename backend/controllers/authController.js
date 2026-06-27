@@ -68,7 +68,8 @@ const loginUser = async (req, res) => {
         const payload = {
             user: {
                 id: user.id,
-                role: user.role
+                role: user.role,
+                studentDetails: user.role === 'student' ? user.studentDetails : null
             }
         };
 
@@ -82,7 +83,8 @@ const loginUser = async (req, res) => {
                     token,
                     role: user.role,
                     username: user.username,
-                    email: user.email
+                    email: user.email,
+                    studentDetails: user.studentDetails
                 });
             }
         );

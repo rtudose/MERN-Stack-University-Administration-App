@@ -7,7 +7,7 @@ import { Link as RouterLink } from 'react-router-dom';
 
 import {
   AppBar, Toolbar, Typography, Button, IconButton, Box,
-  Menu, MenuItem, Avatar, Tooltip, Link
+  Menu, MenuItem, Avatar, Tooltip, Link, useMediaQuery
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
@@ -34,6 +34,7 @@ const Navbar = () => {
 
   const userRole = user?.role;
   const homePath = userRole === 'admin' ? '/admin-dashboard' : '/dashboard';
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   return (
     <AppBar position="static" elevation={1}>
@@ -57,9 +58,11 @@ const Navbar = () => {
         <Box sx={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
           <Link component={RouterLink} to={user ? homePath : '/'} sx={{ color: 'inherit', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 1 }}>
             <SchoolIcon />
-            <Typography variant="h6" noWrap>
-              {t('app_title')}
-            </Typography>
+            {!isMobile && (
+              <Typography variant="h6">
+                {t('app_title')}
+              </Typography>
+            )}
           </Link>
         </Box>
 
@@ -98,6 +101,17 @@ const Navbar = () => {
                 <MenuItem disabled>
                   <Typography textAlign="center" variant="caption">{t(`role_label_${user.role}`)}</Typography>
                 </MenuItem>
+                {user.role === 'student' && user.studentDetails && (
+                  <MenuItem disabled>
+                    <Typography 
+                      textAlign="center" 
+                      variant="caption" 
+                      sx={{ color: 'text.secondary', width: '100%', borderTop: 1, borderColor: 'divider', pt: 1, mt: 0.5 }}
+                    >
+                      {t('nav_year')} {user.studentDetails.yearOfStudy} • {user.studentDetails.specialization} • {t('nav_group')} {user.studentDetails.group}
+                    </Typography>
+                  </MenuItem>
+                )}
                 <MenuItem onClick={handleLogout}>
                   <Typography textAlign="center">{t('logout_button')}</Typography>
                 </MenuItem>
