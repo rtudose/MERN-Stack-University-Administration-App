@@ -1,9 +1,11 @@
 // backend/seed/seeder.js
+const axios = require('axios');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const fs = require('fs');
 const path = require('path');
 const { faker } = require('@faker-js/faker');
+const jwt = require('jsonwebtoken');
 
 dotenv.config({ path: path.join(__dirname, '..', '.env') });
 
@@ -53,6 +55,17 @@ const generateData = async () => {
       createdAt: faker.date.past({ years: 10 })
     });
     console.log('Admin created');
+
+    const adminToken = jwt.sign(
+      { 
+        user: { 
+          id: admin._id,
+          role: 'admin'
+        } 
+      }, 
+      process.env.JWT_SECRET,
+      { expiresIn: '1h' }
+    );
 
     let roomsData = [];
     const roomsFilePath = path.join(__dirname, 'rooms.json');
@@ -188,10 +201,148 @@ const generateData = async () => {
         });
       }
     }
-    await ScheduleEntry.create(scheduleEntries);
-    console.log(`${scheduleEntries.length} schedule entries generated`);
+    console.log('Sending schedule entries to the backend API for overlap validation...');
+    let successCount = 0;
+    let overlapCount = 0;
 
-    console.log('Seeding completed successfully!');
+    for (const entry of scheduleEntries) {
+      try {
+        await axios.post('http://localhost:5000/api/schedule', entry, {
+          headers: {
+            'Content-Type': 'application/json',
+            'x-auth-token': adminToken
+          }
+        });
+        
+        successCount++;
+      } catch (err) {
+        if (err.response) {
+          console.error(`\n Request failed! Status: ${err.response.status}`);
+          console.error('Backend says:', err.response.data);
+          overlapCount++;
+        } else {
+          console.error('\n Connection refused. Is your Node.js backend server running?', err.message);
+          break; 
+        }
+      }
+    }
+
+    const dbStudents = await User.find({ role: 'student' });
+    const dbTeachers = await User.find({ role: 'teacher' });
+    const appointmenttimeSlots = [
+      ['09:00', '09:15'],
+      ['09:15', '09:30'],
+      ['09:30', '09:45'],
+      ['09:45', '10:00'],
+      ['10:00', '10:15'],
+      ['10:15', '10:30'],
+      ['10:30', '10:45'],
+      ['10:45', '11:00'],
+      ['11:00', '11:15'],
+      ['11:15', '11:30'],
+      ['11:30', '11:45'],
+      ['11:45', '12:00'],
+      ['12:00', '12:15'],
+      ['12:15', '12:30'],
+      ['12:30', '12:45'],
+      ['12:45', '13:00'],
+      ['13:00', '13:15'],
+      ['13:15', '13:30'],
+      ['13:30', '13:45'],
+      ['13:45', '14:00'],
+      ['14:00', '14:15'],
+      ['14:15', '14:30'],
+      ['14:30', '14:45'],
+      ['14:45', '15:00'],
+      ['15:00', '15:15'],
+      ['15:15', '15:30'],
+      ['15:30', '15:45'],
+      ['15:45', '16:00']
+    ];
+
+    console.log('Generating and validating Room Reservations...');
+    let resSuccess = 0, resFail = 0;
+    
+    for (let i = 0; i < 30; i++) {
+      const selectedTeacher = faker.helpers.arrayElement(dbTeachers);
+      const teacherToken = jwt.sign(
+        { user: { id: selectedTeacher._id, role: 'teacher' } }, 
+        process.env.JWT_SECRET,
+        { expiresIn: '1h' }
+      );
+      const reservationSlot = faker.helpers.arrayElement(timeSlots);
+      const reservation = {
+        room: faker.helpers.arrayElement(createdRooms)._id,
+        reservedBy: selectedTeacher.username,
+        contactEmail: faker.internet.email(),
+        date: faker.date.soon({ days: 14 }),
+        startTime: reservationSlot[0],
+        endTime: reservationSlot[1],
+        description: faker.lorem.sentence(),
+        attendees: faker.number.int({ min: 10, max: 50 }),
+        status: 'pending',
+        isReadByUser: false
+      };
+
+      try {
+        await axios.post('http://localhost:5000/api/room-reservations', reservation, {
+          headers: {
+            'Content-Type': 'application/json',
+            'x-auth-token': teacherToken 
+          }
+        });
+        resSuccess++;
+      } catch (err) {
+        if (err.response) {
+          resFail++;
+        }
+        else break;
+      }
+    }
+    console.log(`Reservations: ${resSuccess} saved, ${resFail} rejected by validation.`);
+
+    console.log('Generating and validating Secretariat Appointments...');
+    let apptSuccess = 0, apptFail = 0;
+    
+    for (let i = 0; i < 40; i++) {
+      const selectedStudent = faker.helpers.arrayElement(dbStudents);
+      const studentToken = jwt.sign(
+        { user: { id: selectedStudent._id, role: 'student' } }, 
+        process.env.JWT_SECRET,
+        { expiresIn: '1h' }
+      );
+      const appointmentSlot = faker.helpers.arrayElement(appointmenttimeSlots);
+      const appointment = {
+        student: selectedStudent._id,
+        date: faker.date.soon({ days: 14 }),
+        startTime: appointmentSlot[0],
+        endTime: appointmentSlot[1],
+        typeOfRequest: faker.helpers.arrayElement(['Adeverinte', 'Cereri de bursa', 'Reinmatriculare', 'Alte solicitari']),
+        description: faker.lorem.sentence(),
+        status: 'pending',
+        isReadByUser: false
+      };
+
+      try {
+        await axios.post('http://localhost:5000/api/appointments', appointment, {
+          headers: {
+            'Content-Type': 'application/json',
+            'x-auth-token': studentToken 
+          }
+        });
+        apptSuccess++;
+      } catch (err) {
+        if (err.response) {
+          apptFail++;
+          console.error(`\n Request failed! Status: ${err.response.status}`);
+          console.error('Backend says:', err.response.data);
+        }
+        else break;
+      }
+    }
+    console.log(`Appointments: ${apptSuccess} saved, ${apptFail} rejected by validation.`);
+
+    console.log(`\n Seeding complete: ${successCount} valid entries saved, ${overlapCount} overlapping entries safely skipped.`);
     process.exit();
   } catch (err) {
     console.error(`Error generating data: ${err.message}`);

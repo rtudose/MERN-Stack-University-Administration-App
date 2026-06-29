@@ -161,7 +161,6 @@ const updateAppointmentStatus = async (req, res) => {
     if (secretariatNotes) appointment.secretariatNotes = secretariatNotes;
 
     await appointment.save();
-    // TODO: Send notification emails for status change (future)
     res.json({ msg: `Appointment status updated to ${status}`, appointment });
 
   } catch (err) {

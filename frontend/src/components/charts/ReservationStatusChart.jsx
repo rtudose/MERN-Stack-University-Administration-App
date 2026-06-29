@@ -35,7 +35,7 @@ const ReservationStatusChart = ({ refreshKey }) => {
                     <PieChart series={[{ data: chartData, innerRadius: 50 }]} width={400} height={200} />
                 </Box>
             ) : (
-                <Typography>{t('loading_stats_data')}</Typography>
+                <Typography sx={{ textAlign: 'center', pt: 2 }}>{t('loading_stats_data')}</Typography>
             )}
         </Paper>
     );

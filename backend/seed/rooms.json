@@ -21,7 +21,7 @@
     "location": "Corp B, Etaj 2",
     "equipment": ["Projector", "Whiteboard"],
     "isAvailableForExternal": true,
-    "status": "available"
+    "status": "unavailable"
   },
   {
     "name": "Sala B204",
@@ -53,7 +53,7 @@
     "location": "Corp B, Etaj 2",
     "equipment": ["Projector", "Whiteboard"],
     "isAvailableForExternal": true,
-    "status": "available"
+    "status": "unavailable"
   },
   {
     "name": "Sala B208",
@@ -85,7 +85,7 @@
     "location": "Corp B, Etaj 2",
     "equipment": ["Projector", "Whiteboard"],
     "isAvailableForExternal": true,
-    "status": "available"
+    "status": "under_maintenance"
   },
   {
     "name": "Sala B212",
@@ -145,10 +145,18 @@
   },
   {
     "name": "Sala Senatului",
-    "capacity": 30,
+    "capacity": 100,
     "location": "Rectorat",
     "equipment": ["Projector", "Video_Conferencing", "Conference_Phone"],
     "isAvailableForExternal": true,
     "status": "under_maintenance"
+  },
+  {
+    "name": "Sala A01",
+    "capacity": 200,
+    "location": "Corp A, Etaj 1",
+    "equipment": ["Whiteboard"],
+    "isAvailableForExternal": true,
+    "status": "available"
   }
 ]
